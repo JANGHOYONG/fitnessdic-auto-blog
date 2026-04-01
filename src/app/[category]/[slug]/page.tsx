@@ -138,12 +138,9 @@ export default async function PostPage({ params }: Props) {
               className="prose-custom"
               dangerouslySetInnerHTML={{
                 __html: processedContent
-                  .replace(/<div class="ad-slot ad-top"><\/div>/g,
-                    '<div class="ad-placeholder my-6" style="background:var(--bg);border:2px dashed var(--border);min-height:90px;display:flex;align-items:center;justify-content:center;border-radius:8px"><span style="color:var(--text-muted);font-size:14px">광고 영역</span></div>')
-                  .replace(/<div class="ad-slot ad-middle"><\/div>/g,
-                    '<div class="ad-placeholder my-6" style="background:var(--bg);border:2px dashed var(--border);min-height:250px;display:flex;align-items:center;justify-content:center;border-radius:8px"><span style="color:var(--text-muted);font-size:14px">광고 영역</span></div>')
-                  .replace(/<div class="ad-slot ad-bottom"><\/div>/g,
-                    '<div class="ad-placeholder my-6" style="background:var(--bg);border:2px dashed var(--border);min-height:90px;display:flex;align-items:center;justify-content:center;border-radius:8px"><span style="color:var(--text-muted);font-size:14px">광고 영역</span></div>'),
+                  .replace(/<div class="ad-slot ad-top"><\/div>/g, '')
+                  .replace(/<div class="ad-slot ad-middle"><\/div>/g, '')
+                  .replace(/<div class="ad-slot ad-bottom"><\/div>/g, ''),
               }}
             />
 

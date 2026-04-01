@@ -27,7 +27,7 @@ function run(cmd, desc) {
 
 function checkEnv() {
   console.log('\n🔍 환경변수 확인...');
-  const required = ['GEMINI_API_KEY', 'DATABASE_URL'];
+  const required = ['OPENAI_API_KEY', 'DATABASE_URL'];
   const optional = [
     'NEXT_PUBLIC_SITE_URL',
     'NEXT_PUBLIC_SITE_NAME',

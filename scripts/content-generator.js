@@ -44,7 +44,7 @@ async function generatePost(keyword, categorySlug) {
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.8,
-    max_tokens: 8000,
+    max_tokens: 12000,
     response_format: { type: 'json_object' },
     messages: [
       {
@@ -65,10 +65,11 @@ async function generatePost(keyword, categorySlug) {
 이 키워드로 SEO 최적화 한국어 블로그 글을 작성하세요.
 
 조건:
-1. 전체 2,500자 이상 순수 한국어
-2. 구체적 수치, 실사례, 경험담 포함
+1. 전체 5,000자 이상 순수 한국어 (매우 중요!)
+2. 구체적 수치, 실사례, 경험담 풍부하게 포함
 3. 독자 공감 서론 → 핵심 정보 → 실전 팁 → 결론 구조
 4. 자연스러운 구어체와 문어체 혼용
+5. 각 소제목 섹션마다 최소 600자 이상 작성
 
 JSON 형식으로 응답 (content는 HTML, 줄바꿈 없이 한 줄):
 {
