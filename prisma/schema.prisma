@@ -1,0 +1,118 @@
+// Prisma Schema - SEO Auto Blog (PostgreSQL)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 카테고리 모델
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  keywords    Keyword[]
+  posts       Post[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// 키워드 모델
+model Keyword {
+  id           Int       @id @default(autoincrement())
+  keyword      String    @unique
+  searchVolume Int?
+  competition  Float?
+  difficulty   Int?
+  used         Boolean   @default(false)
+  priority     Int       @default(5)
+  categoryId   Int?
+  category     Category? @relation(fields: [categoryId], references: [id])
+  post         Post?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([used, priority])
+  @@index([categoryId])
+}
+
+// 게시글 모델
+// status 값: DRAFT | SCHEDULED | PUBLISHED | ARCHIVED
+model Post {
+  id              Int       @id @default(autoincrement())
+  title           String
+  slug            String    @unique
+  excerpt         String
+  content         String
+  keywords        String    // JSON 배열 문자열
+  metaTitle       String?
+  metaDescription String?
+  status          String    @default("DRAFT")
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  viewCount       Int       @default(0)
+  readTime        Int?
+
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  keywordId   Int?     @unique
+  mainKeyword Keyword? @relation(fields: [keywordId], references: [id])
+
+  relatedPosts PostRelation[] @relation("PostRelations")
+  relatedTo    PostRelation[] @relation("RelatedTo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([slug])
+}
+
+// 게시글 관련 글 연결
+model PostRelation {
+  id        Int  @id @default(autoincrement())
+  postId    Int
+  relatedId Int
+  post      Post @relation("PostRelations", fields: [postId], references: [id])
+  related   Post @relation("RelatedTo", fields: [relatedId], references: [id])
+
+  @@unique([postId, relatedId])
+}
+
+// 자동화 로그
+// type 값: KEYWORD_COLLECT | CONTENT_GENERATE | POST_PUBLISH | SITEMAP_UPDATE | ERROR
+// status 값: SUCCESS | FAILED | PENDING
+model AutomationLog {
+  id        Int      @id @default(autoincrement())
+  type      String
+  status    String
+  message   String
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+}
+
+// 방문자 통계
+model Visitor {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique  // YYYY-MM-DD
+  count     Int      @default(0)  // 총 페이지뷰
+  unique    Int      @default(0)  // 유니크 방문자 (세션 기반)
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
+
+// 사이트 설정
+model SiteConfig {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
