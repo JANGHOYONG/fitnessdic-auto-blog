@@ -138,9 +138,9 @@ export default async function PostPage({ params }: Props) {
               className="prose-custom"
               dangerouslySetInnerHTML={{
                 __html: processedContent
-                  .replace(/<div class="ad-slot ad-top"><\/div>/g, '')
-                  .replace(/<div class="ad-slot ad-middle"><\/div>/g, '')
-                  .replace(/<div class="ad-slot ad-bottom"><\/div>/g, ''),
+                  .replace(/<div class=["']ad-slot ad-top["']><\/div>/g, '')
+                  .replace(/<div class=["']ad-slot ad-middle["']><\/div>/g, '')
+                  .replace(/<div class=["']ad-slot ad-bottom["']><\/div>/g, ''),
               }}
             />
 
