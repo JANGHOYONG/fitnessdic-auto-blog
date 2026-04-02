@@ -1,0 +1,47 @@
+name: Auto Publish Blog Post
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 오전  9시 KST (UTC 00:00)
+    - cron: '0 4 * * *'   # 오후  1시 KST (UTC 04:00)
+    - cron: '0 9 * * *'   # 오후  6시 KST (UTC 09:00)
+    - cron: '0 13 * * *'  # 저녁 10시 KST (UTC 13:00)
+  workflow_dispatch:       # 수동 실행 버튼
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Generate content
+        run: node scripts/content-generator.js --count=1
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Publish post
+        run: node scripts/publisher.js --mode=immediate --limit=1
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          DAILY_POST_LIMIT: '4'
