@@ -103,6 +103,103 @@
     color: var(--text-muted);
   }
 
+  /* 본문 표 */
+  .prose-custom table {
+    @apply w-full border-collapse my-8 text-sm rounded-xl overflow-hidden;
+    box-shadow: 0 2px 12px rgba(200, 150, 122, 0.08);
+  }
+  .prose-custom th {
+    @apply px-4 py-3 text-left font-bold;
+    background-color: var(--primary);
+    color: #fff;
+    border: 1px solid var(--primary-dark);
+  }
+  .prose-custom td {
+    @apply px-4 py-3;
+    border: 1px solid var(--border);
+    background-color: var(--bg-card);
+  }
+  .prose-custom tr:nth-child(even) td { background-color: var(--bg-bar); }
+
+  /* 정보 박스 */
+  .prose-custom .info-box {
+    @apply my-8 p-5 rounded-2xl;
+    background: linear-gradient(135deg, #EDF4FF 0%, #E8F0FC 100%);
+    border-left: 4px solid #4A90D9;
+  }
+  .prose-custom .info-box::before {
+    content: '📌 핵심 포인트';
+    @apply block text-xs font-bold mb-2;
+    color: #2563EB;
+  }
+
+  /* 팁 박스 */
+  .prose-custom .tip-box {
+    @apply my-8 p-5 rounded-2xl;
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+    border-left: 4px solid #10B981;
+  }
+  .prose-custom .tip-box::before {
+    content: '💡 전문가 팁';
+    @apply block text-xs font-bold mb-2;
+    color: #059669;
+  }
+
+  /* 주의사항 박스 */
+  .prose-custom .warning-box {
+    @apply my-8 p-5 rounded-2xl;
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border-left: 4px solid #F59E0B;
+  }
+  .prose-custom .warning-box::before {
+    content: '⚠️ 주의사항';
+    @apply block text-xs font-bold mb-2;
+    color: #D97706;
+  }
+
+  /* 전문가 인용 */
+  .prose-custom .expert-quote {
+    @apply my-8 p-6 rounded-2xl relative;
+    background-color: var(--bg-bar);
+    border: 1px solid var(--border);
+  }
+  .prose-custom .expert-quote::before {
+    content: '"';
+    @apply absolute text-6xl font-bold leading-none;
+    top: -8px; left: 16px;
+    color: var(--primary);
+    opacity: 0.4;
+  }
+
+  /* 요약 박스 (글 상단) */
+  .prose-custom .summary-box {
+    @apply my-8 p-6 rounded-2xl;
+    background: linear-gradient(135deg, var(--bg-bar) 0%, #F5EDE4 100%);
+    border: 1px solid var(--border);
+  }
+  .prose-custom .summary-box::before {
+    content: '📋 이 글의 핵심 요약';
+    @apply block text-sm font-bold mb-3;
+    color: var(--primary-dark);
+  }
+
+  /* FAQ 섹션 */
+  .prose-custom .faq-item {
+    @apply my-4 p-4 rounded-xl;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+  .prose-custom .faq-item .faq-q {
+    @apply font-bold mb-2;
+    color: var(--primary-dark);
+  }
+
+  /* 스텝 번호 */
+  .prose-custom .step-box {
+    @apply my-6 pl-6 relative;
+    border-left: 3px solid var(--primary);
+  }
+
   /* 스켈레톤 */
   .skeleton {
     @apply animate-pulse rounded-xl;

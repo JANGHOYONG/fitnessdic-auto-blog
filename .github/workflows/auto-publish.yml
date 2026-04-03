@@ -11,7 +11,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -31,11 +31,26 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
+      - name: Auto-replenish keywords if low
+        run: |
+          node -e "
+          const { PrismaClient } = require('@prisma/client');
+          const prisma = new PrismaClient();
+          prisma.keyword.count({ where: { used: false } }).then(n => {
+            console.log('미사용 키워드 수:', n);
+            process.exit(n < 10 ? 1 : 0);
+          }).finally(() => prisma.\$disconnect());
+          " && echo "키워드 충분" || (echo "키워드 부족 — 자동 수집 시작" && node scripts/keyword-collector.js)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
       - name: Generate content
         run: node scripts/content-generator.js --count=1
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
 
       - name: Publish post
         run: node scripts/publisher.js --mode=immediate --limit=1
