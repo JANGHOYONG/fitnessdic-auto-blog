@@ -4,14 +4,15 @@ on:
   schedule:
     - cron: '0 0 * * *'   # 오전  9시 KST (UTC 00:00)
     - cron: '0 4 * * *'   # 오후  1시 KST (UTC 04:00)
-    - cron: '0 9 * * *'   # 오후  6시 KST (UTC 09:00)
-    - cron: '0 13 * * *'  # 저녁 10시 KST (UTC 13:00)
+    - cron: '0 8 * * *'   # 오후  5시 KST (UTC 08:00)
+    - cron: '0 12 * * *'  # 오후  9시 KST (UTC 12:00)
+    - cron: '0 16 * * *'  # 오전  1시 KST (UTC 16:00)
   workflow_dispatch:       # 수동 실행 버튼
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -38,7 +39,7 @@ jobs:
           const prisma = new PrismaClient();
           prisma.keyword.count({ where: { used: false } }).then(n => {
             console.log('미사용 키워드 수:', n);
-            process.exit(n < 10 ? 1 : 0);
+            process.exit(n < 20 ? 1 : 0);
           }).finally(() => prisma.\$disconnect());
           " && echo "키워드 충분" || (echo "키워드 부족 — 자동 수집 시작" && node scripts/keyword-collector.js)
         env:
@@ -46,17 +47,17 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Generate content
-        run: node scripts/content-generator.js --count=1
+        run: node scripts/content-generator.js --count=2
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
 
       - name: Publish post
-        run: node scripts/publisher.js --mode=immediate --limit=1
+        run: node scripts/publisher.js --mode=immediate --limit=2
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-          DAILY_POST_LIMIT: '4'
+          DAILY_POST_LIMIT: '10'
