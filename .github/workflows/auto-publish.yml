@@ -47,17 +47,17 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Generate content
-        run: node scripts/content-generator.js --count=2
+        run: node scripts/content-generator.js --count=1
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
 
       - name: Publish post
-        run: node scripts/publisher.js --mode=immediate --limit=2
+        run: node scripts/publisher.js --mode=immediate --limit=1
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-          DAILY_POST_LIMIT: '10'
+          DAILY_POST_LIMIT: '5'
