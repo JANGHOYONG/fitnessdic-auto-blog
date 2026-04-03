@@ -93,185 +93,185 @@ const SYSTEM_ROLES = {
   travel:    '20개국 이상 현지 취재 경험을 가진 여행 전문 작가. 가이드북에 없는 현지 정보, 절약 꿀팁, 감성적인 여행 스토리를 생생하게 전달. 독자가 글을 읽으며 현지에 있는 듯한 느낌을 받도록 구체적으로 작성.',
 };
 
-// ─── 글 생성 ─────────────────────────────────────────────────────────────────
+// ─── 글 생성 (2단계: 메타데이터 → 본문 분리) ──────────────────────────────────
 async function generatePost(keyword, categorySlug) {
   const role = SYSTEM_ROLES[categorySlug] || '전문 블로그 작가.';
+  const systemPrompt = `당신은 ${role}
+모든 텍스트는 순수 한국어로만 작성합니다. 외국어 문자(중국어·일본어·베트남어·러시아어 등) 사용 금지.
+영어는 IT 용어, 브랜드명 등 꼭 필요한 경우에만 사용합니다.
+AI가 쓴 티가 나지 않도록 실제 전문가가 직접 쓴 것처럼 자연스럽게 작성합니다.`;
 
-  const response = await openai.chat.completions.create({
+  // ── 1단계: 메타데이터 생성 ──────────────────────────────────────────────────
+  const metaRes = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.75,
-    max_tokens: 16000,
+    max_tokens: 1200,
     response_format: { type: 'json_object' },
     messages: [
-      {
-        role: 'system',
-        content: `당신은 ${role}
-
-[절대 규칙]
-- 모든 텍스트는 순수 한국어로만 작성합니다.
-- 중국어, 일본어, 베트남어, 러시아어 등 외국어 문자 사용 금지.
-- 영어는 IT 용어, 브랜드명 등 꼭 필요한 경우에만 사용합니다.
-- AI가 쓴 티가 나지 않도록 실제 전문가가 직접 쓴 것처럼 자연스럽게 작성합니다.
-- 단순 나열이 아닌, 이유와 근거를 함께 설명합니다.
-- JSON 형식으로만 응답합니다.`,
-      },
+      { role: 'system', content: systemPrompt },
       {
         role: 'user',
         content: `키워드: "${keyword}"
 
-이 키워드로 독자가 오래 머물고 즐겨찾기에 저장하고 싶은 깊이 있는 SEO 블로그 글을 작성하세요.
-
-[필수 조건 — 매우 중요]
-1. 전체 본문 순수 텍스트 기준 8,000자 이상 (HTML 태그 제외)
-2. 각 섹션 최소 900~1200자 이상의 풍부한 내용
-3. 구체적 수치(연구 결과, 통계, %, 기간), 실사례, 비교 데이터 반드시 포함
-4. 문단은 3~5문장 단위로 나누어 호흡감 있게 구성
-5. 독자가 "이 글 하나로 모든 걸 알았다"는 느낌이 들도록 완결성 있게 작성
-6. 전문가만 아는 심화 정보, 흔히 알려지지 않은 인사이트 반드시 포함
-7. 독자가 공감하거나 고개를 끄덕일 수 있는 생생한 경험담, 사례 포함
-
-JSON 형식으로 응답:
+아래 JSON 메타데이터만 생성하세요 (본문 제외):
 {
   "titles": ["질문형 제목", "숫자 포함 제목", "해결책형 제목"],
-  "selectedTitle": "클릭률 가장 높을 제목 1개 (30~45자, 핵심 키워드 포함)",
+  "selectedTitle": "클릭률 높은 제목 1개 (30~45자, 핵심 키워드 포함)",
   "metaTitle": "검색결과 타이틀 (55자 이내, 키워드 포함)",
   "metaDescription": "검색결과 설명 (140~155자, 키워드 + 궁금증 유발 + 클릭 유도)",
   "excerpt": "글 요약 (120~150자, 핵심 가치 전달)",
   "keywords": ["핵심키워드", "관련키워드2", "관련키워드3", "롱테일1", "롱테일2"],
-  "content": "HTML 본문 (아래 구조 준수)"
-}
+  "sections": ["섹션1 소제목", "섹션2 소제목", "섹션3 소제목", "섹션4 소제목", "섹션5 소제목", "섹션6 소제목"]
+}`,
+      },
+    ],
+  });
 
-content HTML 구조 (각 section 900자 이상):
+  const meta = JSON.parse(metaRes.choices[0].message.content);
+
+  // ── 2단계: 본문 HTML 생성 ─────────────────────────────────────────────────
+  const contentRes = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    temperature: 0.75,
+    max_tokens: 16000,
+    messages: [
+      { role: 'system', content: `${systemPrompt}\nHTML 형식의 블로그 본문만 작성합니다. JSON 없이 HTML만 출력합니다.` },
+      {
+        role: 'user',
+        content: `키워드: "${keyword}"
+제목: "${meta.selectedTitle}"
+섹션 구성: ${meta.sections.join(' / ')}
+
+위 구성으로 독자가 오래 머물고 즐겨찾기에 저장하고 싶은 완성도 높은 블로그 본문 HTML을 작성하세요.
+
+[필수 조건]
+1. 순수 텍스트 기준 6,000자 이상 (HTML 태그 제외) — 반드시 완결된 글로 끝내야 합니다
+2. 각 섹션 최소 600~900자 이상의 내용
+3. 구체적 수치(연구 결과, 통계, %, 기간), 실사례 반드시 포함
+4. 문단은 3~4문장 단위로 나누어 읽기 편하게 구성
+5. 전문가만 아는 심화 정보, 독자가 공감할 경험담 포함
+
+HTML 구조 (반드시 이 순서로, </article>로 반드시 닫을 것):
 <article>
 
-  <section class='intro'>
-    <div class='summary-box'>
-      <ul>
-        <li>이 글에서 다루는 핵심 내용 1</li>
-        <li>이 글에서 다루는 핵심 내용 2</li>
-        <li>이 글에서 다루는 핵심 내용 3</li>
-        <li>독자가 얻어갈 실용적 혜택</li>
-      </ul>
-    </div>
-    <p>서론 첫 문단: 독자의 고민/상황에 깊이 공감하는 내용 (3~4문장, 구체적 상황 묘사)</p>
-    <p>서론 둘째 문단: 이 글을 읽으면 무엇을 알게 되는지 기대감 형성 (3문장)</p>
-  </section>
+<section class="intro">
+  <div class="summary-box">
+    <ul>
+      <li>핵심 내용 1</li>
+      <li>핵심 내용 2</li>
+      <li>핵심 내용 3</li>
+      <li>독자가 얻어갈 실용적 혜택</li>
+    </ul>
+  </div>
+  <p>서론 첫 문단 (독자 공감, 3~4문장)</p>
+  <p>서론 둘째 문단 (글 기대감 형성, 3문장)</p>
+</section>
 
-  <section>
-    <h2>소제목1 — [핵심 개념 또는 원인을 독자 궁금증 해결형으로]</h2>
-    <p>배경 설명 문단 (4~5문장, 전문적 근거 포함)</p>
-    <p>핵심 메커니즘 설명 (4~5문장, 수치/통계 포함, 예: "연구에 따르면 ~%의 사람이...")</p>
-    <p>실생활 연관성 설명 (3~4문장)</p>
-    <div class='info-box'>
-      <p>이 섹션의 핵심을 2~3줄로 요약 정리</p>
-    </div>
-  </section>
+<section>
+  <h2>${meta.sections[0] || '핵심 개념과 원인'}</h2>
+  <p>배경 설명 (4~5문장, 전문적 근거 포함)</p>
+  <p>핵심 메커니즘 (4~5문장, 수치/통계 포함)</p>
+  <p>실생활 연관성 (3~4문장)</p>
+  <div class="info-box"><p>이 섹션 핵심 요약 2~3줄</p></div>
+</section>
 
-  <section>
-    <h2>소제목2 — [방법/해결책/단계별 가이드]</h2>
-    <p>도입 설명 (3~4문장)</p>
-    <p>상세 방법 설명 (4~5문장, 구체적 수치와 함께)</p>
-    <ol>
-      <li><strong>단계 1:</strong> 구체적인 설명 (2~3문장)</li>
-      <li><strong>단계 2:</strong> 구체적인 설명 (2~3문장)</li>
-      <li><strong>단계 3:</strong> 구체적인 설명 (2~3문장)</li>
-      <li><strong>단계 4:</strong> 구체적인 설명 (2~3문장)</li>
-      <li><strong>단계 5:</strong> 구체적인 설명 (2~3문장)</li>
-    </ol>
-    <p>보충 설명 및 주의점 (3~4문장)</p>
-  </section>
+<section>
+  <h2>${meta.sections[1] || '단계별 실천 가이드'}</h2>
+  <p>도입 설명 (3~4문장)</p>
+  <p>상세 방법 (4~5문장, 구체적 수치 포함)</p>
+  <ol>
+    <li><strong>단계 1:</strong> 상세 설명 (2~3문장)</li>
+    <li><strong>단계 2:</strong> 상세 설명 (2~3문장)</li>
+    <li><strong>단계 3:</strong> 상세 설명 (2~3문장)</li>
+    <li><strong>단계 4:</strong> 상세 설명 (2~3문장)</li>
+    <li><strong>단계 5:</strong> 상세 설명 (2~3문장)</li>
+  </ol>
+  <p>보충 설명 및 주의점 (3~4문장)</p>
+</section>
 
-  <section>
-    <h2>소제목3 — [전문가만 아는 심화 정보 / 흔히 하는 오해와 진실]</h2>
-    <p>문단1: 일반인이 잘못 알고 있는 상식 지적 (4~5문장)</p>
-    <p>문단2: 올바른 정보와 근거 설명 (4~5문장, 전문 연구/데이터 인용)</p>
-    <div class='expert-quote'>
-      <p>관련 전문 기관/연구/전문가의 말을 인용하거나, 저자 본인의 전문가적 견해 (3~4문장)</p>
-      <p style='font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem'>— 관련 기관 또는 연구 출처</p>
-    </div>
-    <p>문단3: 실생활 적용 방법 (3~4문장)</p>
-  </section>
+<section>
+  <h2>${meta.sections[2] || '전문가가 밝히는 오해와 진실'}</h2>
+  <p>일반인이 잘못 알고 있는 상식 (4~5문장)</p>
+  <p>올바른 정보와 근거 (4~5문장, 연구/데이터 인용)</p>
+  <div class="expert-quote">
+    <p>전문가적 견해 또는 연구 인용 (3~4문장)</p>
+    <p style="font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem">— 관련 기관 또는 연구 출처</p>
+  </div>
+  <p>실생활 적용 방법 (3~4문장)</p>
+</section>
 
-  <section>
-    <h2>소제목4 — [실전 활용 노하우 / 상황별 맞춤 가이드]</h2>
-    <p>상황 설정 (3~4문장, 독자가 실제로 겪는 상황)</p>
-    <p>상황 A 대처법 (3~4문장, 구체적)</p>
-    <p>상황 B 대처법 (3~4문장, 구체적)</p>
-    <div class='tip-box'>
-      <p>이 상황에서 바로 써먹을 수 있는 핵심 팁 3가지</p>
-      <ul>
-        <li>팁 1: 구체적 방법</li>
-        <li>팁 2: 구체적 방법</li>
-        <li>팁 3: 구체적 방법</li>
-      </ul>
-    </div>
-  </section>
+<section>
+  <h2>${meta.sections[3] || '상황별 맞춤 활용법'}</h2>
+  <p>상황 설정 (3~4문장)</p>
+  <p>상황 A 대처법 (3~4문장, 구체적)</p>
+  <p>상황 B 대처법 (3~4문장, 구체적)</p>
+  <div class="tip-box">
+    <p>바로 써먹을 수 있는 핵심 팁</p>
+    <ul>
+      <li>팁 1: 구체적 방법</li>
+      <li>팁 2: 구체적 방법</li>
+      <li>팁 3: 구체적 방법</li>
+    </ul>
+  </div>
+</section>
 
-  <section>
-    <h2>소제목5 — [비교 분석 / 선택 기준]</h2>
-    <p>비교 필요성 설명 (3~4문장)</p>
-    <table>
-      <thead><tr><th>구분</th><th>항목1</th><th>항목2</th><th>항목3</th></tr></thead>
-      <tbody>
-        <tr><td>특징</td><td>내용</td><td>내용</td><td>내용</td></tr>
-        <tr><td>장점</td><td>내용</td><td>내용</td><td>내용</td></tr>
-        <tr><td>단점</td><td>내용</td><td>내용</td><td>내용</td></tr>
-        <tr><td>추천 대상</td><td>내용</td><td>내용</td><td>내용</td></tr>
-      </tbody>
-    </table>
-    <p>표 결론 및 선택 가이드 (3~4문장)</p>
-  </section>
+<section>
+  <h2>${meta.sections[4] || '비교 분석과 선택 기준'}</h2>
+  <p>비교 필요성 (3~4문장)</p>
+  <table>
+    <thead><tr><th>구분</th><th>항목1</th><th>항목2</th><th>항목3</th></tr></thead>
+    <tbody>
+      <tr><td>특징</td><td>내용</td><td>내용</td><td>내용</td></tr>
+      <tr><td>장점</td><td>내용</td><td>내용</td><td>내용</td></tr>
+      <tr><td>단점</td><td>내용</td><td>내용</td><td>내용</td></tr>
+      <tr><td>추천 대상</td><td>내용</td><td>내용</td><td>내용</td></tr>
+    </tbody>
+  </table>
+  <p>표 결론 및 선택 가이드 (3~4문장)</p>
+</section>
 
-  <section>
-    <h2>소제목6 — [주의사항 및 흔한 실수]</h2>
-    <p>문단1: 흔히 저지르는 실수와 그 결과 (4~5문장)</p>
-    <div class='warning-box'>
-      <ul>
-        <li>절대 하면 안 되는 것 1 — 이유 포함</li>
-        <li>절대 하면 안 되는 것 2 — 이유 포함</li>
-        <li>절대 하면 안 되는 것 3 — 이유 포함</li>
-      </ul>
-    </div>
-    <p>문단2: 올바른 대안 제시 (3~4문장)</p>
-  </section>
+<section>
+  <h2>${meta.sections[5] || '주의사항과 흔한 실수'}</h2>
+  <p>흔히 저지르는 실수 (4~5문장)</p>
+  <div class="warning-box">
+    <ul>
+      <li>절대 하면 안 되는 것 1 — 이유 포함</li>
+      <li>절대 하면 안 되는 것 2 — 이유 포함</li>
+      <li>절대 하면 안 되는 것 3 — 이유 포함</li>
+    </ul>
+  </div>
+  <p>올바른 대안 제시 (3~4문장)</p>
+</section>
 
-  <section>
-    <h2>자주 묻는 질문 (FAQ)</h2>
-    <div class='faq-item'>
-      <p class='faq-q'>Q. 자주 묻는 질문 1?</p>
-      <p>A. 구체적이고 명확한 답변 (3~4문장)</p>
-    </div>
-    <div class='faq-item'>
-      <p class='faq-q'>Q. 자주 묻는 질문 2?</p>
-      <p>A. 구체적이고 명확한 답변 (3~4문장)</p>
-    </div>
-    <div class='faq-item'>
-      <p class='faq-q'>Q. 자주 묻는 질문 3?</p>
-      <p>A. 구체적이고 명확한 답변 (3~4문장)</p>
-    </div>
-    <div class='faq-item'>
-      <p class='faq-q'>Q. 자주 묻는 질문 4?</p>
-      <p>A. 구체적이고 명확한 답변 (3~4문장)</p>
-    </div>
-  </section>
+<section>
+  <h2>자주 묻는 질문 (FAQ)</h2>
+  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 1?</p><p>A. 구체적 답변 (3~4문장)</p></div>
+  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 2?</p><p>A. 구체적 답변 (3~4문장)</p></div>
+  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 3?</p><p>A. 구체적 답변 (3~4문장)</p></div>
+  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 4?</p><p>A. 구체적 답변 (3~4문장)</p></div>
+</section>
 
-  <section class='conclusion'>
-    <h2>마무리: 오늘부터 바로 실천하세요</h2>
-    <p>핵심 내용 요약 (글 전체를 압축한 3~4문장, 독자에게 가장 중요한 메시지)</p>
-    <p>독자 격려 및 행동 촉구 (글을 읽고 나서 독자가 해야 할 구체적인 첫 번째 행동, 3~4문장)</p>
-    <div class='info-box'>
-      <p>이 글에서 배운 내용을 한 줄로 정리하면: <strong>[핵심 한 줄 요약]</strong></p>
-    </div>
-  </section>
+<section class="conclusion">
+  <h2>마무리: 오늘부터 바로 실천하세요</h2>
+  <p>핵심 내용 요약 (3~4문장)</p>
+  <p>독자 격려 및 행동 촉구 (3~4문장)</p>
+  <div class="info-box"><p>이 글에서 배운 내용을 한 줄로 정리하면: <strong>[핵심 한 줄 요약]</strong></p></div>
+</section>
 
 </article>`,
       },
     ],
   });
 
-  const parsed = JSON.parse(response.choices[0].message.content);
-  const textLen = parsed.content.replace(/<[^>]*>/g, '').length;
-  return { ...parsed, readTime: Math.max(1, Math.ceil(textLen / 500)) };
+  const content = contentRes.choices[0].message.content.trim();
+  const textLen = content.replace(/<[^>]*>/g, '').length;
+  console.log(`    본문 길이: ${textLen.toLocaleString()}자`);
+
+  return {
+    ...meta,
+    content,
+    readTime: Math.max(1, Math.ceil(textLen / 500)),
+  };
 }
 
 // ─── 관련 글 연결 ─────────────────────────────────────────────────────────────
