@@ -221,15 +221,20 @@ html, body {
 </html>`;
 }
 
-// ─── 4. TTS 생성 ──────────────────────────────────────────────────────────────
+// ─── 4. TTS 생성 (Google Cloud TTS - ko-KR-Standard-C) ───────────────────────
 async function generateAudio(narration, outPath) {
-  const res = await openai.audio.speech.create({
-    model: 'tts-1-hd',
-    voice: 'nova',    // 한국어 친화적인 여성 음성
-    input: narration,
-    speed: 0.92,
-  });
-  const buf = Buffer.from(await res.arrayBuffer());
+  const apiKey = process.env.GOOGLE_TTS_API_KEY;
+  if (!apiKey) throw new Error('GOOGLE_TTS_API_KEY 환경변수가 없습니다.');
+
+  const res = await axios.post(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+    {
+      input: { text: narration },
+      voice: { languageCode: 'ko-KR', name: 'ko-KR-Standard-C' },
+      audioConfig: { audioEncoding: 'MP3', speakingRate: 0.90 },
+    }
+  );
+  const buf = Buffer.from(res.data.audioContent, 'base64');
   fs.writeFileSync(outPath, buf);
 }
 

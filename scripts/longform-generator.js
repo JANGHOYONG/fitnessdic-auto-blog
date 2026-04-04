@@ -164,8 +164,8 @@ async function fetchPexelsPhoto(query, outPath) {
 // ─── 3. 챕터 오버레이 HTML (세로형 1080×1920) ────────────────────────────────
 function makeChapterOverlay(chapter, chapterIdx, totalChapters) {
   const progressPct = Math.round((chapterIdx / totalChapters) * 100);
-  // 내레이션 첫 문장 자막으로 표시 (40자 이내)
-  const subtitle = (chapter.narration || '').replace(/\n/g, ' ').slice(0, 45);
+  // 내레이션 전체를 자막으로 표시
+  const subtitle = (chapter.narration || '').replace(/\n/g, ' ');
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -222,8 +222,8 @@ html, body {
 }
 
 .subtitle {
-  font-size:34px; font-weight:600;
-  color:rgba(255,255,255,0.92); line-height:1.55;
+  font-size:30px; font-weight:600;
+  color:rgba(255,255,255,0.95); line-height:1.65;
   word-break:keep-all;
   text-shadow: 0 2px 8px rgba(0,0,0,0.95);
 }
@@ -265,46 +265,61 @@ html, body {
 </html>`;
 }
 
-// ─── 4. TTS 생성 (4096자 제한 처리) ─────────────────────────────────────────
+// ─── 4. TTS 생성 (Google Cloud TTS ko-KR-Standard-C) ────────────────────────
 async function generateAudio(text, outPath) {
-  const MAX = 3800;
+  const apiKey = process.env.GOOGLE_TTS_API_KEY;
+  if (!apiKey) throw new Error('GOOGLE_TTS_API_KEY 환경변수가 없습니다.');
 
-  if (text.length <= MAX) {
-    const res = await openai.audio.speech.create({
-      model: 'tts-1-hd',
-      voice: 'onyx',   // 낮고 신뢰감 있는 전문가 목소리
-      input: text,
-      speed: 0.90,
-    });
-    const buf = Buffer.from(await res.arrayBuffer());
+  // Google TTS 바이트 제한 4500자 기준으로 분할
+  const MAX_BYTES = 4500;
+  const encoder = new TextEncoder();
+
+  function splitText(input) {
+    if (encoder.encode(input).length <= MAX_BYTES) return [input];
+    const sentences = input.split(/(?<=[.!?。])\s+/);
+    const result = [];
+    let cur = '';
+    for (const s of sentences) {
+      const candidate = cur ? cur + ' ' + s : s;
+      if (encoder.encode(candidate).length > MAX_BYTES) {
+        if (cur) result.push(cur.trim());
+        cur = s;
+      } else {
+        cur = candidate;
+      }
+    }
+    if (cur.trim()) result.push(cur.trim());
+    return result.length ? result : [input.slice(0, 1000)];
+  }
+
+  const chunks = splitText(text);
+
+  async function synthesizeChunk(chunk) {
+    const res = await axios.post(
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+      {
+        input: { text: chunk },
+        voice: { languageCode: 'ko-KR', name: 'ko-KR-Standard-C' },
+        audioConfig: { audioEncoding: 'MP3', speakingRate: 0.90 },
+      }
+    );
+    return Buffer.from(res.data.audioContent, 'base64');
+  }
+
+  if (chunks.length === 1) {
+    const buf = await synthesizeChunk(chunks[0]);
     fs.writeFileSync(outPath, buf);
     return;
   }
 
-  // 분할: 문장 단위
-  const sentences = text.split(/(?<=[.!?。])\s+/);
-  const chunks = [];
-  let current = '';
-
-  for (const s of sentences) {
-    if ((current + s).length > MAX) {
-      if (current) chunks.push(current.trim());
-      current = s;
-    } else {
-      current += ' ' + s;
-    }
-  }
-  if (current.trim()) chunks.push(current.trim());
-
+  // 청크 합치기
   const chunkPaths = [];
   for (let i = 0; i < chunks.length; i++) {
     const chunkPath = outPath.replace('.mp3', `_chunk${i}.mp3`);
-    const res = await openai.audio.speech.create({
-      model: 'tts-1-hd', voice: 'nova', input: chunks[i], speed: 0.88,
-    });
-    fs.writeFileSync(chunkPath, Buffer.from(await res.arrayBuffer()));
+    const buf = await synthesizeChunk(chunks[i]);
+    fs.writeFileSync(chunkPath, buf);
     chunkPaths.push(chunkPath);
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 150));
   }
 
   await new Promise((resolve, reject) => {
