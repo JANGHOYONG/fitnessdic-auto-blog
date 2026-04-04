@@ -36,8 +36,9 @@ const getArg = (name) => {
   return found ? found.split('=')[1] : null;
 };
 
-const mode = getArg('mode') || 'schedule';       // immediate | schedule
-const dailyLimit = parseInt(getArg('limit') || process.env.DAILY_POST_LIMIT || '3');
+const mode = getArg('mode') || 'schedule';              // immediate | schedule
+const runLimit  = parseInt(getArg('limit') || '1');      // 1회 실행당 최대 발행 수
+const dailyLimit = parseInt(process.env.DAILY_POST_LIMIT || '5'); // 하루 최대 발행 수
 const startHour = parseInt(process.env.PUBLISH_START_HOUR || '9');
 const endHour   = parseInt(process.env.PUBLISH_END_HOUR   || '21');
 
@@ -108,7 +109,7 @@ async function processScheduledPosts() {
 
 async function main() {
   console.log('=== 자동 발행 시작 ===');
-  console.log(`모드: ${mode}, 일일 한도: ${dailyLimit}`);
+  console.log(`모드: ${mode}, 1회 한도: ${runLimit}개, 일일 한도: ${dailyLimit}개`);
 
   try {
     // 예약 발행 먼저 처리
@@ -119,12 +120,13 @@ async function main() {
 
     // 오늘 발행 수 확인
     const todayCount = await getTodayPublishCount();
-    const remaining = dailyLimit - todayCount;
+    const dailyRemaining = dailyLimit - todayCount;
+    const remaining = Math.min(runLimit, dailyRemaining);
 
-    console.log(`오늘 발행: ${todayCount}/${dailyLimit} (잔여: ${remaining}개)`);
+    console.log(`오늘 발행: ${todayCount}/${dailyLimit} (이번 실행 최대: ${runLimit}개, 일일 잔여: ${dailyRemaining}개)`);
 
-    if (remaining <= 0) {
-      console.log('오늘 발행 한도에 도달했습니다.');
+    if (dailyRemaining <= 0) {
+      console.log('오늘 일일 발행 한도에 도달했습니다.');
       return;
     }
 
