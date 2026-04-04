@@ -51,25 +51,64 @@ async function fetchBodyImages(keywords, count = 2) {
   return results;
 }
 
-function injectBodyImages(content, images) {
-  if (!images.length) return content;
-  // </section> 태그를 기준으로 2번째, 4번째 섹션 뒤에 이미지 삽입
-  let count = 0;
-  let imgIdx = 0;
-  return content.replace(/<\/section>/g, (match) => {
-    count++;
-    if ((count === 2 || count === 4) && imgIdx < images.length) {
-      const img = images[imgIdx++];
-      return `</section>
+function makeImgHtml(img) {
+  return `
 <figure style="margin:2rem 0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(200,150,122,0.12)">
-  <img src="${img.url}" alt="${img.alt}" style="width:100%;max-height:400px;object-fit:cover;display:block" loading="lazy" />
+  <img src="${img.url}" alt="${img.alt}" style="width:100%;max-height:420px;object-fit:cover;display:block" loading="lazy" />
   <figcaption style="font-size:0.75rem;text-align:center;padding:0.5rem 1rem;background:#F0E8DF;color:#8B7355">
     <a href="${img.creditUrl}" target="_blank" rel="noopener noreferrer" style="color:#C8967A">${img.credit}</a>
   </figcaption>
 </figure>`;
+}
+
+function injectBodyImages(content, images) {
+  if (!images.length) return content;
+
+  // 1순위: </section> 기준 2번째, 4번째 뒤에 삽입
+  const sectionCount = (content.match(/<\/section>/g) || []).length;
+  if (sectionCount >= 2) {
+    let count = 0;
+    let imgIdx = 0;
+    return content.replace(/<\/section>/g, (match) => {
+      count++;
+      if ((count === 2 || count === 4) && imgIdx < images.length) {
+        return match + makeImgHtml(images[imgIdx++]);
+      }
+      return match;
+    });
+  }
+
+  // 2순위: </section> 없으면 </h2> 기준 2번째, 4번째 뒤에 삽입
+  const h2Count = (content.match(/<\/h2>/g) || []).length;
+  if (h2Count >= 2) {
+    let count = 0;
+    let imgIdx = 0;
+    return content.replace(/<\/h2>/g, (match) => {
+      count++;
+      if ((count === 2 || count === 4) && imgIdx < images.length) {
+        return match + makeImgHtml(images[imgIdx++]);
+      }
+      return match;
+    });
+  }
+
+  // 3순위: 글 중간과 끝에 강제 삽입
+  const half = Math.floor(content.length / 2);
+  const insertPos = content.indexOf('</p>', half);
+  if (insertPos !== -1 && images.length >= 1) {
+    const after = insertPos + 4;
+    let result = content.slice(0, after) + makeImgHtml(images[0]) + content.slice(after);
+    if (images.length >= 2) {
+      const threeQ = Math.floor(result.length * 0.75);
+      const insertPos2 = result.indexOf('</p>', threeQ);
+      if (insertPos2 !== -1) {
+        result = result.slice(0, insertPos2 + 4) + makeImgHtml(images[1]) + result.slice(insertPos2 + 4);
+      }
     }
-    return match;
-  });
+    return result;
+  }
+
+  return content;
 }
 
 // ─── 슬러그 생성 ──────────────────────────────────────────────────────────────
@@ -272,7 +311,10 @@ HTML 구조 (반드시 이 순서로, </article>로 반드시 닫을 것):
     ],
   });
 
-  const content = contentRes.choices[0].message.content.trim();
+  // GPT가 ```html ... ``` 마크다운 코드블록으로 감싸서 반환하는 경우 제거
+  let content = contentRes.choices[0].message.content.trim();
+  content = content.replace(/^```(?:html)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+
   const textLen = content.replace(/<[^>]*>/g, '').length;
   console.log(`    본문 길이: ${textLen.toLocaleString()}자`);
 
