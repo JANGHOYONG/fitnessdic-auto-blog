@@ -9,13 +9,13 @@ import AdSense from '@/components/AdSense';
 
 export const revalidate = 1800;
 
-const CATEGORIES = [
-  { name: '전체', slug: '' },
-  { name: '건강·의학', slug: 'health' },
-  { name: 'IT·테크', slug: 'tech' },
-  { name: '경제·재테크', slug: 'economy' },
-  { name: '생활정보', slug: 'lifestyle' },
-  { name: '여행·문화', slug: 'travel' },
+const TOPICS = [
+  { name: '혈당·당뇨', query: '혈당', icon: '🩸' },
+  { name: '혈압·심장', query: '혈압', icon: '❤️' },
+  { name: '관절·근육', query: '관절', icon: '🦴' },
+  { name: '수면·피로', query: '수면', icon: '😴' },
+  { name: '뇌건강·치매', query: '치매', icon: '🧠' },
+  { name: '갱년기', query: '갱년기', icon: '🌸' },
 ];
 
 export default async function HomePage() {
@@ -28,8 +28,8 @@ export default async function HomePage() {
 
   const jsonLd = generateJsonLd({
     type: 'WebSite',
-    title: process.env.NEXT_PUBLIC_SITE_NAME || 'Smart Info Blog',
-    description: process.env.NEXT_PUBLIC_SITE_DESCRIPTION || '유용한 정보 블로그',
+    title: '5060 건강주치의',
+    description: '50·60대를 위한 혈당·혈압·관절·수면·치매 예방 건강 정보',
   });
 
   return (
@@ -41,18 +41,22 @@ export default async function HomePage() {
         <TopBar />
       </Suspense>
 
-      {/* 카테고리 필터 탭 */}
-      <div className="border-b bg-white" style={{ borderColor: 'var(--border)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex gap-1 overflow-x-auto scrollbar-none py-1">
-            {CATEGORIES.map((cat) => (
+      {/* 히어로 배너 */}
+      <div style={{ background: 'linear-gradient(135deg, #177A5E 0%, #1E9E7A 50%, #4fc3a1 100%)' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 text-center text-white">
+          <p className="text-3xl mb-2">🏥</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2 tracking-tight">5060 건강주치의</h1>
+          <p className="text-base opacity-85 mb-6">50·60대를 위한 정확하고 실천 가능한 건강 정보</p>
+          {/* 주제 빠른 탐색 */}
+          <div className="flex flex-wrap justify-center gap-2">
+            {TOPICS.map((t) => (
               <Link
-                key={cat.slug || 'all'}
-                href={cat.slug ? `/${cat.slug}` : '/'}
-                className="shrink-0 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
-                style={{ color: 'var(--text-muted)' }}
+                key={t.query}
+                href={`/search?q=${encodeURIComponent(t.query)}`}
+                className="px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105"
+                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)' }}
               >
-                {cat.name}
+                {t.icon} {t.name}
               </Link>
             ))}
           </div>
@@ -67,6 +71,14 @@ export default async function HomePage() {
           <AdSense slot="top-banner" format="horizontal" />
         </div>
 
+        {/* 최신 글 헤더 */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>최신 건강 정보</h2>
+          <Link href="/health" className="text-sm font-medium" style={{ color: 'var(--primary)' }}>
+            전체 보기 →
+          </Link>
+        </div>
+
         {recentPosts.length === 0 ? (
           <div className="text-center py-24">
             <p className="text-2xl mb-3">✍️</p>
@@ -74,35 +86,17 @@ export default async function HomePage() {
             <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>곧 새 글이 업로드됩니다!</p>
           </div>
         ) : (
-          <>
-            <Suspense fallback={
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
-              </div>
-            }>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {recentPosts.map((post) => (
-                  <ArticleCard key={post.id} post={post} />
-                ))}
-              </div>
-            </Suspense>
-
-            {/* 더보기 안내 */}
-            {recentPosts.length >= 12 && (
-              <div className="text-center mt-10">
-                <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>카테고리별로 더 많은 글을 확인하세요</p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {CATEGORIES.slice(1).map((cat) => (
-                    <Link key={cat.slug} href={`/${cat.slug}`}
-                      className="px-5 py-2 rounded-full text-sm font-medium transition-colors border hover:opacity-80"
-                      style={{ borderColor: 'var(--primary)', color: 'var(--primary)', background: 'transparent' }}>
-                      {cat.name}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
+          <Suspense fallback={
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          }>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {recentPosts.map((post) => (
+                <ArticleCard key={post.id} post={post} />
+              ))}
+            </div>
+          </Suspense>
         )}
       </div>
     </>

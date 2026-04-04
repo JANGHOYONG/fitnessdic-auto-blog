@@ -4,7 +4,7 @@ import { Post, Category } from '@prisma/client';
 type PostWithCategory = Post & { category: Category };
 
 const CAT_GRADIENT: Record<string, string> = {
-  health:    'from-rose-200 to-orange-200',
+  health:    'from-emerald-100 to-teal-200',
   tech:      'from-sky-200 to-blue-300',
   economy:   'from-amber-200 to-yellow-300',
   lifestyle: 'from-pink-200 to-fuchsia-200',
@@ -12,7 +12,7 @@ const CAT_GRADIENT: Record<string, string> = {
 };
 
 const CAT_EMOJI: Record<string, string> = {
-  health: '💊', tech: '💻', economy: '📈', lifestyle: '🏠', travel: '✈️',
+  health: '🏥', tech: '💻', economy: '📈', lifestyle: '🏠', travel: '✈️',
 };
 
 interface Props {

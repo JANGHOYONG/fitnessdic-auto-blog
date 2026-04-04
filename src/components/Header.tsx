@@ -4,12 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const CATEGORIES = [
-  { name: '건강·의학', slug: 'health' },
-  { name: 'IT·테크',   slug: 'tech' },
-  { name: '경제·재테크', slug: 'economy' },
-  { name: '생활정보',  slug: 'lifestyle' },
-  { name: '여행·문화', slug: 'travel' },
+const TOPICS = [
+  { name: '혈당·당뇨', query: '혈당' },
+  { name: '혈압·심장', query: '혈압' },
+  { name: '관절·근육', query: '관절' },
+  { name: '수면·피로', query: '수면' },
+  { name: '뇌건강·치매', query: '치매' },
+  { name: '갱년기', query: '갱년기' },
+  { name: '영양·식이', query: '영양' },
 ];
 
 export default function Header() {
@@ -17,7 +19,6 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const router = useRouter();
-  const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Smart Info Blog';
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,22 +34,32 @@ export default function Header() {
         <div className="flex items-center h-16 gap-4">
 
           {/* 로고 */}
-          <Link href="/" className="shrink-0 font-bold text-lg tracking-wide" style={{ color: 'var(--primary)' }}>
-            {siteName}
+          <Link href="/" className="shrink-0 flex items-center gap-2">
+            <span className="text-xl">🏥</span>
+            <span className="font-bold text-lg tracking-tight" style={{ color: 'var(--primary)' }}>
+              5060 건강주치의
+            </span>
           </Link>
 
-          {/* 데스크탑 카테고리 내비 */}
+          {/* 데스크탑 주제별 네비 */}
           <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
-            {CATEGORIES.map((cat) => (
+            <Link
+              href="/health"
+              className="px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors"
+              style={{ color: 'var(--primary)' }}
+            >
+              전체 글
+            </Link>
+            {TOPICS.map((t) => (
               <Link
-                key={cat.slug}
-                href={`/${cat.slug}`}
-                className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors hover:text-primary"
+                key={t.query}
+                href={`/search?q=${encodeURIComponent(t.query)}`}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
                 style={{ color: 'var(--text-muted)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--primary)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
               >
-                {cat.name}
+                {t.name}
               </Link>
             ))}
           </nav>
@@ -62,7 +73,7 @@ export default function Header() {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="검색어 입력..."
+                  placeholder="건강 검색..."
                   className="w-36 sm:w-52 px-3 py-1.5 text-sm rounded-xl border outline-none"
                   style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   onBlur={() => { if (!query) setSearchOpen(false); }}
@@ -100,15 +111,23 @@ export default function Header() {
         {/* 모바일 메뉴 */}
         {menuOpen && (
           <div className="md:hidden py-3 border-t" style={{ borderColor: 'var(--border)' }}>
-            {CATEGORIES.map((cat) => (
+            <Link
+              href="/health"
+              className="block px-2 py-2.5 text-sm font-semibold rounded-lg"
+              style={{ color: 'var(--primary)' }}
+              onClick={() => setMenuOpen(false)}
+            >
+              📋 전체 글
+            </Link>
+            {TOPICS.map((t) => (
               <Link
-                key={cat.slug}
-                href={`/${cat.slug}`}
+                key={t.query}
+                href={`/search?q=${encodeURIComponent(t.query)}`}
                 className="block px-2 py-2.5 text-sm font-medium rounded-lg"
                 style={{ color: 'var(--text)' }}
                 onClick={() => setMenuOpen(false)}
               >
-                {cat.name}
+                {t.name}
               </Link>
             ))}
             <Link href="/about" className="block px-2 py-2.5 text-sm" style={{ color: 'var(--text-muted)' }} onClick={() => setMenuOpen(false)}>
@@ -118,8 +137,8 @@ export default function Header() {
         )}
       </div>
 
-      {/* 테라코타 하단 포인트 라인 */}
-      <div className="h-0.5 w-full" style={{ background: 'var(--primary)' }} />
+      {/* 하단 포인트 라인 */}
+      <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg, var(--primary), #4fc3a1)' }} />
     </header>
   );
 }
