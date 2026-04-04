@@ -57,7 +57,9 @@ model Post {
   readTime        Int?
   thumbnail         String?   // Unsplash 대표 이미지 URL
   shortsGenerated   Boolean   @default(false)  // YouTube Shorts 생성 여부
-  shortsVideoId     String?   // YouTube 영상 ID
+  shortsVideoId     String?   // YouTube Shorts 영상 ID
+  longformGenerated Boolean   @default(false)  // YouTube 장편 영상 생성 여부
+  longformVideoId   String?   // YouTube 장편 영상 ID
 
   categoryId  Int
   category    Category @relation(fields: [categoryId], references: [id])
