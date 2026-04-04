@@ -90,12 +90,12 @@ function makeSlideHtml(slide, idx, total) {
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { width:${SLIDE_W}px; height:${SLIDE_H}px; overflow:hidden;
-  background:${t.grad}; font-family:'Noto Sans KR',sans-serif; color:#fff; }
+  background:${t.grad};
+  font-family:'Noto Sans CJK KR','Noto Sans KR','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif;
+  color:#fff; }
 .wrap { width:100%; height:100%; display:flex; flex-direction:column;
   justify-content:center; align-items:center; padding:100px 70px; position:relative; }
 .brand { position:absolute; top:70px; left:0; right:0; text-align:center;
@@ -140,7 +140,8 @@ async function captureSlides(slides, outDir) {
   const paths = [];
   for (let i = 0; i < slides.length; i++) {
     const html = makeSlideHtml(slides[i], i + 1, slides.length);
-    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 15000 });
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 10000 });
+    await new Promise((r) => setTimeout(r, 500)); // 폰트 렌더링 대기
     const p = path.join(outDir, `slide_${String(i).padStart(2, '0')}.png`);
     await page.screenshot({ path: p });
     paths.push(p);
