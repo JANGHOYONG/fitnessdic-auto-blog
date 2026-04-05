@@ -19,21 +19,26 @@ const getArg = (name) => {
 const generateCount = parseInt(getArg('count') || process.env.DAILY_POST_LIMIT || '3');
 const targetCategory = getArg('category');
 
-// ─── Unsplash 이미지 ──────────────────────────────────────────────────────────
-async function fetchUnsplashImage(query) {
-  const key = process.env.UNSPLASH_ACCESS_KEY;
+// ─── Pexels 이미지 ───────────────────────────────────────────────────────────
+async function fetchPexelsImage(query) {
+  const key = process.env.PEXELS_API_KEY;
   if (!key) return null;
   try {
     const res = await fetch(
-      `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${key}`
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&orientation=landscape&per_page=10`,
+      { headers: { Authorization: key } }
     );
     if (!res.ok) return null;
     const data = await res.json();
+    if (!data.photos || !data.photos.length) return null;
+    // 상위 5개 중 랜덤 선택
+    const pool = data.photos.slice(0, 5);
+    const photo = pool[Math.floor(Math.random() * pool.length)];
     return {
-      url: data.urls.regular,
-      alt: data.alt_description || query,
-      credit: `Photo by ${data.user.name} on Unsplash`,
-      creditUrl: `${data.user.links.html}?utm_source=smartinfoblog&utm_medium=referral`,
+      url: photo.src.large,
+      alt: photo.alt || query,
+      credit: `Photo by ${photo.photographer} on Pexels`,
+      creditUrl: photo.photographer_url,
     };
   } catch {
     return null;
@@ -44,7 +49,7 @@ async function fetchBodyImages(keywords, count = 2) {
   const results = [];
   const queries = keywords.slice(0, count);
   for (const q of queries) {
-    const img = await fetchUnsplashImage(q);
+    const img = await fetchPexelsImage(q);
     if (img) results.push(img);
     await new Promise((r) => setTimeout(r, 300));
   }
@@ -53,10 +58,10 @@ async function fetchBodyImages(keywords, count = 2) {
 
 function makeImgHtml(img) {
   return `
-<figure style="margin:2rem 0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(200,150,122,0.12)">
+<figure style="margin:2rem 0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(30,158,122,0.10)">
   <img src="${img.url}" alt="${img.alt}" style="width:100%;max-height:420px;object-fit:cover;display:block" loading="lazy" />
-  <figcaption style="font-size:0.75rem;text-align:center;padding:0.5rem 1rem;background:#F0E8DF;color:#8B7355">
-    <a href="${img.creditUrl}" target="_blank" rel="noopener noreferrer" style="color:#C8967A">${img.credit}</a>
+  <figcaption style="font-size:0.75rem;text-align:center;padding:0.5rem 1rem;background:#E3F4ED;color:#4B7A6A">
+    <a href="${img.creditUrl}" target="_blank" rel="noopener noreferrer" style="color:#1E9E7A">${img.credit}</a>
   </figcaption>
 </figure>`;
 }
@@ -109,6 +114,27 @@ function injectBodyImages(content, images) {
   }
 
   return content;
+}
+
+// ─── 건강 주제 분류 (순환 다양성 보장) ───────────────────────────────────────
+const HEALTH_TOPICS = [
+  { id: 'blood_sugar', words: ['혈당', '당뇨', '인슐린', '혈糖'] },
+  { id: 'blood_pressure', words: ['혈압', '심장', '심혈관', '고혈압', '심근', '부정맥', '콜레스테롤'] },
+  { id: 'joint', words: ['관절', '무릎', '연골', '허리', '척추', '근육', '근감소', '골다공증'] },
+  { id: 'sleep', words: ['수면', '불면', '피로', '수면장애', '잠', '멜라토닌'] },
+  { id: 'brain', words: ['치매', '뇌', '기억력', '인지', '파킨슨', '뇌졸중'] },
+  { id: 'menopause', words: ['갱년기', '폐경', '호르몬', '안면홍조', '골밀도'] },
+  { id: 'nutrition', words: ['영양', '영양제', '비타민', '식이', '음식', '식단', '건강식'] },
+  { id: 'eye_skin', words: ['눈', '시력', '안구', '피부', '노화', '주름'] },
+  { id: 'digestion', words: ['소화', '장', '위', '대장', '변비', '장건강'] },
+  { id: 'immune', words: ['면역', '감기', '독감', '폐', '호흡'] },
+];
+
+function getSubTopic(keyword) {
+  for (const topic of HEALTH_TOPICS) {
+    if (topic.words.some((w) => keyword.includes(w))) return topic.id;
+  }
+  return 'other';
 }
 
 // ─── 슬러그 생성 ──────────────────────────────────────────────────────────────
@@ -364,8 +390,8 @@ async function linkRelated(postId, categoryId, keywords) {
 
 // ─── 메인 ────────────────────────────────────────────────────────────────────
 async function main() {
-  const hasUnsplash = !!process.env.UNSPLASH_ACCESS_KEY;
-  console.log(`=== 콘텐츠 생성 시작 (GPT-4o-mini${hasUnsplash ? ' + Unsplash' : ''}) ===`);
+  const hasPexels = !!process.env.PEXELS_API_KEY;
+  console.log(`=== 콘텐츠 생성 시작 (GPT-4o-mini${hasPexels ? ' + Pexels' : ''}) ===`);
   console.log(`생성 목표: ${generateCount}개\n`);
 
   let success = 0, fail = 0;
@@ -386,38 +412,62 @@ async function main() {
       return;
     }
 
-    // 이미 발행된 글 제목/키워드 목록 (중복 방지용)
-    const publishedTitles = await prisma.post.findMany({
+    // 이미 발행된 글 키워드 목록 (중복 방지 + 주제 순환용)
+    const recentPublished = await prisma.post.findMany({
       where: { status: 'PUBLISHED' },
       select: { keywords: true },
+      orderBy: { publishedAt: 'desc' },
+      take: 30,
     });
     const usedKeywordSet = new Set(
-      publishedTitles.flatMap((p) => JSON.parse(p.keywords || '[]'))
+      recentPublished.flatMap((p) => JSON.parse(p.keywords || '[]'))
     );
+    // 최근 10개 글의 주제 빈도 (많이 나온 주제는 우선순위 낮춤)
+    const recentTopics = recentPublished.slice(0, 10).flatMap((p) =>
+      JSON.parse(p.keywords || '[]').map(getSubTopic)
+    );
+    const topicCount = {};
+    for (const t of recentTopics) topicCount[t] = (topicCount[t] || 0) + 1;
 
-    for (const kw of keywords) {
+    // 키워드를 주제 다양성 점수로 정렬 (적게 나온 주제 우선)
+    const scoredKeywords = keywords.map((kw) => {
+      const topic = getSubTopic(kw.keyword);
+      const topicFreq = topicCount[topic] || 0;
+      return { kw, topic, score: topicFreq };
+    });
+    scoredKeywords.sort((a, b) => a.score - b.score);
+
+    const usedTopicsThisRun = [];
+
+    for (const { kw, topic } of scoredKeywords) {
       if (success >= generateCount) break;
 
-      // 이미 발행된 글과 키워드가 80% 이상 겹치면 건너뜀
+      // 이미 발행된 글과 키워드가 겹치면 건너뜀
       if (usedKeywordSet.has(kw.keyword)) {
         console.log(`  ⏭ 중복 키워드 건너뜀: "${kw.keyword}"`);
         await prisma.keyword.update({ where: { id: kw.id }, data: { used: true } });
         continue;
       }
 
-      console.log(`[${success + 1}/${generateCount}] "${kw.keyword}" 생성 중...`);
+      // 이번 실행에서 같은 주제를 2회 이상 연속 선택 방지
+      if (usedTopicsThisRun.filter((t) => t === topic).length >= 1 && success < generateCount - 1) {
+        continue;
+      }
+      usedTopicsThisRun.push(topic);
+
+      console.log(`[${success + 1}/${generateCount}] "${kw.keyword}" (주제: ${topic}) 생성 중...`);
 
       try {
         const gen = await generatePost(kw.keyword, kw.category.slug);
 
-        // Unsplash 썸네일 + 본문 이미지
+        // Pexels 썸네일 + 본문 이미지
         let thumbnail = null;
         let content = gen.content;
 
-        if (hasUnsplash) {
-          // GPT가 생성한 영어 검색어 사용 (한국어 키워드는 Unsplash에서 엉뚱한 결과 반환)
+        if (hasPexels) {
+          // GPT가 생성한 영어 검색어 사용 (한국어 키워드는 Pexels에서 엉뚱한 결과 반환)
           const thumbQuery = gen.unsplashQuery || kw.keyword;
-          const thumbImg = await fetchUnsplashImage(thumbQuery);
+          const thumbImg = await fetchPexelsImage(thumbQuery);
           if (thumbImg) thumbnail = thumbImg.url;
 
           const bodyQueries = gen.unsplashBodyQueries && gen.unsplashBodyQueries.length
@@ -450,7 +500,7 @@ async function main() {
 
         success++;
         console.log(`  ✓ "${gen.selectedTitle}"`);
-        console.log(`    읽기 ${gen.readTime}분 | 이미지: ${thumbnail ? '✅' : '없음'}\n`);
+        console.log(`    읽기 ${gen.readTime}분 | 이미지: ${thumbnail ? '✅ Pexels' : '없음'}\n`);
 
         if (success < generateCount) await new Promise((r) => setTimeout(r, 2000));
       } catch (e) {
