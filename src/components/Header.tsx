@@ -74,7 +74,7 @@ export default function Header() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="건강 검색..."
-                  className="w-36 sm:w-52 px-3 py-1.5 text-sm rounded-xl border outline-none"
+                  className="w-36 sm:w-52 px-3 py-2.5 text-base rounded-xl border outline-none"
                   style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   onBlur={() => { if (!query) setSearchOpen(false); }}
                 />
@@ -94,7 +94,7 @@ export default function Header() {
 
             {/* 모바일 메뉴 버튼 */}
             <button
-              className="md:hidden btn-ghost p-2"
+              className="md:hidden btn-ghost p-3"
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="메뉴"
             >
