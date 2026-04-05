@@ -73,22 +73,49 @@ function makeCoupangHtml(product, topicId) {
   const ctaText = TOPIC_CTA_TEXT[topicId] || '관련 추천 제품';
   return `
 <div class="coupang-affiliate-box">
-  <p class="coupang-label">🛒 ${ctaText}</p>
-  <a href="${product.url}" target="_blank" rel="noopener sponsored" class="coupang-link">
-    ${product.name} 쿠팡에서 보기 →
-  </a>
-  <p class="coupang-disclosure">⚠️ 파트너스 활동 안내: 이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다. 추천 제품의 가격·재고는 쿠팡 사이트에서 확인하세요.</p>
+  <div class="coupang-header">
+    <span class="coupang-badge">🛒 ${ctaText}</span>
+    <span class="coupang-logo">COUPANG</span>
+  </div>
+  <div class="coupang-body">
+    <span class="coupang-product-name">${product.name}</span>
+    <a href="${product.url}" target="_blank" rel="noopener sponsored" class="coupang-link">
+      👉 지금 쿠팡에서 확인하기
+    </a>
+  </div>
+  <p class="coupang-disclosure">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
 </div>`;
 
-// 본문 중간(FAQ 섹션 앞)에 쿠팡 박스 삽입
+// FAQ 섹션 앞에 쿠팡 박스 삽입
 function insertCoupangBox(content, product, topicId) {
   if (!product) return content;
   const box = makeCoupangHtml(product, topicId);
-  // FAQ 섹션 바로 앞에 삽입
+
+  // 1순위: faq-item 이 있는 섹션 바로 앞에 삽입
+  const faqSectionMatch = content.match(/(<section[^>]*>[\s\S]*?class="faq-item")/);
+  if (faqSectionMatch) {
+    const faqSectionStart = content.indexOf(faqSectionMatch[1]);
+    const sectionTagEnd = content.lastIndexOf('<section', faqSectionStart);
+    if (sectionTagEnd !== -1) {
+      return content.slice(0, sectionTagEnd) + box + '\n' + content.slice(sectionTagEnd);
+    }
+  }
+
+  // 2순위: 자주 묻는 질문 h2 태그 앞 섹션
+  const faqH2 = content.indexOf('자주 묻는 질문');
+  if (faqH2 !== -1) {
+    const sectionBeforeFaq = content.lastIndexOf('<section', faqH2);
+    if (sectionBeforeFaq !== -1) {
+      return content.slice(0, sectionBeforeFaq) + box + '\n' + content.slice(sectionBeforeFaq);
+    }
+  }
+
+  // 3순위: conclusion 섹션 앞
   if (content.includes('<section class="conclusion">')) {
     return content.replace('<section class="conclusion">', box + '\n<section class="conclusion">');
   }
-  // 없으면 </article> 바로 앞에
+
+  // 최후: </article> 바로 앞
   if (content.includes('</article>')) {
     return content.replace('</article>', box + '\n</article>');
   }
