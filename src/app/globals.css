@@ -269,9 +269,9 @@
     box-shadow: 0 6px 20px rgba(255,107,53,0.35);
   }
   .prose-custom .coupang-affiliate-box .coupang-banner-text {
-    @apply font-semibold leading-tight;
+    @apply font-bold leading-tight;
     color: #ffffff;
-    font-size: 1rem;
+    font-size: 1.1875rem;
   }
   .prose-custom .coupang-affiliate-box .coupang-banner-btn {
     @apply px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap ml-3;
