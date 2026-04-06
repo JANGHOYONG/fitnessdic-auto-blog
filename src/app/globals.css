@@ -253,50 +253,35 @@
     border-left: 3px solid var(--primary);
   }
 
-  /* 쿠팡파트너스 추천 박스 — 카드형 */
+  /* 쿠팡파트너스 배너 — 심플 가로형 */
   .prose-custom .coupang-affiliate-box {
-    @apply my-10 rounded-2xl overflow-hidden;
-    border: 2px solid #FF6B35;
-    box-shadow: 0 6px 24px rgba(255,107,53,0.18);
+    @apply my-8;
   }
-  .prose-custom .coupang-affiliate-box .coupang-header {
-    @apply flex items-center gap-2 px-5 py-3;
-    background: linear-gradient(90deg, #FF6B35 0%, #FF8C42 100%);
+  .prose-custom .coupang-affiliate-box .coupang-banner {
+    @apply flex items-center justify-between no-underline px-5 py-4 rounded-2xl;
+    background: linear-gradient(90deg, #FF6B35 0%, #FF8A38 100%);
+    box-shadow: 0 3px 12px rgba(255,107,53,0.22);
+    transition: all 0.18s;
+    display: flex !important;
   }
-  .prose-custom .coupang-affiliate-box .coupang-badge {
-    @apply text-sm font-bold;
-    color: #ffffff;
-  }
-  .prose-custom .coupang-affiliate-box .coupang-logo {
-    @apply ml-auto text-xs font-bold px-2 py-0.5 rounded;
-    background: rgba(255,255,255,0.25);
-    color: #ffffff;
-    letter-spacing: 0.05em;
-  }
-  .prose-custom .coupang-affiliate-box .coupang-body {
-    @apply px-5 pt-4 pb-2;
-    background: #FFFFFF;
-  }
-  .prose-custom .coupang-affiliate-box .coupang-product-name {
-    @apply block text-base font-semibold mb-4 leading-snug;
-    color: #1A1A1A;
-  }
-  .prose-custom .coupang-affiliate-box .coupang-link {
-    @apply flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-base no-underline transition-all;
-    background: linear-gradient(90deg, #FF6B35 0%, #FF8C42 100%);
-    color: #ffffff !important;
-    box-shadow: 0 3px 10px rgba(255,107,53,0.35);
-  }
-  .prose-custom .coupang-affiliate-box .coupang-link:hover {
-    background: linear-gradient(90deg, #E55A28 0%, #E87530 100%);
+  .prose-custom .coupang-affiliate-box .coupang-banner:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(255,107,53,0.45);
+    box-shadow: 0 6px 20px rgba(255,107,53,0.35);
+  }
+  .prose-custom .coupang-affiliate-box .coupang-banner-text {
+    @apply font-semibold leading-tight;
+    color: #ffffff;
+    font-size: 1rem;
+  }
+  .prose-custom .coupang-affiliate-box .coupang-banner-btn {
+    @apply px-4 py-2 rounded-xl font-bold text-sm whitespace-nowrap ml-3;
+    background: #ffffff;
+    color: #FF6B35;
+    flex-shrink: 0;
   }
   .prose-custom .coupang-affiliate-box .coupang-disclosure {
-    @apply text-xs leading-relaxed px-5 py-3 m-0;
-    background: #FFF5F0;
-    color: #A0522D;
-    border-top: 1px solid #FFD0B0;
+    @apply text-xs mt-2 mb-0 leading-relaxed;
+    color: #AAAAAA;
   }
 
   /* 스켈레톤 */
@@ -319,12 +304,14 @@
   .btn-ghost:hover { background-color: var(--bg-bar); color: var(--text); }
 }
 
-/* 모바일 */
+/* 모바일 — 5060 시니어 가독성 최적화 */
 @media (max-width: 640px) {
-  body { font-size: 15px; }
+  body { font-size: 16px; }
   h1 { @apply text-2xl; }
   h2 { @apply text-xl; }
-  .prose-custom p { @apply leading-8; font-size: 1rem; }
+  .prose-custom p  { font-size: 1.125rem; line-height: 2.1; }
+  .prose-custom li { font-size: 1.0625rem; line-height: 2.0; }
+  .prose-custom .coupang-affiliate-box .coupang-banner-text { font-size: 0.9375rem; }
 }
 
 /* 인쇄 */

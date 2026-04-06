@@ -33,15 +33,15 @@ const TOPIC_TO_SHEET = {
   nutrition:      '영양식이',
 };
 
-// 주제별 CTA 문구 (블로그에 표시되는 문구)
+// 주제별 배너 카테고리 문구
 const TOPIC_CTA_TEXT = {
-  blood_sugar:    '혈당 관리에 도움되는 추천 제품',
-  blood_pressure: '혈압·혈관 건강에 도움되는 추천 제품',
-  joint:          '관절·연골 건강에 도움되는 추천 제품',
-  sleep:          '수면의 질 개선에 도움되는 추천 제품',
-  brain:          '뇌 건강·기억력에 도움되는 추천 제품',
-  menopause:      '갱년기 건강에 도움되는 추천 제품',
-  nutrition:      '영양 보충에 도움되는 추천 제품',
+  blood_sugar:    '혈당·당뇨 건강 추천 제품',
+  blood_pressure: '혈압·혈관 건강 추천 제품',
+  joint:          '관절·연골 건강 추천 제품',
+  sleep:          '수면·피로 개선 추천 제품',
+  brain:          '뇌건강·기억력 추천 제품',
+  menopause:      '갱년기 건강 추천 제품',
+  nutrition:      '영양·건강식품 추천 제품',
 };
 
 // 구글 시트에서 해당 주제 상품 목록 읽기 (CSV 파싱)
@@ -68,21 +68,15 @@ async function fetchCoupangProducts(topicId) {
   }
 }
 
-// 쿠팡 추천 박스 HTML 생성 (쿠팡 파트너스 활동 기준 준수)
+// 쿠팡 배너 HTML 생성 — 심플 가로형 (쿠팡 파트너스 활동 기준 준수)
 function makeCoupangHtml(product, topicId) {
-  const ctaText = TOPIC_CTA_TEXT[topicId] || '관련 추천 제품';
+  const ctaText = TOPIC_CTA_TEXT[topicId] || '건강 추천 제품';
   return `
 <div class="coupang-affiliate-box">
-  <div class="coupang-header">
-    <span class="coupang-badge">🛒 ${ctaText}</span>
-    <span class="coupang-logo">COUPANG</span>
-  </div>
-  <div class="coupang-body">
-    <span class="coupang-product-name">${product.name}</span>
-    <a href="${product.url}" target="_blank" rel="noopener sponsored" class="coupang-link">
-      👉 지금 쿠팡에서 확인하기
-    </a>
-  </div>
+  <a href="${product.url}" target="_blank" rel="noopener sponsored" class="coupang-banner">
+    <span class="coupang-banner-text">🛒 ${ctaText}</span>
+    <span class="coupang-banner-btn">쿠팡에서 보기 →</span>
+  </a>
   <p class="coupang-disclosure">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
 </div>`;
 
