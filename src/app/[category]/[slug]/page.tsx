@@ -59,11 +59,17 @@ export default async function PostPage({ params }: Props) {
   const { html: processedContent, headings } = processContent(post.content);
   const relatedPosts = post.relatedPosts.map((r) => r.related);
 
+  // health 카테고리: content-generator.js가 구글 시트 쿠팡 링크를 본문에 직접 삽입
+  // 그 외(travel 등): 전용 링크 없으므로 CoupangDynamicBanner 사용
+  const isHealth = post.category.slug === 'health';
+
   const cleanContent = processedContent
     .replace(/<div class=["']ad-slot ad-top["']><\/div>/g, '')
     .replace(/<div class=["']ad-slot ad-middle["']><\/div>/g, '')
     .replace(/<div class=["']ad-slot ad-bottom["']><\/div>/g, '');
   const [contentFirst, contentSecond] = (() => {
+    // 비health 카테고리는 중간에 다이나믹배너를 끼워넣기 위해 분할
+    if (isHealth) return [cleanContent, ''] as [string, string];
     const matches = [...cleanContent.matchAll(/<\/section>/g)];
     if (matches.length < 3) return [cleanContent, ''] as [string, string];
     const midIdx = Math.floor(matches.length / 2);
@@ -182,8 +188,8 @@ export default async function PostPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: contentFirst }}
             />
 
-            {/* 쿠팡 다이나믹 배너 (본문 중간) */}
-            <CoupangDynamicBanner />
+            {/* 쿠팡 다이나믹 배너 (비health 카테고리만 — health는 본문 HTML에 직접 삽입됨) */}
+            {!isHealth && <CoupangDynamicBanner />}
 
             {/* 본문 후반부 */}
             {contentSecond && (
