@@ -90,49 +90,20 @@ function findValidSectionBefore(content, idx) {
   return pos > 100 ? pos : -1;
 }
 
-// FAQ 섹션 앞에 쿠팡 박스 삽입 (신/구 포맷 모두 대응)
+// 본문 중간 </section> 기준으로 쿠팡 박스 삽입
 function insertCoupangBox(content, product, topicId) {
   if (!product) return content;
   const box = makeCoupangHtml(product, topicId);
 
-  // 1순위: faq-item 위치 직접 탐색 → 그 앞 section
-  const faqItemIdx = content.indexOf('class="faq-item"');
-  if (faqItemIdx !== -1) {
-    const pos = findValidSectionBefore(content, faqItemIdx);
-    if (pos !== -1) return content.slice(0, pos) + box + '\n' + content.slice(pos);
+  // 1순위: </section> 중간 지점에 삽입
+  const matches = [...content.matchAll(/<\/section>/g)];
+  if (matches.length >= 3) {
+    const midIdx = Math.floor(matches.length / 2);
+    const pos = matches[midIdx].index + '</section>'.length;
+    return content.slice(0, pos) + '\n' + box + '\n' + content.slice(pos);
   }
 
-  // 2순위: 자주 묻는 질문 키워드 → 그 앞 section
-  for (const kw of ['자주 묻는 질문', '자주묻는질문']) {
-    const idx = content.indexOf(kw);
-    if (idx !== -1) {
-      const pos = findValidSectionBefore(content, idx);
-      if (pos !== -1) return content.slice(0, pos) + box + '\n' + content.slice(pos);
-    }
-  }
-
-  // 3순위: conclusion 섹션 앞
-  if (content.includes('<section class="conclusion">')) {
-    return content.replace('<section class="conclusion">', box + '\n<section class="conclusion">');
-  }
-
-  // 4순위: 마무리 / 결론 h2 → 그 앞 section
-  for (const kw of ['마무리', '결론', '오늘부터 바로']) {
-    const idx = content.indexOf(kw);
-    if (idx !== -1) {
-      const pos = findValidSectionBefore(content, idx);
-      if (pos !== -1) return content.slice(0, pos) + box + '\n' + content.slice(pos);
-    }
-  }
-
-  // 5순위: 마지막 h2 앞에 직접 삽입 (h2 3개 이상인 경우만)
-  const allH2s = [...content.matchAll(/<h2/g)];
-  if (allH2s.length >= 3) {
-    const lastH2 = allH2s[allH2s.length - 1];
-    if (lastH2.index > 200) return content.slice(0, lastH2.index) + box + '\n' + content.slice(lastH2.index);
-  }
-
-  // 최후: </article> 바로 앞
+  // fallback: </article> 바로 앞
   if (content.includes('</article>')) {
     return content.replace('</article>', box + '\n</article>');
   }

@@ -52,4 +52,17 @@ async function uploadToYouTube({ videoPath, title, description, tags, categoryId
   return response.data.id;
 }
 
-module.exports = { uploadToYouTube };
+async function uploadThumbnail({ videoId, thumbnailPath }) {
+  oauth2Client.setCredentials({ refresh_token: process.env.YOUTUBE_REFRESH_TOKEN });
+  const youtube = google.youtube({ version: 'v3', auth: oauth2Client });
+
+  await youtube.thumbnails.set({
+    videoId,
+    media: {
+      mimeType: 'image/png',
+      body: fs.createReadStream(thumbnailPath),
+    },
+  });
+}
+
+module.exports = { uploadToYouTube, uploadThumbnail };

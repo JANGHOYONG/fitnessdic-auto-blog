@@ -3,13 +3,15 @@ import Script from 'next/script';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProgressBar from '@/components/ProgressBar';
+import ScrollToTop from '@/components/ScrollToTop';
 import './globals.css';
 
-const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'Smart Info Blog';
-const SITE_DESC = process.env.NEXT_PUBLIC_SITE_DESCRIPTION || '유용한 정보 블로그';
-const SITE_URL  = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfoblog.co.kr';
-const GA_ID     = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-const ADSENSE   = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const SITE_NAME  = process.env.NEXT_PUBLIC_SITE_NAME || 'Smart Info Blog';
+const SITE_DESC  = process.env.NEXT_PUBLIC_SITE_DESCRIPTION || '유용한 정보 블로그';
+const SITE_URL   = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfoblog.co.kr';
+const GA_ID      = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const ADSENSE    = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const KAKAO_KEY  = process.env.NEXT_PUBLIC_KAKAO_API_KEY;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -49,9 +51,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             `}</Script>
           </>
         )}
+        {KAKAO_KEY && (
+          <>
+            <Script
+              src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+              crossOrigin="anonymous"
+              strategy="afterInteractive"
+            />
+            <Script id="kakao-init" strategy="afterInteractive">{`
+              window.addEventListener('load', function() {
+                if (window.Kakao && !window.Kakao.isInitialized()) {
+                  window.Kakao.init('${KAKAO_KEY}');
+                }
+              });
+            `}</Script>
+          </>
+        )}
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        <ScrollToTop />
       </body>
     </html>
   );

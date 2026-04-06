@@ -1,8 +1,8 @@
 /**
- * YouTube Shorts 자동 생성 스크립트 v5
+ * YouTube Shorts 자동 생성 스크립트 v6
  * - 슬라이드당 narration만 사용, 그대로 자막으로 표시
- * - 5슬라이드 × 10초 = 50초 이내
- * - 한국어 TTS: nova 음성
+ * - 6슬라이드 × 10초 = 60초 이내
+ * - 한국어 TTS: Google ko-KR-Standard-C
  */
 
 require('dotenv').config();
@@ -33,7 +33,7 @@ async function generateShortsScript(post) {
   const res = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.7,
-    max_tokens: 1000,
+    max_tokens: 1200,
     response_format: { type: 'json_object' },
     messages: [
       {
@@ -42,37 +42,49 @@ async function generateShortsScript(post) {
 5060 시니어가 끝까지 보는 건강 쇼츠를 만듭니다.
 
 규칙:
-- slides: 정확히 5개
+- slides: 정확히 6개
 - 각 narration: 실제로 읽을 한국어 문장, 60~75자 (한 문장 또는 두 문장)
 - imageQuery: Pexels에서 검색할 영어 단어 2~3개
 - 자연스러운 한국어 구어체, 전문 의사가 설명하는 말투
-- 첫 슬라이드는 반드시 충격적 사실이나 반전 질문으로 시작
+
+첫 슬라이드 필수 패턴 (하나 선택):
+- "이 증상이 있다면 바로 확인하세요" 형태
+- "60대 이후 [증상], 절대 무시하면 안 됩니다" 형태
+- "[증상] 있으신가요? 이 영상 꼭 끝까지 보세요" 형태
+→ 시청자가 자신의 이야기라고 느끼게, 즉시 멈추고 보게 만들어야 합니다
 
 슬라이드 구조:
-1번: 훅 - 손가락 멈추게 하는 충격 사실
-2번: 심화 - 왜 시니어에게 더 위험한지
-3번: 해결법 1 - 가장 효과적인 방법
-4번: 해결법 2 또는 반전 정보
-5번: 마무리 - 핵심 요약 + 구독 유도`,
+1번: 훅 - 시청자가 자신과 관련 있다고 느끼는 증상/상황 제시
+2번: 심화 - 왜 시니어에게 더 위험한지, 방치하면 어떻게 되는지
+3번: 해결법 1 - 가장 효과적인 방법 (구체적 수치/방법 포함)
+4번: 해결법 2 또는 반전 정보 - 의외의 사실이나 함정
+5번: 즉시 실천 - 오늘 당장 할 수 있는 행동 1가지
+6번: 마무리 - 핵심 한 줄 + 구독·좋아요 유도
+
+영상 제목 규칙:
+- "이 증상 있으면?", "전문의가 밝힌", "놓치면 큰일", "60대 필독" 등 클릭 유발 단어 사용
+- 숫자 포함 시 클릭률 상승 (예: "3가지 신호", "2주 만에")
+- 반드시 #Shorts 포함, 40자 이내`,
       },
       {
         role: 'user',
         content: `제목: ${post.title}
 요약: ${post.excerpt}
 
-위 건강 정보를 바탕으로 50초 쇼츠를 만들어주세요.
+위 건강 정보를 바탕으로 60초 쇼츠를 만들어주세요.
 
 JSON:
 {
-  "youtubeTitle": "유튜브 제목 (40자 이내, 클릭 유발, #Shorts 포함)",
+  "youtubeTitle": "유튜브 제목 (40자 이내, 클릭 유발 단어+숫자 포함, #Shorts 포함)",
   "description": "시청자가 얻을 핵심 정보 1줄 (60~80자). 끝에 '전체 내용은 블로그에서 확인하세요 👇' 추가",
   "tags": ["건강", "5060건강", "시니어건강", "관련태그"],
   "slides": [
-    { "narration": "첫 슬라이드 실제 대사 (60~75자)", "imageQuery": "worried senior health" },
-    { "narration": "두 번째 슬라이드 대사 (60~75자)", "imageQuery": "elderly risk medical" },
-    { "narration": "세 번째 슬라이드 대사 (60~75자)", "imageQuery": "healthy food treatment" },
-    { "narration": "네 번째 슬라이드 대사 (60~75자)", "imageQuery": "health tip lifestyle" },
-    { "narration": "다섯 번째 슬라이드 대사 (55~65자, 마무리)", "imageQuery": "happy senior healthy" }
+    { "narration": "첫 슬라이드: '이 증상 있다면' 패턴으로 시청 유도 (60~75자)", "imageQuery": "worried senior symptom" },
+    { "narration": "두 번째: 위험성 심화 (60~75자)", "imageQuery": "elderly risk medical" },
+    { "narration": "세 번째: 해결법 1, 구체적 수치 포함 (60~75자)", "imageQuery": "healthy food treatment" },
+    { "narration": "네 번째: 반전 정보 또는 함정 (60~75자)", "imageQuery": "health tip lifestyle" },
+    { "narration": "다섯 번째: 오늘 당장 실천 1가지 (60~75자)", "imageQuery": "senior exercise daily" },
+    { "narration": "여섯 번째: 핵심 한 줄 요약 + 구독 유도 (50~65자)", "imageQuery": "happy senior healthy" }
   ]
 }`,
       },
@@ -133,9 +145,10 @@ html, body {
   display:flex; justify-content:center;
 }
 .brand-inner {
-  background:rgba(0,120,80,0.88);
+  background:rgba(0,120,80,0.92);
   border-radius:60px; padding:18px 48px;
   display:flex; align-items:center; gap:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.35);
 }
 .brand-icon { font-size:44px; line-height:1; }
 .brand-text { font-size:40px; font-weight:800; color:#fff; letter-spacing:2px; }
@@ -143,57 +156,57 @@ html, body {
 /* 슬라이드 번호 */
 .slide-num {
   position:absolute; top:160px; right:50px;
-  background:rgba(0,0,0,0.50);
+  background:rgba(0,0,0,0.55);
   border-radius:40px; padding:10px 28px;
   font-size:30px; font-weight:700;
-  color:rgba(255,255,255,0.85);
+  color:rgba(255,255,255,0.90);
 }
 
-/* 하단 자막 영역 */
+/* 하단 자막 영역 — YouTube UI(하단 ~220px) 위에 표시 */
 .subtitle-area {
   position:absolute; bottom:0; left:0; right:0;
   background:linear-gradient(
     to top,
-    rgba(0,0,0,0.90) 0%,
-    rgba(0,0,0,0.78) 40%,
-    rgba(0,0,0,0.30) 75%,
+    rgba(0,0,0,0.95) 0%,
+    rgba(0,0,0,0.85) 40%,
+    rgba(0,0,0,0.40) 75%,
     transparent 100%
   );
-  padding:50px 55px 115px;
-  min-height:380px;
+  padding:60px 55px 230px;
+  min-height:460px;
   display:flex; align-items:flex-end;
 }
 
 .subtitle-text {
-  font-size:52px;
+  font-size:58px;
   font-weight:800;
   color:#ffffff;
-  line-height:1.55;
+  line-height:1.50;
   word-break:keep-all;
   text-shadow:
-    0 2px 4px rgba(0,0,0,1),
-    0 4px 16px rgba(0,0,0,0.9),
-    0 0 40px rgba(0,0,0,0.7);
+    0 2px 6px rgba(0,0,0,1),
+    0 4px 20px rgba(0,0,0,0.95),
+    0 0 50px rgba(0,0,0,0.8);
   letter-spacing:-0.5px;
 }
 
 /* 진행 바 */
 .progress-track {
-  position:absolute; bottom:0; left:0; right:0; height:10px;
-  background:rgba(255,255,255,0.15);
+  position:absolute; bottom:0; left:0; right:0; height:12px;
+  background:rgba(255,255,255,0.18);
 }
 .progress-fill {
   height:100%; width:${progress}%;
   background:linear-gradient(90deg, #1abc9c, #4fc3f7);
-  border-radius:0 5px 5px 0;
+  border-radius:0 6px 6px 0;
 }
 
 /* 채널 URL */
 .channel-url {
-  position:absolute; bottom:18px; left:0; right:0;
+  position:absolute; bottom:20px; left:0; right:0;
   text-align:center;
   font-size:30px; font-weight:600;
-  color:rgba(255,255,255,0.50);
+  color:rgba(255,255,255,0.55);
 }
 </style>
 </head>
@@ -201,7 +214,7 @@ html, body {
 
 <div class="brand">
   <div class="brand-inner">
-    <span class="brand-icon">📚</span>
+    <span class="brand-icon">🏥</span>
     <span class="brand-text">시니어 건강백과</span>
   </div>
 </div>
@@ -303,7 +316,7 @@ function concatClips(clipPaths, outPath) {
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log('=== 유튜브 쇼츠 v5 (narration 자막, 50초 이내) ===\n');
+  console.log('=== 유튜브 쇼츠 v6 (6슬라이드, 60초 이내) ===\n');
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shorts-'));
 
   const browser = await puppeteer.launch({
@@ -329,7 +342,7 @@ async function main() {
     // 1. GPT 스크립트
     console.log('[1/3] 쇼츠 스크립트 생성...');
     const script = await generateShortsScript(post);
-    const slides = (script.slides || []).slice(0, 5);
+    const slides = (script.slides || []).slice(0, 6);
     console.log(`  제목: ${script.youtubeTitle}`);
     console.log(`  슬라이드: ${slides.length}개`);
     slides.forEach((s, i) => console.log(`    ${i + 1}. [${s.narration.length}자] ${s.narration.slice(0, 30)}...`));
@@ -376,7 +389,7 @@ async function main() {
     }
 
     await browser.close();
-    console.log(`총 ${slides.length}슬라이드 | 예상 길이: ${totalDuration.toFixed(0)}초\n`);
+    console.log(`총 ${slides.length}슬라이드 | 예상 길이: ~${totalDuration.toFixed(0)}초\n`);
 
     // 3. 최종 합성
     console.log('[3/3] 최종 영상 합성...');

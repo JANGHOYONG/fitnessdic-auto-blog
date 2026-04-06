@@ -14,6 +14,7 @@
     --border:       #C5E8DA;
     --primary:      #1E9E7A;
     --primary-dark: #177A5E;
+    --font-scale:   1;
   }
 
   html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -78,10 +79,10 @@
     color: var(--text);
   }
   .prose-custom h3 { @apply text-xl font-semibold mt-8 mb-3; color: var(--text); }
-  .prose-custom p  { @apply mb-6 leading-9; color: var(--text); font-size: 1.0625rem; }
+  .prose-custom p  { @apply mb-6 leading-9; color: var(--text); font-size: calc(1.0625rem * var(--font-scale)); }
   .prose-custom ul { @apply list-disc pl-6 mb-6 space-y-3; }
   .prose-custom ol { @apply list-decimal pl-6 mb-6 space-y-3; }
-  .prose-custom li { color: var(--text); @apply leading-8; }
+  .prose-custom li { color: var(--text); @apply leading-8; font-size: calc(1rem * var(--font-scale)); }
   .prose-custom strong { @apply font-bold; color: var(--text); }
   .prose-custom blockquote {
     @apply border-l-4 pl-5 italic my-8 py-4 pr-5 rounded-r-xl;

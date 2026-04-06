@@ -9,6 +9,8 @@ import TOC from '@/components/TOC';
 import ShareButtons from '@/components/ShareButtons';
 import ArticleCard from '@/components/ArticleCard';
 import CoupangDynamicBanner from '@/components/CoupangDynamicBanner';
+import NewsletterCTA from '@/components/NewsletterCTA';
+import FontSizeControl from '@/components/FontSizeControl';
 
 export const revalidate = 86400;
 
@@ -56,6 +58,19 @@ export default async function PostPage({ params }: Props) {
   const keywords: string[] = JSON.parse(post.keywords || '[]');
   const { html: processedContent, headings } = processContent(post.content);
   const relatedPosts = post.relatedPosts.map((r) => r.related);
+
+  const cleanContent = processedContent
+    .replace(/<div class=["']ad-slot ad-top["']><\/div>/g, '')
+    .replace(/<div class=["']ad-slot ad-middle["']><\/div>/g, '')
+    .replace(/<div class=["']ad-slot ad-bottom["']><\/div>/g, '');
+  const [contentFirst, contentSecond] = (() => {
+    const matches = [...cleanContent.matchAll(/<\/section>/g)];
+    if (matches.length < 3) return [cleanContent, ''] as [string, string];
+    const midIdx = Math.floor(matches.length / 2);
+    const pos = (matches[midIdx].index ?? 0) + '</section>'.length;
+    return [cleanContent.slice(0, pos), cleanContent.slice(pos)] as [string, string];
+  })();
+  const youtubeId = post.longformVideoId || post.shortsVideoId || null;
 
   // 이전/다음 글
   const [prevPost, nextPost] = await Promise.all([
@@ -152,6 +167,7 @@ export default async function PostPage({ params }: Props) {
                 )}
                 {post.readTime && <span>⏱ {post.readTime}분</span>}
                 <span>👁 {post.viewCount.toLocaleString()}</span>
+                <FontSizeControl />
               </div>
             </header>
 
@@ -163,18 +179,40 @@ export default async function PostPage({ params }: Props) {
             {/* 본문 */}
             <article
               className="prose-custom"
-              dangerouslySetInnerHTML={{
-                __html: processedContent
-                  .replace(/<div class=["']ad-slot ad-top["']><\/div>/g, '')
-                  .replace(/<div class=["']ad-slot ad-middle["']><\/div>/g, '')
-                  .replace(/<div class=["']ad-slot ad-bottom["']><\/div>/g, ''),
-              }}
+              dangerouslySetInnerHTML={{ __html: contentFirst }}
             />
 
-            {/* 쿠팡 다이나믹 배너 (비건강 카테고리 전용) */}
-            {post.category.slug !== 'health' && (
-              <CoupangDynamicBanner />
+            {/* 쿠팡 다이나믹 배너 (본문 중간) */}
+            <CoupangDynamicBanner />
+
+            {/* 본문 후반부 */}
+            {contentSecond && (
+              <div
+                className="prose-custom"
+                dangerouslySetInnerHTML={{ __html: contentSecond }}
+              />
             )}
+
+            {/* 유튜브 영상 (있을 경우) */}
+            {youtubeId && (
+              <div className="my-8">
+                <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-muted)' }}>
+                  📺 관련 영상
+                </p>
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    className="absolute inset-0 w-full h-full rounded-xl"
+                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                    title={post.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 뉴스레터 CTA */}
+            <NewsletterCTA className="my-8" />
 
             {/* 본문 중간 광고 */}
             <div className="my-8">

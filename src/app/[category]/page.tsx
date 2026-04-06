@@ -151,11 +151,28 @@ export default async function CategoryPage({ params, searchParams }: Props) {
             <p>아직 글이 없습니다.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {posts.map((post) => (
-              <ArticleCard key={post.id} post={post} />
-            ))}
-          </div>
+          <>
+            {/* 1~6번 글 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {posts.slice(0, 6).map((post) => (
+                <ArticleCard key={post.id} post={post} />
+              ))}
+            </div>
+
+            {/* 중간 광고 */}
+            {posts.length > 6 && (
+              <AdSense slot="category-middle" format="horizontal" className="my-8" />
+            )}
+
+            {/* 7번 이후 글 */}
+            {posts.length > 6 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {posts.slice(6).map((post) => (
+                  <ArticleCard key={post.id} post={post} />
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* 페이지네이션 */}
