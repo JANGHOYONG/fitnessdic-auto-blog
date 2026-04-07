@@ -28,42 +28,157 @@ const W = 1080;
 const H = 1920;
 const FONT = `'Noto Sans CJK KR','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif`;
 
+// ─── 주제별 훅 공식 (쇼츠 특화) ──────────────────────────────────────────────
+const TOPIC_HOOK_FORMULAS = {
+  blood_sugar: {
+    formula: '반전형',
+    hookPatterns: [
+      '"건강에 좋다"고 먹던 그 음식, 혈당 폭등시키고 있었습니다',
+      '공복혈당 정상인데 당뇨라고요? 병원도 모르는 진짜 위험 신호',
+      '혈당 낮추는 약보다 효과 있다는 이것, 알고 계세요?',
+    ],
+    titleFormulas: ['혈당 올리는 의외의 식품', '당뇨 전단계 숨겨진 신호', '혈당 잡는 반전 방법'],
+    imageQueries: ['blood sugar food surprising', 'diabetes warning sign', 'glucose health test'],
+  },
+  blood_pressure: {
+    formula: '경고형',
+    hookPatterns: [
+      '혈압약과 함께 먹으면 위험한 것들, 지금 드시고 있지 않나요?',
+      '아침 혈압이 높은 이유, 뇌졸중과 직접 연결됩니다',
+      '혈압 재는 방법 잘못되면 수치가 20 달라집니다. 지금 확인하세요',
+    ],
+    titleFormulas: ['혈압약과 절대 같이 먹으면 안 되는 것', '아침 고혈압의 충격적 진실', '혈압 오해와 진실'],
+    imageQueries: ['blood pressure danger warning', 'hypertension morning risk', 'blood pressure monitor wrong'],
+  },
+  joint: {
+    formula: '반전형',
+    hookPatterns: [
+      '무릎에 좋다고 걷기 운동? 오히려 연골 망가지는 경우 있습니다',
+      '콜라겐 영양제 드시고 계신가요? 최신 연구 결과가 충격적입니다',
+      '무릎 통증, 진짜 원인이 무릎이 아닐 수 있습니다',
+    ],
+    titleFormulas: ['걷기가 무릎 망친다?', '콜라겐 영양제의 불편한 진실', '무릎 통증 진짜 원인'],
+    imageQueries: ['knee pain wrong exercise', 'joint collagen supplement false', 'knee pain hip cause'],
+  },
+  sleep: {
+    formula: '증상체크형',
+    hookPatterns: [
+      '자다가 이 증상 있으면 치매 위험 3배입니다. 지금 체크해보세요',
+      '수면제가 치매를 앞당긴다는 연구 결과가 나왔습니다',
+      '몇 시에 일어나느냐가 심장마비 위험을 결정한다고요?',
+    ],
+    titleFormulas: ['수면 중 치매 경고 신호', '수면제의 충격적 부작용', '기상 시간과 심장마비'],
+    imageQueries: ['sleep apnea brain danger', 'sleeping pill dementia risk', 'wake up time heart health'],
+  },
+  brain: {
+    formula: '의사가 안 알려주는형',
+    hookPatterns: [
+      '치매는 10년 전부터 시작됩니다. 지금 이 증상, 노화가 아닙니다',
+      '매일 드시는 약이 뇌를 망가뜨리고 있을 수 있습니다',
+      '이 닦기와 치매가 연결된다고요? 전문의들도 놀란 연구입니다',
+    ],
+    titleFormulas: ['치매 10년 전 신호', '뇌 망치는 의외의 약', '구강 건강과 치매의 연결고리'],
+    imageQueries: ['dementia early warning sign', 'medication brain damage side effect', 'oral health brain connection'],
+  },
+  menopause: {
+    formula: '숫자/반전형',
+    hookPatterns: [
+      '갱년기 여성 10명 중 7명이 안면홍조 원인을 잘못 알고 있습니다',
+      '호르몬 치료가 암을 유발한다? 최신 연구가 완전히 뒤집었습니다',
+      '60대 남성 2명 중 1명이 갱년기를 겪지만 모르고 있습니다',
+    ],
+    titleFormulas: ['안면홍조 진짜 원인', '호르몬 치료 오해와 진실', '남성 갱년기 몰랐던 사실'],
+    imageQueries: ['menopause hot flash truth', 'hormone therapy safe research', 'male menopause senior'],
+  },
+  nutrition: {
+    formula: '금지/경고형',
+    hookPatterns: [
+      '함께 먹으면 독이 되는 영양제 조합, 지금 드시고 있을 수 있습니다',
+      '건강기능식품이 처방약 효과를 완전히 없앤다고요? 실제 사례입니다',
+      '비타민D 많이 먹으면 좋다고요? 독성 축적되면 이렇게 됩니다',
+    ],
+    titleFormulas: ['같이 먹으면 독이 되는 영양제', '건강기능식품의 위험한 함정', '비타민 과다복용 부작용'],
+    imageQueries: ['supplement combination dangerous', 'health supplement drug interaction', 'vitamin overdose toxicity'],
+  },
+};
+
+// 건강 7대 주제 키워드로 주제 감지
+const HEALTH_WORDS = {
+  blood_sugar:    ['혈당', '당뇨', '인슐린', '공복혈당'],
+  blood_pressure: ['혈압', '심장', '고혈압', '콜레스테롤', '뇌졸중', '심혈관'],
+  joint:          ['관절', '무릎', '연골', '허리', '척추', '근육', '골다공증'],
+  sleep:          ['수면', '불면', '피로', '잠', '멜라토닌', '수면장애'],
+  brain:          ['치매', '뇌', '기억력', '알츠하이머', '인지', '파킨슨'],
+  menopause:      ['갱년기', '폐경', '호르몬', '안면홍조', '에스트로겐'],
+  nutrition:      ['영양', '영양제', '비타민', '식이', '보충제', '건강기능식품'],
+};
+
+function detectTopicFromPost(post) {
+  const text = `${post.title} ${post.excerpt || ''}`;
+  for (const [topicId, words] of Object.entries(HEALTH_WORDS)) {
+    if (words.some((w) => text.includes(w))) return topicId;
+  }
+  return null;
+}
+
 // ─── 1. GPT 스크립트 생성 ─────────────────────────────────────────────────────
 async function generateShortsScript(post) {
+  const topicId = detectTopicFromPost(post);
+  const hookInfo = topicId ? TOPIC_HOOK_FORMULAS[topicId] : null;
+
+  const hookGuidance = hookInfo ? `
+[이 쇼츠의 콘텐츠 공식: ${hookInfo.formula}]
+첫 슬라이드 훅 보기 예시 (반드시 이런 톤으로):
+- ${hookInfo.hookPatterns[0]}
+- ${hookInfo.hookPatterns[1]}
+- ${hookInfo.hookPatterns[2]}
+
+핵심 전략: 시청자가 "이건 몰랐다!" "이거 진짜야?" 반응이 나와야 합니다.
+뻔한 조언(운동하세요, 식단 관리 등)은 절대 쓰지 마세요. 반전과 충격 정보 중심으로.
+이미지 검색어 힌트: ${hookInfo.imageQueries.join(', ')}
+` : '';
+
+  const hookTitleExamples = hookInfo
+    ? hookInfo.titleFormulas.map((t) => `"${t}"`).join(', ')
+    : '"3가지 신호", "몰랐던 진실", "전문의 경고"';
+
   const res = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
-    temperature: 0.7,
-    max_tokens: 1200,
+    temperature: 0.75,
+    max_tokens: 1400,
     response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
         content: `당신은 유튜브 쇼츠 전문 작가입니다.
 5060 시니어가 끝까지 보는 건강 쇼츠를 만듭니다.
-
+뻔한 상식(운동하세요, 균형 잡힌 식단 등)은 절대 쓰지 않습니다.
+반드시 시청자가 "이건 몰랐다!", "이거 진짜야?" 반응이 나오는 반전·충격 정보 중심으로 작성합니다.
+${hookGuidance}
 규칙:
 - slides: 정확히 6개
 - 각 narration: 실제로 읽을 한국어 문장, 60~75자 (한 문장 또는 두 문장)
 - imageQuery: Pexels에서 검색할 영어 단어 2~3개
 - 자연스러운 한국어 구어체, 전문 의사가 설명하는 말투
 
-첫 슬라이드 필수 패턴 (하나 선택):
-- "이 증상이 있다면 바로 확인하세요" 형태
-- "60대 이후 [증상], 절대 무시하면 안 됩니다" 형태
-- "[증상] 있으신가요? 이 영상 꼭 끝까지 보세요" 형태
-→ 시청자가 자신의 이야기라고 느끼게, 즉시 멈추고 보게 만들어야 합니다
+첫 슬라이드(썸네일이 됨) 필수 패턴 — 충격·반전형으로:
+- "[건강하다고 알려진 것]이 실제로는 [위험]합니다" 형태
+- "10명 중 [숫자]명이 모르는 [충격적 사실]" 형태
+- "[증상], [의외의 원인] 때문일 수 있습니다. 지금 확인하세요" 형태
+→ 첫 슬라이드가 썸네일 = 클릭률 결정. 반드시 눈길을 멈추게 만들어야 합니다.
 
 슬라이드 구조:
-1번: 훅 - 시청자가 자신과 관련 있다고 느끼는 증상/상황 제시
-2번: 심화 - 왜 시니어에게 더 위험한지, 방치하면 어떻게 되는지
-3번: 해결법 1 - 가장 효과적인 방법 (구체적 수치/방법 포함)
-4번: 해결법 2 또는 반전 정보 - 의외의 사실이나 함정
-5번: 즉시 실천 - 오늘 당장 할 수 있는 행동 1가지
+1번: 훅(썸네일) - 반전·충격 정보로 즉시 시청 유도
+2번: 심화 - 왜 시니어에게 더 위험한지, 방치하면 어떻게 되는지 (수치 포함)
+3번: 반전 정보 1 - 의외의 사실, 의사도 잘 안 알려주는 정보
+4번: 반전 정보 2 또는 함정 경고 - 잘못 알려진 상식 타파
+5번: 즉시 실천 - 오늘 당장 할 수 있는 행동 1가지 (구체적)
 6번: 마무리 - 핵심 한 줄 + 구독·좋아요 유도
 
 영상 제목 규칙:
-- "이 증상 있으면?", "전문의가 밝힌", "놓치면 큰일", "60대 필독" 등 클릭 유발 단어 사용
-- 숫자 포함 시 클릭률 상승 (예: "3가지 신호", "2주 만에")
+- 클릭 유발 단어 필수: "몰랐던", "의외의", "충격", "반전", "경고", "위험"
+- 숫자 포함 시 클릭률 상승 (예: "10명 중 7명", "3가지", "2배 위험")
+- 예시 참고: ${hookTitleExamples}
 - 반드시 #Shorts 포함, 40자 이내`,
       },
       {
@@ -71,20 +186,21 @@ async function generateShortsScript(post) {
         content: `제목: ${post.title}
 요약: ${post.excerpt}
 
-위 건강 정보를 바탕으로 60초 쇼츠를 만들어주세요.
+위 건강 정보를 바탕으로 60초 충격·반전형 쇼츠를 만들어주세요.
 
 JSON:
 {
-  "youtubeTitle": "유튜브 제목 (40자 이내, 클릭 유발 단어+숫자 포함, #Shorts 포함)",
+  "youtubeTitle": "유튜브 제목 (40자 이내, 반전·충격·숫자 포함, #Shorts 포함)",
+  "hookText": "첫 슬라이드 강조 문구 (20자 이내, 매우 짧고 강렬하게 — 예: '지금 당장 멈추세요', '10명 중 7명 몰라요', '이게 진짜 원인입니다')",
   "description": "시청자가 얻을 핵심 정보 1줄 (60~80자). 끝에 '전체 내용은 블로그에서 확인하세요 👇' 추가",
   "tags": ["건강", "5060건강", "시니어건강", "관련태그"],
   "slides": [
-    { "narration": "첫 슬라이드: '이 증상 있다면' 패턴으로 시청 유도 (60~75자)", "imageQuery": "worried senior symptom" },
-    { "narration": "두 번째: 위험성 심화 (60~75자)", "imageQuery": "elderly risk medical" },
-    { "narration": "세 번째: 해결법 1, 구체적 수치 포함 (60~75자)", "imageQuery": "healthy food treatment" },
-    { "narration": "네 번째: 반전 정보 또는 함정 (60~75자)", "imageQuery": "health tip lifestyle" },
-    { "narration": "다섯 번째: 오늘 당장 실천 1가지 (60~75자)", "imageQuery": "senior exercise daily" },
-    { "narration": "여섯 번째: 핵심 한 줄 요약 + 구독 유도 (50~65자)", "imageQuery": "happy senior healthy" }
+    { "narration": "첫 슬라이드: 반전·충격 훅으로 시청 유도 (60~75자)", "imageQuery": "${hookInfo ? hookInfo.imageQueries[0] : 'senior health shocking truth'}" },
+    { "narration": "두 번째: 위험성 심화, 구체적 수치 포함 (60~75자)", "imageQuery": "${hookInfo ? hookInfo.imageQueries[1] : 'elderly medical risk serious'}" },
+    { "narration": "세 번째: 의외의 반전 정보, 의사가 잘 안 알려주는 것 (60~75자)", "imageQuery": "doctor secret health tip" },
+    { "narration": "네 번째: 잘못 알려진 상식 타파 또는 함정 경고 (60~75자)", "imageQuery": "health myth busted warning" },
+    { "narration": "다섯 번째: 오늘 당장 실천 1가지, 아주 구체적으로 (60~75자)", "imageQuery": "senior daily health action" },
+    { "narration": "여섯 번째: 핵심 한 줄 요약 + 구독 유도 (50~65자)", "imageQuery": "happy healthy senior lifestyle" }
   ]
 }`,
       },
@@ -123,10 +239,148 @@ async function fetchPexelsPhoto(query, outPath) {
   throw new Error(`이미지 없음: "${query}"`);
 }
 
-// ─── 3. 오버레이 HTML - narration을 그대로 자막으로 표시 ──────────────────────
-function makeOverlayHtml(narration, slideIdx, totalSlides) {
+// ─── 3. 오버레이 HTML - 슬라이드 1은 썸네일 특화 디자인 ─────────────────────
+function makeOverlayHtml(narration, slideIdx, totalSlides, hookText = '') {
   const progress = Math.round((slideIdx / totalSlides) * 100);
+  const isThumbnail = slideIdx === 1;
 
+  // 썸네일 슬라이드(1번) — 강렬한 훅 디자인
+  if (isThumbnail) {
+    return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:${W}px; height:${H}px;
+  background:transparent; overflow:hidden;
+  font-family:${FONT};
+}
+
+/* 상단 브랜드 배지 */
+.brand {
+  position:absolute; top:50px; left:0; right:0;
+  display:flex; justify-content:center;
+}
+.brand-inner {
+  background:rgba(0,100,70,0.95);
+  border-radius:60px; padding:18px 52px;
+  display:flex; align-items:center; gap:16px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.45);
+  border:3px solid rgba(255,255,255,0.2);
+}
+.brand-icon { font-size:44px; line-height:1; }
+.brand-text { font-size:40px; font-weight:800; color:#fff; letter-spacing:2px; }
+
+/* 중앙 강조 훅 박스 (썸네일 핵심) */
+.hook-area {
+  position:absolute;
+  top:50%; left:50%;
+  transform:translate(-50%, -50%);
+  width:960px;
+  text-align:center;
+}
+.hook-badge {
+  display:inline-block;
+  background:linear-gradient(135deg, #FF3B30, #FF6B35);
+  color:#fff;
+  font-size:38px; font-weight:900;
+  padding:16px 48px; border-radius:60px;
+  margin-bottom:30px;
+  box-shadow:0 6px 24px rgba(255,59,48,0.55);
+  letter-spacing:1px;
+}
+.hook-main {
+  font-size:72px;
+  font-weight:900;
+  color:#ffffff;
+  line-height:1.30;
+  word-break:keep-all;
+  text-shadow:
+    0 3px 8px rgba(0,0,0,1),
+    0 6px 30px rgba(0,0,0,0.95),
+    0 0 80px rgba(0,0,0,0.9);
+  letter-spacing:-1px;
+}
+.hook-sub {
+  margin-top:24px;
+  font-size:46px;
+  font-weight:700;
+  color:rgba(255,230,100,1);
+  line-height:1.40;
+  word-break:keep-all;
+  text-shadow:0 2px 10px rgba(0,0,0,0.9), 0 4px 20px rgba(0,0,0,0.8);
+}
+
+/* 하단 자막 영역 */
+.subtitle-area {
+  position:absolute; bottom:0; left:0; right:0;
+  background:linear-gradient(
+    to top,
+    rgba(0,0,0,0.96) 0%,
+    rgba(0,0,0,0.88) 50%,
+    rgba(0,0,0,0.35) 80%,
+    transparent 100%
+  );
+  padding:50px 55px 240px;
+  min-height:420px;
+  display:flex; align-items:flex-end;
+}
+.subtitle-text {
+  font-size:54px; font-weight:800; color:#ffffff;
+  line-height:1.50; word-break:keep-all;
+  text-shadow:0 2px 6px rgba(0,0,0,1), 0 4px 20px rgba(0,0,0,0.95);
+  letter-spacing:-0.5px;
+}
+
+/* 진행 바 */
+.progress-track {
+  position:absolute; bottom:0; left:0; right:0; height:14px;
+  background:rgba(255,255,255,0.15);
+}
+.progress-fill {
+  height:100%; width:${progress}%;
+  background:linear-gradient(90deg, #FF6B35, #FFD700);
+  border-radius:0 7px 7px 0;
+}
+
+/* 채널 URL */
+.channel-url {
+  position:absolute; bottom:22px; left:0; right:0;
+  text-align:center; font-size:30px; font-weight:600;
+  color:rgba(255,255,255,0.60);
+}
+</style>
+</head>
+<body>
+
+<div class="brand">
+  <div class="brand-inner">
+    <span class="brand-icon">🏥</span>
+    <span class="brand-text">시니어 건강백과</span>
+  </div>
+</div>
+
+<div class="hook-area">
+  <div class="hook-badge">⚠️ 지금 바로 확인하세요</div>
+  ${hookText ? `<div class="hook-main">${hookText}</div>` : ''}
+</div>
+
+<div class="subtitle-area">
+  <div class="subtitle-text">${narration.replace(/\n/g, '<br>')}</div>
+</div>
+
+<div class="progress-track">
+  <div class="progress-fill"></div>
+</div>
+<div class="channel-url">smartinfoblog.co.kr</div>
+
+</body>
+</html>`;
+  }
+
+  // 일반 슬라이드 (2~6번)
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -145,30 +399,30 @@ html, body {
   display:flex; justify-content:center;
 }
 .brand-inner {
-  background:rgba(0,120,80,0.92);
-  border-radius:60px; padding:18px 48px;
-  display:flex; align-items:center; gap:16px;
+  background:rgba(0,100,70,0.92);
+  border-radius:60px; padding:16px 44px;
+  display:flex; align-items:center; gap:14px;
   box-shadow:0 4px 20px rgba(0,0,0,0.35);
 }
-.brand-icon { font-size:44px; line-height:1; }
-.brand-text { font-size:40px; font-weight:800; color:#fff; letter-spacing:2px; }
+.brand-icon { font-size:38px; line-height:1; }
+.brand-text { font-size:36px; font-weight:800; color:#fff; letter-spacing:2px; }
 
 /* 슬라이드 번호 */
 .slide-num {
-  position:absolute; top:160px; right:50px;
-  background:rgba(0,0,0,0.55);
+  position:absolute; top:155px; right:50px;
+  background:rgba(0,0,0,0.60);
   border-radius:40px; padding:10px 28px;
   font-size:30px; font-weight:700;
   color:rgba(255,255,255,0.90);
 }
 
-/* 하단 자막 영역 — YouTube UI(하단 ~220px) 위에 표시 */
+/* 하단 자막 영역 */
 .subtitle-area {
   position:absolute; bottom:0; left:0; right:0;
   background:linear-gradient(
     to top,
-    rgba(0,0,0,0.95) 0%,
-    rgba(0,0,0,0.85) 40%,
+    rgba(0,0,0,0.96) 0%,
+    rgba(0,0,0,0.88) 40%,
     rgba(0,0,0,0.40) 75%,
     transparent 100%
   );
@@ -176,17 +430,10 @@ html, body {
   min-height:460px;
   display:flex; align-items:flex-end;
 }
-
 .subtitle-text {
-  font-size:58px;
-  font-weight:800;
-  color:#ffffff;
-  line-height:1.50;
-  word-break:keep-all;
-  text-shadow:
-    0 2px 6px rgba(0,0,0,1),
-    0 4px 20px rgba(0,0,0,0.95),
-    0 0 50px rgba(0,0,0,0.8);
+  font-size:58px; font-weight:800; color:#ffffff;
+  line-height:1.50; word-break:keep-all;
+  text-shadow:0 2px 6px rgba(0,0,0,1), 0 4px 20px rgba(0,0,0,0.95), 0 0 50px rgba(0,0,0,0.8);
   letter-spacing:-0.5px;
 }
 
@@ -204,8 +451,7 @@ html, body {
 /* 채널 URL */
 .channel-url {
   position:absolute; bottom:20px; left:0; right:0;
-  text-align:center;
-  font-size:30px; font-weight:600;
+  text-align:center; font-size:30px; font-weight:600;
   color:rgba(255,255,255,0.55);
 }
 </style>
@@ -374,9 +620,10 @@ async function main() {
       totalDuration += duration + 0.3;
       console.log(`     🔊 ${slide.narration.length}자 → ${duration.toFixed(1)}초`);
 
-      // c) 오버레이 - narration을 자막으로 표시
+      // c) 오버레이 - narration을 자막으로 표시 (슬라이드 1은 훅 배너 포함)
       const overlayPath = path.join(tmpDir, `overlay_${i}.png`);
-      const html = makeOverlayHtml(slide.narration, i + 1, slides.length);
+      const hookText = i === 0 ? (script.hookText || '') : '';
+      const html = makeOverlayHtml(slide.narration, i + 1, slides.length, hookText);
       await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 10000 });
       await new Promise((r) => setTimeout(r, 400));
       await page.screenshot({ path: overlayPath, omitBackground: true });
