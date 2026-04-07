@@ -12,6 +12,7 @@ const TOPICS = [
   { name: '뇌건강·치매', query: '치매' },
   { name: '갱년기', query: '갱년기' },
   { name: '영양·식이', query: '영양' },
+  { name: '여행·여가', href: '/travel' },
 ];
 
 export default function Header() {
@@ -52,8 +53,8 @@ export default function Header() {
             </Link>
             {TOPICS.map((t) => (
               <Link
-                key={t.query}
-                href={`/search?q=${encodeURIComponent(t.query)}`}
+                key={t.name}
+                href={t.href ?? `/search?q=${encodeURIComponent(t.query ?? '')}`}
                 className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
                 style={{ color: 'var(--text-muted)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--primary)')}
@@ -121,8 +122,8 @@ export default function Header() {
             </Link>
             {TOPICS.map((t) => (
               <Link
-                key={t.query}
-                href={`/search?q=${encodeURIComponent(t.query)}`}
+                key={t.name}
+                href={t.href ?? `/search?q=${encodeURIComponent(t.query ?? '')}`}
                 className="block px-2 py-2.5 text-sm font-medium rounded-lg"
                 style={{ color: 'var(--text)' }}
                 onClick={() => setMenuOpen(false)}

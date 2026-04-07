@@ -47,14 +47,21 @@ const TOPIC_CTA_TEXT = {
 // 구글 시트에서 해당 주제 상품 목록 읽기 (CSV 파싱)
 async function fetchCoupangProducts(topicId) {
   const sheetName = TOPIC_TO_SHEET[topicId];
-  if (!sheetName) return [];
+  if (!sheetName) {
+    console.log(`    [쿠팡] topicId="${topicId}" 에 해당하는 시트 없음`);
+    return [];
+  }
   try {
     const url = `https://docs.google.com/spreadsheets/d/${COUPANG_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+    console.log(`    [쿠팡] 시트 로딩: "${sheetName}" (${url.slice(0, 80)}...)`);
     const res = await fetch(url);
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.log(`    [쿠팡] HTTP 오류: ${res.status}`);
+      return [];
+    }
     const csv = await res.text();
     const lines = csv.trim().split('\n').slice(1); // 헤더 제거
-    return lines
+    const products = lines
       .map((line) => {
         // CSV 파싱: "상품명","URL","메모"
         const cols = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
@@ -63,7 +70,10 @@ async function fetchCoupangProducts(topicId) {
         return name && url ? { name, url } : null;
       })
       .filter(Boolean);
-  } catch {
+    console.log(`    [쿠팡] "${sheetName}" 시트에서 ${products.length}개 상품 로딩 완료`);
+    return products;
+  } catch (e) {
+    console.log(`    [쿠팡] fetch 오류: ${e.message}`);
     return [];
   }
 }
