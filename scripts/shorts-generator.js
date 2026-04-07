@@ -403,7 +403,8 @@ async function main() {
     const postUrl = `${siteUrl}/${post.category.slug}/${post.slug}`;
     const fullDesc =
       `${script.description}\n\n` +
-      `📖 전체 내용 + 실천 가이드 보기 👉 ${postUrl}\n\n` +
+      `📖 블로그에서 전체 내용 확인하기 👇\n` +
+      `${postUrl}\n\n` +
       `이 영상이 도움이 됐다면 구독 & 좋아요 눌러주세요! 💚\n` +
       `매일 새로운 5060 건강 정보를 쇼츠로 전해드립니다.\n\n` +
       `─────────────────────\n` +

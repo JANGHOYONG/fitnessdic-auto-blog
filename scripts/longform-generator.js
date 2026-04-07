@@ -687,7 +687,8 @@ async function main() {
     const timestamps = buildChapterTimestamps(script.chapters, durations);
     const fullDesc =
       `${script.description}\n\n` +
-      `📖 블로그 전문 + 실천 가이드 보기 👉 ${postUrl}\n\n` +
+      `📖 블로그에서 전체 내용 + 실천 가이드 보기 👇\n` +
+      `${postUrl}\n\n` +
       `이 영상이 도움이 됐다면 구독 & 좋아요 꼭 눌러주세요! 💚\n` +
       `매일 5060 건강 정보를 영상으로 전달해드립니다.\n\n` +
       `─────────────────────\n` +
