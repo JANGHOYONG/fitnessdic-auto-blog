@@ -9,6 +9,7 @@ import TOC from '@/components/TOC';
 import ShareButtons from '@/components/ShareButtons';
 import ArticleCard from '@/components/ArticleCard';
 import CoupangDynamicBanner from '@/components/CoupangDynamicBanner';
+import CoupangProductCard, { type CoupangProduct } from '@/components/CoupangProductCard';
 import NewsletterCTA from '@/components/NewsletterCTA';
 import FontSizeControl from '@/components/FontSizeControl';
 
@@ -59,24 +60,33 @@ export default async function PostPage({ params }: Props) {
   const { html: processedContent, headings } = processContent(post.content);
   const relatedPosts = post.relatedPosts.map((r) => r.related);
 
-  // health 카테고리: content-generator.js가 구글 시트 쿠팡 링크를 본문에 직접 삽입
-  // 그 외(travel 등): 전용 링크 없으므로 CoupangDynamicBanner 사용
   const isHealth = post.category.slug === 'health';
+  const youtubeId = post.longformVideoId || post.shortsVideoId || null;
+
+  // 사이드바 쿠팡 카드 — coupangProduct DB 필드가 있으면 파싱 (이후 로직에서 사용)
+  const coupangProduct: CoupangProduct | null = (() => {
+    try {
+      const raw = (post as Record<string, unknown>).coupangProduct as string | null;
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  })();
 
   const cleanContent = processedContent
     .replace(/<div class=["']ad-slot ad-top["']><\/div>/g, '')
     .replace(/<div class=["']ad-slot ad-middle["']><\/div>/g, '')
     .replace(/<div class=["']ad-slot ad-bottom["']><\/div>/g, '');
   const [contentFirst, contentSecond] = (() => {
-    // 비health 카테고리는 중간에 다이나믹배너를 끼워넣기 위해 분할
-    if (isHealth) return [cleanContent, ''] as [string, string];
+    // 비health이면서 사이드바 카드도 없을 때만 본문 중간에 다이나믹배너 삽입
+    const needsSplit = !isHealth && !coupangProduct;
+    if (!needsSplit) return [cleanContent, ''] as [string, string];
     const matches = [...cleanContent.matchAll(/<\/section>/g)];
     if (matches.length < 3) return [cleanContent, ''] as [string, string];
     const midIdx = Math.floor(matches.length / 2);
     const pos = (matches[midIdx].index ?? 0) + '</section>'.length;
     return [cleanContent.slice(0, pos), cleanContent.slice(pos)] as [string, string];
   })();
-  const youtubeId = post.longformVideoId || post.shortsVideoId || null;
 
   // 이전/다음 글
   const [prevPost, nextPost] = await Promise.all([
@@ -188,8 +198,8 @@ export default async function PostPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: contentFirst }}
             />
 
-            {/* 쿠팡 다이나믹 배너 (비health 카테고리만 — health는 본문 HTML에 직접 삽입됨) */}
-            {!isHealth && <CoupangDynamicBanner />}
+            {/* 쿠팡 다이나믹 배너: 비health 카테고리이고 사이드바 카드도 없을 때만 */}
+            {!isHealth && !coupangProduct && <CoupangDynamicBanner />}
 
             {/* 본문 후반부 */}
             {contentSecond && (
@@ -265,6 +275,8 @@ export default async function PostPage({ params }: Props) {
           {/* 사이드바 */}
           <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
             <TOC headings={headings} />
+            {/* 쿠팡 상품 카드 (health 카테고리 신규 글) */}
+            {coupangProduct && <CoupangProductCard product={coupangProduct} />}
             <AdSense slot="post-sidebar" format="rectangle" />
           </aside>
         </div>

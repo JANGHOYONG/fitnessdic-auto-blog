@@ -63,11 +63,14 @@ async function fetchCoupangProducts(topicId) {
     const lines = csv.trim().split('\n').slice(1); // 헤더 제거
     const products = lines
       .map((line) => {
-        // CSV 파싱: "상품명","URL","메모"
+        // CSV 파싱: "상품명","URL","이미지URL(선택)","가격(선택)"
         const cols = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
-        const name = (cols[0] || '').replace(/^"|"$/g, '').trim();
-        const url  = (cols[1] || '').replace(/^"|"$/g, '').trim();
-        return name && url ? { name, url } : null;
+        const clean = (v) => (v || '').replace(/^"|"$/g, '').trim();
+        const name  = clean(cols[0]);
+        const url   = clean(cols[1]);
+        const image = clean(cols[2]); // 선택: 구글 시트 C열
+        const price = clean(cols[3]); // 선택: 구글 시트 D열 (예: "10,770원")
+        return name && url ? { name, url, image: image || null, price: price || null } : null;
       })
       .filter(Boolean);
     console.log(`    [쿠팡] "${sheetName}" 시트에서 ${products.length}개 상품 로딩 완료`);
@@ -742,14 +745,20 @@ async function main() {
           if (bodyImgs.length) content = injectBodyImages(content, bodyImgs);
         }
 
-        // 쿠팡파트너스 상품 삽입 (health 카테고리 + 주제 매칭 시)
+        // 쿠팡파트너스 상품 — DB 필드로 분리 저장 (사이드바 카드 렌더링용)
+        let coupangProductJson = null;
         if (kw.category.slug === 'health' && TOPIC_TO_SHEET[topic]) {
           try {
             const coupangProducts = await fetchCoupangProducts(topic);
             if (coupangProducts.length) {
-              // 랜덤으로 상품 1개 선택
               const product = coupangProducts[Math.floor(Math.random() * coupangProducts.length)];
-              content = insertCoupangBox(content, product, topic);
+              coupangProductJson = JSON.stringify({
+                name: product.name,
+                url: product.url,
+                image: product.image || null,
+                price: product.price || null,
+                ctaText: TOPIC_CTA_TEXT[topic] || '건강 추천 제품',
+              });
               console.log(`    쿠팡 상품 [${topicLabel}]: "${product.name}"`);
             }
           } catch (e) {
@@ -769,6 +778,7 @@ async function main() {
             metaDescription: gen.metaDescription,
             readTime: gen.readTime,
             thumbnail,
+            coupangProduct: coupangProductJson,
             status: 'DRAFT',
             categoryId: kw.categoryId,
             keywordId: kw.id,
