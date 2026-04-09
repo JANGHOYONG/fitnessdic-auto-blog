@@ -1,11 +1,8 @@
-name: Auto Publish Blog Post
+name: Auto Publish Knowledge Post
 
 on:
   schedule:
-    - cron: '0 0 * * *'   # 오전  9시 KST (UTC 00:00)
-    - cron: '0 4 * * *'   # 오후  1시 KST (UTC 04:00)
-    - cron: '0 12 * * *'  # 오후  9시 KST (UTC 12:00)
-    - cron: '0 16 * * *'  # 오전  1시 KST (UTC 16:00)
+    - cron: '0 8 * * *'   # 오후  5시 KST (UTC 08:00) — 건강지식 1개/일
   workflow_dispatch:       # 수동 실행 버튼
 
 jobs:
@@ -33,32 +30,32 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Auto-replenish keywords if low
+      - name: Auto-replenish knowledge keywords if low
         run: |
           node -e "
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();
-          prisma.keyword.count({ where: { used: false, category: { slug: 'health' } } }).then(n => {
-            console.log('건강 미사용 키워드 수:', n);
-            process.exit(n < 20 ? 1 : 0);
+          prisma.keyword.count({ where: { used: false, category: { slug: 'knowledge' } } }).then(n => {
+            console.log('건강지식 미사용 키워드 수:', n);
+            process.exit(n < 10 ? 1 : 0);
           }).finally(() => prisma.\$disconnect());
-          " && echo "키워드 충분" || (echo "키워드 부족 — 건강 키워드 자동 수집 시작" && node scripts/keyword-collector.js --category=health --count=30)
+          " && echo "키워드 충분" || (echo "키워드 부족 — 건강지식 키워드 자동 수집 시작" && node scripts/keyword-collector.js --category=knowledge --count=20)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Generate content
-        run: node scripts/content-generator.js --count=1 --category=health
+      - name: Generate knowledge content
+        run: node scripts/content-generator.js --count=1 --category=knowledge
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
 
-      - name: Publish post
+      - name: Publish knowledge post
         run: node scripts/publisher.js --mode=immediate --limit=1
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-          DAILY_POST_LIMIT: '5'  # 하루 최대 5개 (--limit=1은 1회 실행당 1개)
+          DAILY_POST_LIMIT: '2'
