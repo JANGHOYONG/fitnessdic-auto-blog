@@ -8,6 +8,7 @@ import SkeletonCard from '@/components/SkeletonCard';
 import TopBar from '@/components/TopBar';
 import AdSense from '@/components/AdSense';
 import NewsletterCTA from '@/components/NewsletterCTA';
+import DailyHealthTip from '@/components/DailyHealthTip';
 
 export const revalidate = 1800;
 
@@ -24,18 +25,6 @@ export const metadata: Metadata = {
     type: 'website',
   },
 };
-
-const TOPICS = [
-  { name: '혈당·당뇨',   query: '혈당',   icon: '🩸' },
-  { name: '혈압·심장',   query: '혈압',   icon: '❤️' },
-  { name: '관절·근육',   query: '관절',   icon: '🦴' },
-  { name: '수면·피로',   query: '수면',   icon: '😴' },
-  { name: '뇌건강·치매', query: '치매',   icon: '🧠' },
-  { name: '갱년기',      query: '갱년기', icon: '🌸' },
-  { name: '영양·식이',   query: '영양',   icon: '💊' },
-  { name: '건강지식',    href: '/knowledge',            icon: '📚' },
-  { name: '여행·여가',   href: '/travel',               icon: '✈️' },
-];
 
 export default async function HomePage() {
   const recentPosts = await prisma.post.findMany({
@@ -60,27 +49,10 @@ export default async function HomePage() {
         <TopBar />
       </Suspense>
 
-      {/* 히어로 배너 */}
-      <div style={{ background: 'linear-gradient(135deg, #177A5E 0%, #1E9E7A 50%, #4fc3a1 100%)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 text-center text-white">
-          <p className="text-3xl mb-2">🏥</p>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2 tracking-tight">시니어 건강백과</h1>
-          <p className="text-base opacity-85 mb-6">시니어를 위한 정확하고 실천 가능한 건강 백과사전</p>
-          {/* 주제 빠른 탐색 */}
-          <div className="flex flex-wrap justify-center gap-3">
-            {TOPICS.map((t) => (
-              <Link
-                key={t.name}
-                href={t.href ?? `/search?q=${encodeURIComponent(t.query ?? '')}`}
-                className="px-5 py-3 rounded-full text-sm font-medium transition-all active:scale-95"
-                style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.35)', minHeight: '44px', display: 'flex', alignItems: 'center' }}
-              >
-                {t.icon} {t.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* 오늘의 건강 궁금증 */}
+      <Suspense fallback={null}>
+        <DailyHealthTip />
+      </Suspense>
 
       {/* 메인 콘텐츠 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
