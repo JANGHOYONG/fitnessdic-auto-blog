@@ -121,7 +121,7 @@ function detectTopicFromPost(post) {
   return null;
 }
 
-// ─── 1. GPT 스크립트 생성 (바이럴 v2 — HOOK/BODY×3/ENDING) ──────────────────
+// ─── 1. GPT 스크립트 생성 (바이럴 v3 — 실제 정보 전달 + 슬라이드당 2~3문장) ──
 async function generateShortsScript(post) {
   const topicId = detectTopicFromPost(post);
   const hookInfo = topicId ? TOPIC_HOOK_FORMULAS[topicId] : null;
@@ -137,85 +137,81 @@ async function generateShortsScript(post) {
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
-    temperature: 0.85,
-    max_tokens: 1200,
+    temperature: 0.80,
+    max_tokens: 1800,
     response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
         content: `당신은 유튜브 쇼츠 바이럴 전문 작가입니다.
 5060 시니어가 끝까지 보는 건강 쇼츠를 만듭니다.
-목표: AI 티 없이 '사람이 만든 것처럼' 보이게 만들기.
 
 핵심 원칙:
-- 완벽한 문장 금지 ❌
-- 끊어 말하기 ✅ (narration 내 \\n으로 끊기)
-- 짧고 강하게 ✅
-- 뻔한 조언 금지 ❌ (운동하세요, 식단 관리 등)
-- 반전·충격·공감 ✅
+① 제목에서 약속한 정보를 영상 안에서 반드시 전달할 것
+   - 제목이 "혈당 올리는 의외의 식품"이면 → 어떤 식품인지, 왜 나쁜지 영상에서 설명
+   - "블로그에서 확인하세요"로만 끝내는 것은 절대 금지 ❌
+② 슬라이드당 2~3문장, 전체 9~10문장
+   - 문장은 \\n으로 구분
+   - 각 문장은 15~25자 (짧고 명확하게)
+③ 끊어 말하기 스타일 유지 (완벽한 문장 금지)
+④ 블로그 내용의 구체적 정보(식품명·성분·수치·메커니즘) 반드시 포함
+⑤ 이미지 규칙: "Korean woman" 또는 "Asian woman"으로 시작
 
-이미지 규칙 (imageQuery):
-- 반드시 "Korean woman" 또는 "Asian woman"으로 시작
-- 한국/아시아 여성이 나오는 이미지 우선
-- 예: "Korean woman senior health", "Asian woman elderly smile"
-
-대본 스타일 예시:
-❌ 나쁜 예: "이 음식은 건강에 매우 좋습니다."
-⭕ 좋은 예: "이거요\\n생각보다 진짜 중요합니다"
-⭕ 좋은 예: "대부분 모릅니다\\n이게 진짜 원인이에요"
-
-슬라이드 5개 구조 (총 25~35초):
-[1번 HOOK  0~3초 ] 스크롤 멈추게 만드는 한 마디. 무조건 짧고 강하게.
-[2번 BODY-A 4~8초 ] 핵심 정보 1개. 끊어서 말하기.
-[3번 BODY-B 9~13초] 핵심 정보 2개 or 반전. 끊어서 말하기.
-[4번 BODY-C 14~18초] 핵심 정보 3개 or 충격 데이터. 끊어서 말하기.
-[5번 ENDING 19~25초] 애매하게 끝내서 궁금증 남기기 + 블로그 유도.`,
+슬라이드 5개 구조:
+[1번 HOOK  2문장] 강한 첫 마디 + 왜 봐야 하는지
+[2번 BODY-A 2문장] 구체적 식품/정보 + 이유 (이름 명시)
+[3번 BODY-B 2문장] 왜 나쁜지 메커니즘 or 수치·데이터
+[4번 BODY-C 2~3문장] 추가 충격 정보 or 올바른 대안
+[5번 ENDING 2문장] 핵심 요약 한 줄 + 블로그는 선택적으로만`,
       },
       {
         role: 'user',
         content: `제목: ${post.title}
 요약: ${post.excerpt}
 
-훅 참고 예시 (이런 톤으로):
+훅 참고 예시:
 - ${hookExamples}
 
 제목 참고 예시: ${hookTitleExamples}
 
-아래 JSON 형식으로 작성하세요:
+⚠️ 중요: 블로그 요약 내용을 바탕으로 구체적인 정보(식품명, 성분, 수치, 이유)를
+영상 본문(BODY-A~C)에서 직접 전달하세요. 시청자가 영상만 봐도 핵심을 알 수 있어야 합니다.
+
+JSON 형식:
 {
   "youtubeTitle": "유튜브 제목 (40자 이내, 숫자/반전 포함, #Shorts 포함)",
-  "hookText": "썸네일 강조 문구 (10~15자, 예: '지금 바로 확인', '이게 진짜 원인')",
+  "hookText": "썸네일 강조 문구 (10~15자)",
   "description": "영상 설명 1줄 (60~80자) + '전체 내용은 블로그에서 확인하세요 👇'",
   "tags": ["건강", "5060건강", "시니어건강", "관련태그"],
   "slides": [
     {
       "type": "hook",
-      "narration": "끊어쓰기\\n포함된 훅 나레이션 (25~35자)",
-      "keyword": "화면에 크게 표시할 핵심 단어 1~3개",
+      "narration": "훅 문장 1 (15~25자)\\n훅 문장 2 (15~25자)",
+      "keyword": "핵심 강조 단어 1~3개",
       "imageQuery": "Korean woman senior portrait ${imageHint}"
     },
     {
       "type": "body",
-      "narration": "끊어쓰기\\n포함된 BODY-A (30~45자)",
-      "keyword": "화면 강조 단어",
+      "narration": "구체적 식품/정보명 포함 문장 1\\n이유 설명 문장 2",
+      "keyword": "핵심 단어",
       "imageQuery": "Korean woman 주제관련 영어단어"
     },
     {
       "type": "body",
-      "narration": "끊어쓰기\\n포함된 BODY-B (30~45자)",
-      "keyword": "화면 강조 단어",
+      "narration": "메커니즘/수치 포함 문장 1\\n충격적 사실 문장 2",
+      "keyword": "핵심 단어",
       "imageQuery": "Korean woman 주제관련 영어단어"
     },
     {
       "type": "body",
-      "narration": "끊어쓰기\\n포함된 BODY-C (30~45자)",
-      "keyword": "화면 강조 단어",
+      "narration": "추가 정보 문장 1\\n대안/해결책 문장 2\\n(선택) 보완 문장 3",
+      "keyword": "핵심 단어",
       "imageQuery": "Asian woman senior 주제관련 영어단어"
     },
     {
       "type": "ending",
-      "narration": "궁금증 남기는 마무리\\n블로그에서 확인하세요 (35~50자)",
-      "keyword": "화면 강조 단어",
+      "narration": "핵심 요약 문장 1 (식품명/결론 포함)\\n자연스러운 마무리 문장 2",
+      "keyword": "핵심 단어",
       "imageQuery": "Korean woman senior healthy smile"
     }
   ]
