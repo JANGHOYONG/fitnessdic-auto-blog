@@ -12,6 +12,7 @@ const TOPICS = [
   { name: '뇌건강·치매', query: '치매' },
   { name: '갱년기', query: '갱년기' },
   { name: '영양·식이', query: '영양' },
+  { name: '건강지식', href: '/knowledge' },
   { name: '여행·여가', href: '/travel' },
 ];
 

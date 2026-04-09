@@ -71,7 +71,7 @@ function getCurrentSeason() {
   return 'winter';
 }
 
-// 건강 7대 주제 (네비게이션과 동일 순서)
+// 건강 7대 주제 (health 카테고리)
 const HEALTH_SUBTOPICS = [
   { id: 'blood_sugar',    label: '혈당·당뇨',   guide: '혈당, 당뇨병, 인슐린 저항성, 공복혈당, 혈당 관리, 당뇨 식단, 혈당 낮추는 방법 등' },
   { id: 'blood_pressure', label: '혈압·심장',   guide: '고혈압, 심장건강, 콜레스테롤, 심혈관, 동맥경화, 부정맥, 심근경색 예방 등' },
@@ -82,33 +82,55 @@ const HEALTH_SUBTOPICS = [
   { id: 'nutrition',      label: '영양·식이',   guide: '영양제, 비타민, 단백질 섭취, 식단 관리, 건강식품, 오메가3, 보충제, 노년 영양 등' },
 ];
 
+// 건강지식 8개 주제 (knowledge 카테고리)
+const KNOWLEDGE_SUBTOPICS = [
+  { id: 'immunity',  label: '면역력·감염',       guide: '면역력 강화, 감기·독감 예방, 자가면역질환, 바이러스 감염, 항체, 백신, 코로나 후유증 등' },
+  { id: 'digestion', label: '소화·장건강',       guide: '위염, 역류성식도염, 장내세균, 프로바이오틱스, 변비, 과민성대장증후군, 위산, 헬리코박터 등' },
+  { id: 'eye',       label: '눈건강·시력',       guide: '노안, 황반변성, 백내장, 안구건조증, 녹내장, 망막 질환, 루테인, 눈 피로 등' },
+  { id: 'skin',      label: '피부·노화',         guide: '피부 노화, 주름, 검버섯, 피부탄력, 콜라겐, 자외선 차단, 피부과 시술, 피부 건강 등' },
+  { id: 'oral',      label: '구강·치아',         guide: '잇몸 질환, 치주염, 임플란트, 틀니, 구강 건강, 구취, 치석, 구강건조증 등' },
+  { id: 'liver',     label: '간·해독',           guide: '지방간, 간수치, 간 건강, 간염, 간경화, 알코올성 간질환, 간 기능 검사 등' },
+  { id: 'lung',      label: '폐·호흡기',         guide: '폐 건강, COPD, 기관지염, 폐암 예방, 천식, 폐 기능 검사, 호흡기 질환 등' },
+  { id: 'mental',    label: '정신건강·스트레스', guide: '노년 우울증, 불안장애, 스트레스 관리, 정신건강, 공황장애, 수면과 정신건강, 치매와 우울증 등' },
+];
+
 async function collectKeywordsForSubtopic(categoryName, subtopic, count) {
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
-    temperature: 0.8,
+    temperature: 0.85,
     response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
-        content: '당신은 한국 검색 SEO 전문가입니다. 반드시 JSON 형식으로만 응답하세요.',
+        content: '당신은 한국 네이버·구글 검색 SEO 전문가입니다. 경쟁이 낮은 틈새 롱테일 키워드만 발굴합니다. 반드시 JSON 형식으로만 응답하세요.',
       },
       {
         role: 'user',
-        content: `5060 시니어 건강 블로그의 [${subtopic.label}] 주제로 한국어 롱테일 키워드 ${count}개를 추천해주세요.
+        content: `5060 시니어 건강 블로그의 [${subtopic.label}] 주제로 롱테일 키워드 ${count}개를 추천해주세요.
 
 주제 범위: ${subtopic.guide}
 
-조건:
-- 월 검색량 1,000~50,000 수준 (경쟁 낮고 클릭 높은 것)
-- 정보성 검색 의도 (방법, 원인, 효능, 비교, 추천, 증상 등)
-- 50~60대가 실제 네이버·구글에서 검색하는 자연스러운 표현
-- 다양한 각도로 (식품, 생활습관, 운동, 증상, 치료법, 예방법 등)
-- 예시: "${subtopic.label === '혈당·당뇨' ? '50대 공복혈당 낮추는 식단, 당뇨 초기 증상 자가진단, 혈당 낮추는 음식 TOP10' : subtopic.label === '관절·근육' ? '무릎 연골 재생 방법, 50대 근감소증 예방 운동, 관절염에 좋은 음식' : '관련 롱테일 키워드 예시'}"
+━━━ 핵심 규칙 (반드시 준수) ━━━
+✅ 키워드 형식: 최소 3어절 이상 (예: "50대 공복혈당 130 정상인가" → 4어절 ✅)
+✅ 목표 검색량: 월 500~5,000 (경쟁 낮은 틈새 키워드)
+✅ 허용 형식 (다양하게 섞어서):
+   - 증상/자가진단형: "○○ 초기 증상 자가진단", "○○ 있으면 나타나는 신호"
+   - 비교형: "○○ vs ○○ 차이점", "○○이랑 ○○ 같이 먹으면"
+   - 원인/이유형: "○○ 생기는 이유 원인", "○○ 먹으면 안 되는 이유"
+   - 나이/연령 특화: "50대 ○○ 정상수치", "60대 ○○ 주의사항"
+   - 약/영양제형: "○○약 부작용 증상", "○○ 영양제 언제 먹어야"
+   - 상황 특화: "밤에 ○○ 심해지는 이유", "아침에 ○○ 증상"
+
+❌ 절대 금지 (경쟁 극심한 대형 키워드):
+   - "혈당 관리 방법" (2어절, 월 검색 10만+)
+   - "고혈압 예방" (2어절, 범용)
+   - "관절에 좋은 음식" (경쟁 극심)
+   - "불면증 해결법" (2어절 수준)
 
 JSON 형식:
 {
   "keywords": [
-    { "keyword": "롱테일 키워드", "priority": 1, "estimatedVolume": 5000 }
+    { "keyword": "50대 공복혈당 130 이상이면 어떻게 해야 하나", "priority": 1, "estimatedVolume": 1200 }
   ]
 }`,
       },
@@ -119,6 +141,23 @@ JSON 형식:
 }
 
 async function collectKeywords(categoryName, count) {
+  // 건강지식 카테고리: 8개 주제별 균등 수집
+  if (categoryName === '건강지식' || categoryName.toLowerCase() === 'knowledge') {
+    const perTopic = Math.ceil(count / KNOWLEDGE_SUBTOPICS.length);
+    const allKeywords = [];
+    for (const subtopic of KNOWLEDGE_SUBTOPICS) {
+      console.log(`    [${subtopic.label}] 키워드 ${perTopic}개 수집...`);
+      try {
+        const { keywords } = await collectKeywordsForSubtopic(categoryName, subtopic, perTopic);
+        allKeywords.push(...keywords);
+        await new Promise((r) => setTimeout(r, 500));
+      } catch (e) {
+        console.error(`    [${subtopic.label}] 실패: ${e.message}`);
+      }
+    }
+    return { keywords: allKeywords };
+  }
+
   // 비건강 카테고리는 기존 방식 사용
   if (!categoryName.includes('건강') && categoryName.toLowerCase() !== 'health') {
     const response = await openai.chat.completions.create({
@@ -130,8 +169,8 @@ async function collectKeywords(categoryName, count) {
         {
           role: 'user',
           content: `"${categoryName}" 카테고리의 한국어 롱테일 키워드 ${count}개를 추천해주세요.
-조건: 월 검색량 1,000~50,000, 정보성 검색 의도, 자연스러운 표현
-JSON: { "keywords": [{ "keyword": "키워드", "priority": 1, "estimatedVolume": 5000 }] }`,
+조건: 월 검색량 500~5,000, 최소 3어절 이상, 정보성·증상·비교 형식
+JSON: { "keywords": [{ "keyword": "키워드", "priority": 1, "estimatedVolume": 2000 }] }`,
         },
       ],
     });

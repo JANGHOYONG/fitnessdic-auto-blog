@@ -233,16 +233,26 @@ function injectBodyImages(content, images) {
   return content;
 }
 
-// ─── 건강 7대 주제 (네비게이션 순서 고정 로테이션) ──────────────────────────
-// 순서: 혈당·당뇨 → 혈압·심장 → 관절·근육 → 수면·피로 → 뇌건강·치매 → 갱년기 → 영양·식이
+// ─── 건강 15개 주제 (순차 로테이션) ─────────────────────────────────────────
+// health 카테고리 7개 → knowledge 카테고리 8개 순으로 이어짐
 const HEALTH_TOPICS = [
-  { id: 'blood_sugar',    label: '혈당·당뇨',   words: ['혈당', '당뇨', '인슐린', '혈糖', '혈액당', '공복혈당'] },
-  { id: 'blood_pressure', label: '혈압·심장',   words: ['혈압', '심장', '심혈관', '고혈압', '심근', '부정맥', '콜레스테롤', '동맥경화', '심부전'] },
-  { id: 'joint',          label: '관절·근육',   words: ['관절', '무릎', '연골', '허리', '척추', '근육', '근감소', '골다공증', '어깨', '힘줄', '류마티스'] },
-  { id: 'sleep',          label: '수면·피로',   words: ['수면', '불면', '피로', '수면장애', '잠', '멜라토닌', '불면증', '만성피로', '졸음'] },
-  { id: 'brain',          label: '뇌건강·치매', words: ['치매', '뇌', '기억력', '인지', '파킨슨', '뇌졸중', '알츠하이머', '뇌건강', '인지저하'] },
-  { id: 'menopause',      label: '갱년기',      words: ['갱년기', '폐경', '호르몬', '안면홍조', '골밀도', '에스트로겐', '남성갱년기'] },
-  { id: 'nutrition',      label: '영양·식이',   words: ['영양', '영양제', '비타민', '식이', '음식', '식단', '건강식', '단백질', '오메가', '식품', '보충제'] },
+  // ── health 카테고리 (쿠팡 시트 연동) ──────────────────────────────────────
+  { id: 'blood_sugar',    label: '혈당·당뇨',         category: 'health',    words: ['혈당', '당뇨', '인슐린', '혈액당', '공복혈당'] },
+  { id: 'blood_pressure', label: '혈압·심장',         category: 'health',    words: ['혈압', '심장', '심혈관', '고혈압', '심근', '부정맥', '콜레스테롤', '동맥경화', '심부전'] },
+  { id: 'joint',          label: '관절·근육',         category: 'health',    words: ['관절', '무릎', '연골', '허리', '척추', '근육', '근감소', '골다공증', '어깨', '힘줄', '류마티스'] },
+  { id: 'sleep',          label: '수면·피로',         category: 'health',    words: ['수면', '불면', '피로', '수면장애', '잠', '멜라토닌', '불면증', '만성피로', '졸음'] },
+  { id: 'brain',          label: '뇌건강·치매',       category: 'health',    words: ['치매', '뇌', '기억력', '인지', '파킨슨', '뇌졸중', '알츠하이머', '뇌건강', '인지저하'] },
+  { id: 'menopause',      label: '갱년기',            category: 'health',    words: ['갱년기', '폐경', '호르몬', '안면홍조', '골밀도', '에스트로겐', '남성갱년기'] },
+  { id: 'nutrition',      label: '영양·식이',         category: 'health',    words: ['영양', '영양제', '비타민', '식이', '음식', '식단', '건강식', '단백질', '오메가', '식품', '보충제'] },
+  // ── knowledge 카테고리 (다이나믹 배너) ────────────────────────────────────
+  { id: 'immunity',       label: '면역력·감염',       category: 'knowledge', words: ['면역', '면역력', '감기', '독감', '폐렴', '바이러스', '항체', '항바이러스', '감염'] },
+  { id: 'digestion',      label: '소화·장건강',       category: 'knowledge', words: ['소화', '위염', '역류성', '장건강', '변비', '대장', '위장', '장내세균', '과민성', '위산', '헬리코박터'] },
+  { id: 'eye',            label: '눈건강·시력',       category: 'knowledge', words: ['눈', '시력', '노안', '황반', '백내장', '안구건조', '녹내장', '망막', '눈건강'] },
+  { id: 'skin',           label: '피부·노화',         category: 'knowledge', words: ['피부', '주름', '노화', '검버섯', '피부탄력', '콜라겐', '자외선', '피부노화'] },
+  { id: 'oral',           label: '구강·치아',         category: 'knowledge', words: ['치아', '잇몸', '구강', '치주염', '임플란트', '구취', '치석', '구강건강', '틀니'] },
+  { id: 'liver',          label: '간·해독',           category: 'knowledge', words: ['간', '지방간', '간수치', '간건강', '해독', '간염', '간경화', 'ALT', 'AST'] },
+  { id: 'lung',           label: '폐·호흡기',         category: 'knowledge', words: ['폐', '호흡기', '기관지', '폐기능', '폐건강', '천식', '만성기침', 'COPD'] },
+  { id: 'mental',         label: '정신건강·스트레스', category: 'knowledge', words: ['우울', '불안', '스트레스', '정신건강', '노년우울', '무기력', '공황', '불안장애'] },
 ];
 
 // 7개 주제 ID 순서 배열
@@ -346,6 +356,87 @@ const TOPIC_CONTENT_ANGLES = {
       '지용성 비타민(A·D·E·K) 과다복용이 일으키는 독성 — 많이 먹을수록 좋다는 착각',
     ],
   },
+  // ── knowledge 카테고리 신규 8개 ────────────────────────────────────────────
+  immunity: {
+    angle: '반전형 — 면역력 강화 속설의 반전 + 면역 과잉이 더 위험한 이유',
+    forbidden: '비타민C 많이 드세요, 운동하세요, 충분히 주무세요 같은 뻔한 조언',
+    focus: [
+      '면역력 강화 영양제·건강기능식품이 자가면역질환을 악화시키는 경우',
+      '50대 이후 면역 과잉 반응(만성염증)이 암·심혈관 질환의 진짜 원인이 되는 이유',
+      '독감 백신 맞아도 걸리는 이유 — 항체와 T세포 면역의 차이',
+      '코로나 후유증이 면역계를 장기간 망가뜨리는 메커니즘과 회복법',
+    ],
+  },
+  digestion: {
+    angle: '충격형 — 장이 제2의 뇌라는 증거 + 소화약·유산균의 충격적 부작용',
+    forbidden: '천천히 꼭꼭 씹으세요, 규칙적인 식사, 자극적 음식 피하세요 같은 뻔한 조언',
+    focus: [
+      '장내세균 불균형이 치매·우울증·당뇨를 일으키는 최신 연구',
+      '프로바이오틱스(유산균)가 오히려 장을 망가뜨릴 수 있는 경우',
+      '위산억제제(PPI)를 6개월 이상 먹으면 생기는 충격적 부작용',
+      '변비약 장기복용이 대장을 게으르게 만들고 의존성이 생기는 원리',
+    ],
+  },
+  eye: {
+    angle: '경고형 — 실명으로 가는 초기 신호 + 눈에 좋다는 상식의 반전',
+    forbidden: '당근 드세요, 스마트폰 줄이세요, 눈 운동하세요 같은 뻔한 조언',
+    focus: [
+      '황반변성 10년 전부터 나타나는 신호 — 대부분이 노화로 착각하는 증상',
+      '블루라이트 차단 안경이 효과 없다는 최신 임상 연구 결과',
+      '당뇨·고혈압이 눈을 망가뜨리는 정확한 메커니즘 — 실명까지의 단계',
+      '루테인·지아잔틴 영양제, 정말 효과 있는지 최신 연구로 확인하는 법',
+    ],
+  },
+  skin: {
+    angle: '반전형 — 안티에이징 케어가 오히려 피부 노화를 앞당기는 경우',
+    forbidden: '자외선차단제 바르세요, 수분 충분히 드세요 같은 뻔한 조언',
+    focus: [
+      '레티놀·비타민C 세럼이 50~60대 피부에 역효과가 나는 경우와 이유',
+      '피부과 시술 후 더 빠르게 노화하는 피부 유형 — 콜라겐 생성 메커니즘',
+      '검버섯·기미가 피부암으로 변하는 경계 신호와 자가진단법',
+      '수면 자세와 베개가 얼굴 주름에 미치는 충격적 영향',
+    ],
+  },
+  oral: {
+    angle: '연결형 — 구강 건강이 심장·치매·당뇨와 연결되는 충격적 메커니즘',
+    forbidden: '양치질 잘 하세요, 치실 사용하세요 같은 뻔한 조언',
+    focus: [
+      '잇몸 세균이 혈관을 타고 심근경색·알츠하이머를 일으키는 경로',
+      '임플란트 시술 후 절대 해서는 안 되는 것들 — 실패 원인 TOP5',
+      '구강건조증이 단순 불편함이 아닌 이유 — 당뇨·면역질환 신호일 수 있다',
+      '틀니·임플란트 관리비 절반으로 줄이는 치과에서 안 알려주는 방법',
+    ],
+  },
+  liver: {
+    angle: '경고형 — 지방간 방치하면 생기는 일 + 간에 좋다는 속설의 반전',
+    forbidden: '술 줄이세요, 기름진 음식 피하세요 같은 뻔한 조언',
+    focus: [
+      '술 한 방울 안 마셔도 생기는 비알코올성 지방간 — 50대 3명 중 1명 해당',
+      'ALT·AST 수치가 정상 범위 내여도 간이 위험한 경우',
+      '간에 좋다는 건강기능식품(밀크시슬·헛개나무)이 오히려 간을 망가뜨리는 경우',
+      '지방간이 당뇨·심혈관 질환·간암으로 이어지는 정확한 진행 경로',
+    ],
+  },
+  lung: {
+    angle: '자가진단형 — 폐암·COPD 초기 신호 + 비흡연자도 폐가 망가지는 이유',
+    forbidden: '금연하세요, 환기하세요 같은 뻔한 조언',
+    focus: [
+      '비흡연 여성 폐암이 급증하는 이유 — 요리 연기·미세먼지의 충격적 위험',
+      'COPD 10년 전 나타나는 신호 — 대부분이 노화로 착각하는 증상',
+      '폐 기능 검사가 정상이어도 폐가 망가져 있는 경우',
+      '폐 건강 회복에 실제 효과 있는 것 vs 효과 없다고 밝혀진 것',
+    ],
+  },
+  mental: {
+    angle: '증상체크형 — 노년 우울증의 숨겨진 신호 + 항우울제의 충격적 부작용',
+    forbidden: '긍정적으로 생각하세요, 사람들과 어울리세요 같은 뻔한 조언',
+    focus: [
+      '노년 우울증이 치매로 이어지는 메커니즘 — 5년 내 치매 위험 2배',
+      '항우울제 장기복용이 뇌 구조를 바꾸는 방식과 중단 증후군',
+      '스트레스가 텔로미어를 단축시켜 세포 노화를 앞당기는 최신 연구',
+      '50~60대 남성 우울증 — 여성보다 자살 위험 3배지만 병원을 안 가는 이유',
+    ],
+  },
 };
 
 // ─── 카테고리별 전문가 역할 ───────────────────────────────────────────────────
@@ -359,8 +450,10 @@ const SYSTEM_ROLES = {
 
 // ─── 글 생성 (2단계: 메타데이터 → 본문 분리) ──────────────────────────────────
 async function generatePost(keyword, categorySlug, topicId = null) {
-  const role = SYSTEM_ROLES[categorySlug] || '전문 블로그 작가.';
-  const isHealth = categorySlug === 'health';
+  // knowledge 카테고리도 health 전문의 역할 + 시니어 지침 적용
+  const effectiveSlug = categorySlug === 'knowledge' ? 'health' : categorySlug;
+  const role = SYSTEM_ROLES[effectiveSlug] || '전문 블로그 작가.';
+  const isHealth = effectiveSlug === 'health';
 
   // 주제별 콘텐츠 각도 — health 카테고리이고 topicId가 있을 때만 적용
   const angleInfo = isHealth && topicId ? TOPIC_CONTENT_ANGLES[topicId] : null;
@@ -653,9 +746,15 @@ async function main() {
       return;
     }
 
-    // 여가·여행 카테고리 ID 캐싱 (catch-all 용)
+    // 카테고리 ID 캐싱
     const travelCat = await prisma.category.findUnique({ where: { slug: 'travel' } });
-    const knownSlugs = ['health', 'tech', 'economy', 'lifestyle', 'travel'];
+    // "건강지식" 카테고리 없으면 자동 생성
+    const knowledgeCat = await prisma.category.upsert({
+      where: { slug: 'knowledge' },
+      update: {},
+      create: { name: '건강지식', slug: 'knowledge', description: '면역력·소화·눈건강·피부 등 다양한 건강 정보' },
+    });
+    const knownSlugs = ['health', 'tech', 'economy', 'lifestyle', 'travel', 'knowledge'];
 
     // 알 수 없는 카테고리 키워드 → travel로 재배정
     for (const kw of keywords) {
@@ -770,6 +869,12 @@ async function main() {
           }
         }
 
+        // knowledge 토픽이면 knowledge 카테고리로 저장
+        const knowledgeTopicIds = ['immunity', 'digestion', 'eye', 'skin', 'oral', 'liver', 'lung', 'mental'];
+        const postCategoryId = knowledgeTopicIds.includes(topic)
+          ? knowledgeCat.id
+          : kw.categoryId;
+
         const slug = generateSlug(gen.selectedTitle);
         const post = await prisma.post.create({
           data: {
@@ -784,7 +889,7 @@ async function main() {
             thumbnail,
             coupangProduct: coupangProductJson,
             status: 'DRAFT',
-            categoryId: kw.categoryId,
+            categoryId: postCategoryId,
             keywordId: kw.id,
           },
         });

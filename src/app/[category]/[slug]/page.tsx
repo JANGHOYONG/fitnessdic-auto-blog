@@ -78,8 +78,8 @@ export default async function PostPage({ params }: Props) {
     .replace(/<div class=["']ad-slot ad-middle["']><\/div>/g, '')
     .replace(/<div class=["']ad-slot ad-bottom["']><\/div>/g, '');
   const [contentFirst, contentSecond] = (() => {
-    // 비health이면서 사이드바 카드도 없을 때만 본문 중간에 다이나믹배너 삽입
-    const needsSplit = !isHealth && !coupangProduct;
+    // 사이드바 상품 카드가 없으면 본문 중간에 다이나믹 배너 삽입 (health·knowledge 모두 적용)
+    const needsSplit = !coupangProduct;
     if (!needsSplit) return [cleanContent, ''] as [string, string];
     const matches = [...cleanContent.matchAll(/<\/section>/g)];
     if (matches.length < 3) return [cleanContent, ''] as [string, string];
@@ -187,6 +187,13 @@ export default async function PostPage({ params }: Props) {
               </div>
             </header>
 
+            {/* 모바일 전용 쿠팡 상품 카드 (사이드바가 아래로 밀리는 모바일 대응) */}
+            {coupangProduct && (
+              <div className="mb-6 block lg:hidden">
+                <CoupangProductCard product={coupangProduct} />
+              </div>
+            )}
+
             {/* 본문 상단 광고 */}
             <div className="mb-6">
               <AdSense slot="top-banner" format="horizontal" />
@@ -198,8 +205,8 @@ export default async function PostPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: contentFirst }}
             />
 
-            {/* 쿠팡 다이나믹 배너: 비health 카테고리이고 사이드바 카드도 없을 때만 */}
-            {!isHealth && !coupangProduct && <CoupangDynamicBanner />}
+            {/* 쿠팡 다이나믹 배너: 사이드바 상품 카드 없을 때 표시 (knowledge 포함) */}
+            {!coupangProduct && <CoupangDynamicBanner />}
 
             {/* 본문 후반부 */}
             {contentSecond && (
