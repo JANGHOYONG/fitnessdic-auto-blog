@@ -338,43 +338,36 @@ html, body {
   letter-spacing:-1px;
 }
 
-/* 하단 자막 영역 */
-.subtitle-area {
-  position:absolute; bottom:0; left:0; right:0;
-  background:linear-gradient(
-    to top,
-    rgba(0,0,0,0.96) 0%,
-    rgba(0,0,0,0.88) 50%,
-    rgba(0,0,0,0.35) 80%,
-    transparent 100%
-  );
-  padding:50px 55px 240px;
-  min-height:420px;
-  display:flex; align-items:flex-end;
+/* 하단 흰색 자막 바 — 60대 고가독성 */
+.caption-bar {
+  position:absolute; bottom:14px; left:0; right:0;
+  background:rgba(255,255,255,0.97);
+  border-top:5px solid rgba(30,158,122,0.35);
+  padding:36px 52px 38px;
+  min-height:200px;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:12px;
 }
-.subtitle-text {
-  font-size:54px; font-weight:800; color:#ffffff;
-  line-height:1.50; word-break:keep-all;
-  text-shadow:0 2px 6px rgba(0,0,0,1), 0 4px 20px rgba(0,0,0,0.95);
-  letter-spacing:-0.5px;
+.caption-text {
+  font-size:56px; font-weight:900; color:#111111;
+  line-height:1.55; word-break:keep-all;
+  text-align:center; letter-spacing:-0.5px;
+}
+.caption-url {
+  font-size:26px; font-weight:600;
+  color:#1E9E7A; letter-spacing:0.5px;
 }
 
 /* 진행 바 */
 .progress-track {
   position:absolute; bottom:0; left:0; right:0; height:14px;
-  background:rgba(255,255,255,0.15);
+  background:rgba(0,0,0,0.08);
 }
 .progress-fill {
   height:100%; width:${progress}%;
   background:linear-gradient(90deg, #FF6B35, #FFD700);
   border-radius:0 7px 7px 0;
-}
-
-/* 채널 URL */
-.channel-url {
-  position:absolute; bottom:22px; left:0; right:0;
-  text-align:center; font-size:30px; font-weight:600;
-  color:rgba(255,255,255,0.60);
 }
 </style>
 </head>
@@ -390,17 +383,16 @@ html, body {
 <div class="hook-area">
   <div class="hook-badge">⚠️ 지금 바로 확인하세요</div>
   ${keyword ? `<div class="hook-keyword">${keyword}</div>` : ''}
-  <div class="hook-main">${narration.replace(/\n/g, '<br>')}</div>
 </div>
 
-<div class="subtitle-area">
-  <div class="subtitle-text">${narration.replace(/\n/g, '<br>')}</div>
+<div class="caption-bar">
+  <div class="caption-text">${narration.replace(/\n/g, '<br>')}</div>
+  <div class="caption-url">smartinfoblog.co.kr</div>
 </div>
 
 <div class="progress-track">
   <div class="progress-fill"></div>
 </div>
-<div class="channel-url">smartinfoblog.co.kr</div>
 
 </body>
 </html>`;
@@ -457,43 +449,36 @@ html, body {
   color:#7EFFC5;
 }
 
-/* 하단 나레이션 영역 */
-.subtitle-area {
-  position:absolute; bottom:0; left:0; right:0;
-  background:linear-gradient(
-    to top,
-    rgba(0,0,0,0.96) 0%,
-    rgba(0,0,0,0.88) 45%,
-    rgba(0,0,0,0.40) 78%,
-    transparent 100%
-  );
-  padding:50px 55px 220px;
-  min-height:440px;
-  display:flex; align-items:flex-end;
+/* 하단 흰색 자막 바 — 60대 고가독성 */
+.caption-bar {
+  position:absolute; bottom:12px; left:0; right:0;
+  background:rgba(255,255,255,0.97);
+  border-top:5px solid rgba(30,158,122,0.35);
+  padding:36px 52px 38px;
+  min-height:200px;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:12px;
 }
-.subtitle-text {
-  font-size:50px; font-weight:700; color:#ffffff;
+.caption-text {
+  font-size:56px; font-weight:900; color:#111111;
   line-height:1.55; word-break:keep-all;
-  text-shadow:0 2px 6px rgba(0,0,0,1), 0 4px 20px rgba(0,0,0,0.95);
-  letter-spacing:-0.5px;
+  text-align:center; letter-spacing:-0.5px;
+}
+.caption-url {
+  font-size:26px; font-weight:600;
+  color:#1E9E7A; letter-spacing:0.5px;
 }
 
 /* 진행 바 */
 .progress-track {
   position:absolute; bottom:0; left:0; right:0; height:12px;
-  background:rgba(255,255,255,0.18);
+  background:rgba(0,0,0,0.08);
 }
 .progress-fill {
   height:100%; width:${progress}%;
-  background:linear-gradient(90deg, #1abc9c, #4fc3f7);
+  background:linear-gradient(90deg, #1E9E7A, #4fc3f7);
   border-radius:0 6px 6px 0;
-}
-
-/* 채널 URL */
-.channel-url {
-  position:absolute; bottom:20px; left:0; right:0;
-  text-align:center; font-size:30px; font-weight:600;
-  color:rgba(255,255,255,0.55);
 }
 </style>
 </head>
@@ -511,14 +496,14 @@ ${keyword ? `
   <div class="keyword-text${type === 'ending' ? ' ending' : ''}">${keyword}</div>
 </div>` : ''}
 
-<div class="subtitle-area">
-  <div class="subtitle-text">${narration.replace(/\n/g, '<br>')}</div>
+<div class="caption-bar">
+  <div class="caption-text">${narration.replace(/\n/g, '<br>')}</div>
+  <div class="caption-url">smartinfoblog.co.kr</div>
 </div>
 
 <div class="progress-track">
   <div class="progress-fill"></div>
 </div>
-<div class="channel-url">smartinfoblog.co.kr</div>
 
 </body>
 </html>`;
