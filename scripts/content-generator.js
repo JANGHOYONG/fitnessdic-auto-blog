@@ -738,7 +738,7 @@ async function main() {
       },
       include: { category: true },
       orderBy: [{ priority: 'asc' }, { searchVolume: 'desc' }],
-      take: generateCount * 2,
+      take: Math.max(generateCount * 15, 50), // 주제별 풀 확보를 위해 충분히 로드
     });
 
     if (!keywords.length) {
