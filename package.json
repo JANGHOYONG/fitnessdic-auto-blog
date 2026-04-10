@@ -43,6 +43,9 @@
     "slugify": "^1.6.6",
     "xml2js": "^0.6.2"
   },
+  "prisma": {
+    "seed": "npx ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/node": "^20.17.0",
     "@types/react": "^18.3.0",
@@ -53,6 +56,7 @@
     "postcss": "^8.4.0",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.0",
+    "ts-node": "^10.9.2",
     "tweetsodium": "^0.0.4",
     "typescript": "^5.6.0"
   }
