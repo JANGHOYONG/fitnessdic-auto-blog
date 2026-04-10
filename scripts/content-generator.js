@@ -20,40 +20,16 @@ const generateCount = parseInt(getArg('count') || process.env.DAILY_POST_LIMIT |
 const targetCategory = getArg('category');
 
 // ─── 쿠팡파트너스 구글 시트 연동 ─────────────────────────────────────────────
-const COUPANG_SHEET_ID = '19oPpfTbJaeTn6YtHS7QTRv1Q1XiZuMSCfO7PRU4bL-I';
+const COUPANG_SHEET_ID = '1f_yqf9AaNx8MF0dYRqE6LleTf37iiLexRbvtELPJ7pk';
 
-// 7대 주제 → 구글 시트 탭 이름 매핑
-const TOPIC_TO_SHEET = {
-  weightloss:    '체중감량',
-  strength:      '근력운동',
-  cardio:        '유산소러닝',
-  nutrition:     '식단영양',
-  hometraining:  '홈트레이닝',
-  supplement:    '다이어트식품',
-  motivation:    '바디프로필동기',
-};
+// 단일 시트명 — 카테고리 구분 없이 전체 상품 사용
+const COUPANG_SHEET_NAME = '시트1';
 
-// 주제별 배너 카테고리 문구
-const TOPIC_CTA_TEXT = {
-  weightloss:    '체중감량·지방연소 추천 제품',
-  strength:      '근력운동·헬스 추천 제품',
-  cardio:        '유산소·러닝 추천 제품',
-  nutrition:     '식단·단백질 추천 제품',
-  hometraining:  '홈트레이닝·맨몸운동 추천 제품',
-  supplement:    '다이어트 식품·영양제 추천 제품',
-  motivation:    '바디프로필·운동습관 추천 제품',
-};
-
-// 구글 시트에서 해당 주제 상품 목록 읽기 (CSV 파싱)
+// 구글 시트에서 전체 상품 목록 읽기 (CSV 파싱) — 카테고리 무관 랜덤 선택
 async function fetchCoupangProducts(topicId) {
-  const sheetName = TOPIC_TO_SHEET[topicId];
-  if (!sheetName) {
-    console.log(`    [쿠팡] topicId="${topicId}" 에 해당하는 시트 없음`);
-    return [];
-  }
   try {
-    const url = `https://docs.google.com/spreadsheets/d/${COUPANG_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
-    console.log(`    [쿠팡] 시트 로딩: "${sheetName}" (${url.slice(0, 80)}...)`);
+    const url = `https://docs.google.com/spreadsheets/d/${COUPANG_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(COUPANG_SHEET_NAME)}`;
+    console.log(`    [쿠팡] 시트 로딩: "${COUPANG_SHEET_NAME}" (${url.slice(0, 80)}...)`);
     const res = await fetch(url);
     if (!res.ok) {
       console.log(`    [쿠팡] HTTP 오류: ${res.status}`);
@@ -68,8 +44,7 @@ async function fetchCoupangProducts(topicId) {
         const clean = (v) => (v || '').replace(/^"|"$/g, '').trim();
         const name  = clean(cols[0]);
         const url   = clean(cols[1]);
-        const image = clean(cols[2]); // 선택: 구글 시트 C열
-        // 가격 정규화: ₩13,900 / 13900 / 13,900원 → "13,900원"
+        const image = clean(cols[2]);
         const rawPrice = clean(cols[3]);
         const price = rawPrice
           ? rawPrice.replace(/₩/g, '').replace(/원$/, '').trim().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원'
@@ -77,7 +52,7 @@ async function fetchCoupangProducts(topicId) {
         return name && url ? { name, url, image: image || null, price: price || null } : null;
       })
       .filter(Boolean);
-    console.log(`    [쿠팡] "${sheetName}" 시트에서 ${products.length}개 상품 로딩 완료`);
+    console.log(`    [쿠팡] ${products.length}개 상품 로딩 완료 (랜덤 선택)`);
     return products;
   } catch (e) {
     console.log(`    [쿠팡] fetch 오류: ${e.message}`);
@@ -87,7 +62,7 @@ async function fetchCoupangProducts(topicId) {
 
 // 쿠팡 배너 HTML 생성 — 인라인 스타일 (CSS 클래스 의존 제거)
 function makeCoupangHtml(product, topicId) {
-  const ctaText = TOPIC_CTA_TEXT[topicId] || '건강 추천 제품';
+  const ctaText = '다이어트·운동 추천 제품';
   return `
 <div style="margin:2rem 0;">
   <a href="${product.url}" target="_blank" rel="noopener sponsored" style="display:flex;align-items:center;justify-content:space-between;text-decoration:none;padding:1rem 1.25rem;border-radius:16px;background:linear-gradient(90deg,#FF6B35 0%,#FF8A38 100%);box-shadow:0 3px 12px rgba(255,107,53,0.22);">
@@ -718,7 +693,7 @@ async function main() {
                 url: product.url,
                 image: product.image || null,
                 price: product.price || null,
-                ctaText: TOPIC_CTA_TEXT[topic] || '다이어트·운동 추천 제품',
+                ctaText: '다이어트·운동 추천 제품',
               });
               console.log(`    쿠팡 상품 [${topicLabel}]: "${product.name}"`);
             }
