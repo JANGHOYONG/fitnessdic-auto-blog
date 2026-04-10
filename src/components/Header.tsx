@@ -41,7 +41,6 @@ function AppDownloadHeaderBtn() {
   const [showSheet, setShowSheet] = useState(false);
   const [isIOS, setIsIOS]         = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
-  const [isSamsung, setIsSamsung] = useState(false);
   const [prompt, setPrompt]       = useState<any>(null);
 
   useEffect(() => {
@@ -51,11 +50,8 @@ function AppDownloadHeaderBtn() {
     const ua = navigator.userAgent;
     const ios     = /iphone|ipad|ipod/i.test(ua);
     const android = /android/i.test(ua);
-    const samsung = /samsungbrowser/i.test(ua);
-
     if (ios) setIsIOS(true);
     if (android) setIsAndroid(true);
-    if (samsung) setIsSamsung(true);
 
     setShow(true);
 
@@ -144,18 +140,10 @@ function AppDownloadHeaderBtn() {
                 <Step n={3}><span><strong>"홈 화면에 추가"</strong> 를 눌러주세요</span></Step>
               </>)}
 
-              {/* ── Android 삼성 인터넷 ── */}
-              {isAndroid && isSamsung && (<>
-                <Step n={1}><span>하단 탭바 <strong>≡ 더보기</strong> 를 눌러주세요</span></Step>
-                <Step n={2}><span><strong>"페이지 추가"</strong> 를 눌러주세요</span></Step>
-                <Step n={3}><span><strong>"홈 화면"</strong> 을 선택해주세요</span></Step>
-              </>)}
-
-              {/* ── Android 크롬 / 기타 (beforeinstallprompt 없는 경우) ── */}
-              {isAndroid && !isSamsung && (<>
-                <Step n={1}><span>오른쪽 상단 <strong>⋮ 메뉴</strong> 를 눌러주세요</span></Step>
-                <Step n={2}><span><strong>"홈 화면에 추가"</strong> 또는 <strong>"앱 설치"</strong> 를 눌러주세요</span></Step>
-                <Step n={3}><span><strong>"추가"</strong> 버튼을 눌러 완료해주세요</span></Step>
+              {/* ── Android (삼성 인터넷 / 크롬 / 기타) ── */}
+              {isAndroid && (<>
+                <Step n={1}><span>브라우저에서 <strong>"홈 화면에 추가"</strong> 버튼을 눌러주세요</span></Step>
+                <Step n={2}><span><strong>"추가"</strong> 버튼을 눌러 완료해주세요</span></Step>
               </>)}
 
             </div>
