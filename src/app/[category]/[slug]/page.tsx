@@ -46,16 +46,22 @@ async function incrementView(id: number) {
 }
 
 export default async function PostPage({ params }: Props) {
-  const post = await prisma.post.findUnique({
-    where: { slug: params.slug },
-    include: {
-      category: true,
-      relatedPosts: {
-        include: { related: { include: { category: true } } },
-        take: 4,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let post: any = null;
+  try {
+    post = await prisma.post.findUnique({
+      where: { slug: params.slug },
+      include: {
+        category: true,
+        relatedPosts: {
+          include: { related: { include: { category: true } } },
+          take: 4,
+        },
       },
-    },
-  });
+    });
+  } catch {
+    notFound();
+  }
 
   if (!post || post.status !== 'PUBLISHED' || post.category.slug !== params.category) notFound();
 

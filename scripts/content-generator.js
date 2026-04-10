@@ -243,11 +243,11 @@ function getNextTopic(lastTopicId) {
 function generateSlug(title) {
   const timestamp = Date.now();
   const simplified = title
-    .replace(/[가-힣]+/g, (m) => `p${m.charCodeAt(0) % 10000}`)
-    .replace(/[^a-z0-9]/gi, '-')
-    .replace(/-+/g, '-')
-    .toLowerCase()
-    .slice(0, 50);
+    .replace(/\s+/g, '-')           // 공백 → 하이픈
+    .replace(/[?!?!.,'"]/g, '')     // 특수문자 제거
+    .replace(/-+/g, '-')            // 연속 하이픈 정리
+    .replace(/^-|-$/g, '')          // 앞뒤 하이픈 제거
+    .slice(0, 60);
   return `${simplified}-${timestamp}`;
 }
 
