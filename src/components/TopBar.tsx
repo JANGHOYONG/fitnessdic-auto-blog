@@ -3,12 +3,17 @@ import { prisma } from '@/lib/db';
 import VisitorStats from './VisitorStats';
 
 export default async function TopBar() {
-  const popularPosts = await prisma.post.findMany({
-    where: { status: 'PUBLISHED' },
-    include: { category: true },
-    orderBy: { viewCount: 'desc' },
-    take: 3,
-  });
+  let popularPosts: Awaited<ReturnType<typeof prisma.post.findMany>> = [];
+  try {
+    popularPosts = await prisma.post.findMany({
+      where: { status: 'PUBLISHED' },
+      include: { category: true },
+      orderBy: { viewCount: 'desc' },
+      take: 3,
+    });
+  } catch {
+    return null;
+  }
 
   return (
     <div className="border-b" style={{ background: 'var(--bg-bar)', borderColor: 'var(--border)' }}>
