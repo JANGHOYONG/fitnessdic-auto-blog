@@ -13,7 +13,7 @@ import CoupangProductCard, { type CoupangProduct } from '@/components/CoupangPro
 import NewsletterCTA from '@/components/NewsletterCTA';
 import FontSizeControl from '@/components/FontSizeControl';
 
-export const revalidate = 86400;
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: { category: string; slug: string };

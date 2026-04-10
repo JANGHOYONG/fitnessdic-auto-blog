@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import ArticleCard from '@/components/ArticleCard';
 import AdSense from '@/components/AdSense';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: { category: string };

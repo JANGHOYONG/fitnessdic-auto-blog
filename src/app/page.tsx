@@ -10,7 +10,7 @@ import AdSense from '@/components/AdSense';
 import NewsletterCTA from '@/components/NewsletterCTA';
 import DailyHealthTip from '@/components/DailyHealthTip';
 
-export const revalidate = 1800;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: '다이어트·운동 백과 — 30·40·50대를 위한 과학적 다이어트·운동 가이드',
