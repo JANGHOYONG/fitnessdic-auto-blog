@@ -69,7 +69,8 @@ export default async function PostPage({ params }: Props) {
 
   const keywords: string[] = JSON.parse(post.keywords || '[]');
   const { html: processedContent, headings } = processContent(post.content);
-  const relatedPosts = post.relatedPosts.map((r) => r.related);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const relatedPosts = post.relatedPosts.map((r: any) => r.related);
 
   const isHealth = post.category.slug === 'health';
   const youtubeId = post.longformVideoId || post.shortsVideoId || null;
