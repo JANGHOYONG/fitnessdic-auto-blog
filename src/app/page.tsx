@@ -27,7 +27,8 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  let recentPosts: Awaited<ReturnType<typeof prisma.post.findMany<{ include: { category: true } }>>> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let recentPosts: any[] = [];
   try {
     recentPosts = await prisma.post.findMany({
       where: { status: 'PUBLISHED' },

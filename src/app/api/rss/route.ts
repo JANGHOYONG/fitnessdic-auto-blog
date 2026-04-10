@@ -7,7 +7,8 @@ const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'Smart Info Blog';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  let posts: Awaited<ReturnType<typeof prisma.post.findMany<{ include: { category: true } }>>> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let posts: any[] = [];
   try {
     posts = await prisma.post.findMany({
       where: { status: 'PUBLISHED' },
