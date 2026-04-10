@@ -12,8 +12,8 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
       <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text)' }}>
         문제가 발생했습니다
       </h2>
-      <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
-        일시적인 오류입니다. 잠시 후 다시 시도해 주세요.
+      <p className="text-sm mb-4 font-mono bg-gray-100 p-3 rounded-lg text-left max-w-xl" style={{ color: '#c00' }}>
+        {error?.message || String(error)}
       </p>
       <button
         onClick={reset}
