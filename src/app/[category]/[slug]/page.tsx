@@ -20,16 +20,18 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const decodedSlug = decodeURIComponent(params.slug);
+  const decodedCategory = decodeURIComponent(params.category);
   let post = null;
   try {
     post = await prisma.post.findUnique({
-      where: { slug: params.slug },
+      where: { slug: decodedSlug },
       include: { category: true },
     });
   } catch {
     return {};
   }
-  if (!post || post.category.slug !== params.category) return {};
+  if (!post || post.category.slug !== decodedCategory) return {};
   return genMeta({
     title: post.metaTitle || post.title,
     description: post.metaDescription || post.excerpt,
@@ -48,9 +50,11 @@ async function incrementView(id: number) {
 export default async function PostPage({ params }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let post: any = null;
+  const decodedSlug = decodeURIComponent(params.slug);
+  const decodedCategory = decodeURIComponent(params.category);
   try {
     post = await prisma.post.findUnique({
-      where: { slug: params.slug },
+      where: { slug: decodedSlug },
       include: {
         category: true,
         relatedPosts: {
@@ -63,7 +67,7 @@ export default async function PostPage({ params }: Props) {
     notFound();
   }
 
-  if (!post || post.status !== 'PUBLISHED' || post.category.slug !== params.category) notFound();
+  if (!post || post.status !== 'PUBLISHED' || post.category.slug !== decodedCategory) notFound();
 
   incrementView(post.id).catch(() => {});
 
