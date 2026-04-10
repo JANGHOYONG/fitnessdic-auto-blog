@@ -215,7 +215,7 @@ export default function Header() {
             {TOPICS.map((t) => (
               <Link
                 key={t.name}
-                href={t.href ?? `/search?q=${encodeURIComponent(t.query ?? '')}`}
+                href={`/search?q=${encodeURIComponent(t.query)}`}
                 className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
                 style={{ color: 'var(--text-muted)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--primary)')}
@@ -287,7 +287,7 @@ export default function Header() {
             {TOPICS.map((t) => (
               <Link
                 key={t.name}
-                href={t.href ?? `/search?q=${encodeURIComponent(t.query ?? '')}`}
+                href={`/search?q=${encodeURIComponent(t.query)}`}
                 className="block px-3 py-3.5 text-base font-medium rounded-lg"
                 style={{ color: 'var(--text)', minHeight: '44px', display: 'flex', alignItems: 'center' }}
                 onClick={() => setMenuOpen(false)}
