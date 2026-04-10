@@ -91,17 +91,18 @@ function AppDownloadHeaderBtn() {
             <div style={{ background: '#F2FAF7', borderRadius: '12px', padding: '16px', marginBottom: '14px', border: '1.5px solid #C5E8DA' }}>
               <p style={{ fontSize: '14px', fontWeight: 700, color: '#1B3A32', marginBottom: '10px' }}>📌 홈 화면에 추가하는 방법</p>
               <p style={{ fontSize: '14px', color: '#1B3A32', lineHeight: 1.9 }}>
-                1. 하단 <strong>공유 버튼 (⬆)</strong> 탭<br />
-                2. <strong>"홈 화면에 추가"</strong> 선택<br />
-                3. <strong>"추가"</strong> 버튼 탭
+                1. 아래 <strong>닫기</strong> 버튼을 눌러 이 안내를 닫아요<br />
+                2. 하단 브라우저 <strong>공유 버튼 (⬆)</strong> 탭<br />
+                3. <strong>"홈 화면에 추가"</strong> 선택<br />
+                4. <strong>"추가"</strong> 버튼 탭
               </p>
             </div>
-            <button onClick={() => setShowSheet(false)} style={{ width: '100%', padding: '13px', background: 'transparent', color: '#2E5A4D', borderRadius: '12px', border: '1.5px solid #C5E8DA', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
-              닫기
+            <button onClick={() => setShowSheet(false)} style={{ width: '100%', padding: '13px', background: 'linear-gradient(90deg,#177A5E,#1E9E7A)', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}>
+              닫고 공유 버튼 (⬆) 탭하기
             </button>
           </div>
           {isIOS && (
-            <div style={{ position: 'fixed', bottom: '12px', left: '50%', transform: 'translateX(-50%)', zIndex: 10000, fontSize: '36px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))', animation: 'pwa-bounce 1.2s infinite' }}>⬇️</div>
+            <div style={{ position: 'fixed', bottom: '12px', left: '50%', transform: 'translateX(-50%)', zIndex: 10000, fontSize: '36px', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.5))', animation: 'pwa-bounce 1.2s infinite' }}>⬆️</div>
           )}
         </>
       )}
