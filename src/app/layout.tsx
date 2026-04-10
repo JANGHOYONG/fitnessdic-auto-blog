@@ -17,7 +17,20 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
   description: SITE_DESC,
-  openGraph: { type: 'website', locale: 'ko_KR', url: SITE_URL, siteName: SITE_NAME },
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    images: [
+      {
+        url: `${SITE_URL}/og-default.png`,
+        width: 1200,
+        height: 630,
+        alt: '다이어트·운동 백과 — 10~50대 여성을 위한 과학적 다이어트·운동 가이드',
+      },
+    ],
+  },
   twitter: { card: 'summary_large_image' },
   verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
   other: { 'naver-site-verification': 'dee771838eccbe0167e4dcc16ab4e9d84d88a9bb' },

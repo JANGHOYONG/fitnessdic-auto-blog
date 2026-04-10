@@ -132,7 +132,7 @@ async function fetchBodyImages(keywords, count = 3) {
   const results = [];
   // 키워드가 부족하면 'senior health' 기본 쿼리로 채움
   const queries = [...keywords.slice(0, count)];
-  while (queries.length < count) queries.push('senior health wellness');
+  while (queries.length < count) queries.push('fitness diet women workout');
   for (const q of queries) {
     const img = await fetchPexelsImage(q);
     if (img) results.push(img);
@@ -143,10 +143,10 @@ async function fetchBodyImages(keywords, count = 3) {
 
 function makeImgHtml(img) {
   return `
-<figure style="margin:2rem 0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(30,158,122,0.10)">
+<figure style="margin:2rem 0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(139,115,85,0.10)">
   <img src="${img.url}" alt="${img.alt}" style="width:100%;max-height:420px;object-fit:cover;display:block" loading="lazy" />
-  <figcaption style="font-size:0.75rem;text-align:center;padding:0.5rem 1rem;background:#E3F4ED;color:#4B7A6A">
-    <a href="${img.creditUrl}" target="_blank" rel="noopener noreferrer" style="color:#1E9E7A">${img.credit}</a>
+  <figcaption style="font-size:0.75rem;text-align:center;padding:0.5rem 1rem;background:#F5EDE4;color:#63523F">
+    <a href="${img.creditUrl}" target="_blank" rel="noopener noreferrer" style="color:#8B7050">${img.credit}</a>
   </figcaption>
 </figure>`;
 }
@@ -360,13 +360,19 @@ async function generatePost(keyword, categorySlug, topicId = null) {
 AI가 쓴 티가 나지 않도록 실제 전문가가 직접 쓴 것처럼 자연스럽게 작성합니다.
 제목과 본문에 특정 연도(2023년, 2024년 등 과거 연도)를 절대 사용하지 않습니다. 시간이 지나도 유효한 정보(Evergreen Content)로 작성합니다.
 ${isHealth ? `
-[3050 다이어트·운동 독자 특화 지침]
-- 주요 독자: 30~50대 (다이어트·운동에 관심 높고, 실천 의지 강하지만 바쁜 직장인·부모)
+[10~50대 여성 독자 특화 지침 — 핵심 타겟]
+- 주요 독자: 10~50대 여성 (다이어트·운동에 관심 높고, 외모·건강·체력 모두 챙기고 싶지만 바쁜 현실적 상황)
+- 페르소나 예시:
+  • 20대 여성: 인스타 바디 동경, 다이어트 식단 SNS 공유, 홈트 시작
+  • 30~40대 직장 여성: 출산 후 체중 관리, 야근으로 운동 시간 부족, 피로와 체중 증가 동시 고민
+  • 50대 여성: 갱년기 이후 살 찌는 속도, 근력 저하, 관절 보호하며 운동하는 법
+- 여성 관점 어조: 공감 → 정보 → 실천의 흐름. "나도 이런 적 있어" 공감 코드 포함
 - 문장은 짧고 명확하게. 한 문장에 한 가지 정보만.
 - 어려운 운동·영양 용어는 반드시 괄호로 쉬운 설명 병기 (예: 인슐린 저항성(혈당을 낮추는 기능이 떨어진 상태))
 - "당장 오늘부터 할 수 있는 것"을 항상 포함
-- 부상 위험·주의사항도 명확히 안내
-- 지인에게 공유하고 싶을 만큼 실용적이고 신뢰감 있는 톤 유지
+- 부상 위험·주의사항도 명확히 안내 (특히 여성 관절·골밀도 관련)
+- 지인·가족에게 카톡으로 공유하고 싶을 만큼 실용적이고 신뢰감 있는 톤 유지
+- 남성 위주 표현(예: "형, 운동 좀 해봐") 절대 사용 금지
 ` : ''}${angleBlock}
 [구글 E-E-A-T 품질 기준 준수]
 - Experience(경험): 실제 경험에서 나온 구체적 사례와 에피소드 포함
@@ -395,7 +401,7 @@ ${angleInfo ? `콘텐츠 각도: ${angleInfo.angle}
   "titles": ["반전형 제목 (예: '○○이 오히려 혈당 올린다')", "숫자+충격형 제목 (예: '10명 중 7명이 모르는 ○○의 진실')", "경고형 제목 (예: '지금 당장 멈춰야 할 ○○ 습관')"],
   "selectedTitle": "클릭률 높은 제목 1개 (30~45자, 핵심 키워드 포함, 연도 포함 금지, 반전·충격·호기심 유발)",
   "metaTitle": "검색결과 타이틀 (55자 이내, 키워드 포함)",
-  "metaDescription": "검색결과 설명 (140~155자, 키워드 + 궁금증 유발 + 클릭 유도)",
+  "metaDescription": "검색결과 설명 (120~155자, 절대 160자 초과 금지, 키워드 + 10~50대 여성이 공감할 궁금증 유발 + 클릭 유도)",
   "excerpt": "글 요약 (120~150자, 핵심 가치 전달)",
   "keywords": ["핵심키워드", "관련키워드2", "관련키워드3", "롱테일1", "롱테일2"],
   "sections": ["섹션1 소제목", "섹션2 소제목", "섹션3 소제목", "섹션4 소제목"],

@@ -10,7 +10,7 @@
     --bg-card:      #FFFFFF;
     --bg-bar:       #F5F0E8;
     --text:         #2A2318;
-    --text-muted:   #8A7A66;
+    --text-muted:   #63523F;   /* WCAG AAA 7:1+ 대비율 (#FAFAF7 배경 기준) */
     --border:       #E5D9C8;
     --primary:      #B09070;
     --primary-dark: #8B7050;

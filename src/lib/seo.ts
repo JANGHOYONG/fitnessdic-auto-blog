@@ -118,10 +118,20 @@ export function generateJsonLd({
       url,
       datePublished: publishedAt?.toISOString(),
       dateModified: updatedAt?.toISOString() || publishedAt?.toISOString(),
+      author: {
+        '@type': 'Person',
+        name: '다이어트·운동 백과 전문팀',
+        description: '국가공인 생활스포츠지도사 & 스포츠영양사로 구성된 전문팀',
+        url: `${SITE_URL}/about`,
+      },
       publisher: {
         '@type': 'Organization',
         name: SITE_NAME,
         url: SITE_URL,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${SITE_URL}/icon`,
+        },
       },
       keywords: keywords?.join(', '),
       inLanguage: 'ko-KR',
