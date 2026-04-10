@@ -33,9 +33,14 @@ const CATEGORY_META: Record<string, { title: string; description: string; keywor
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const category = await prisma.category.findUnique({
-    where: { slug: params.category },
-  });
+  let category = null;
+  try {
+    category = await prisma.category.findUnique({
+      where: { slug: params.category },
+    });
+  } catch {
+    return {};
+  }
 
   if (!category) return {};
 
@@ -60,9 +65,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
-  const categories = await prisma.category.findMany();
-  return categories.map((cat) => ({ category: cat.slug }));
+  try {
+    const categories = await prisma.category.findMany();
+    return categories.map((cat) => ({ category: cat.slug }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
