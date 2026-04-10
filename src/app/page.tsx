@@ -27,12 +27,17 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const recentPosts = await prisma.post.findMany({
-    where: { status: 'PUBLISHED' },
-    include: { category: true },
-    orderBy: { publishedAt: 'desc' },
-    take: 12,
-  });
+  let recentPosts: Awaited<ReturnType<typeof prisma.post.findMany<{ include: { category: true } }>>> = [];
+  try {
+    recentPosts = await prisma.post.findMany({
+      where: { status: 'PUBLISHED' },
+      include: { category: true },
+      orderBy: { publishedAt: 'desc' },
+      take: 12,
+    });
+  } catch {
+    // DB 미연결 시 빈 목록
+  }
 
   const jsonLd = generateJsonLd({
     type: 'WebSite',

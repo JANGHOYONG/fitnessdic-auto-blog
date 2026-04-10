@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 const today = () => new Date().toISOString().slice(0, 10);
 
 // GET: 통계 조회

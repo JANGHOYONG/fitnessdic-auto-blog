@@ -20,10 +20,15 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await prisma.post.findUnique({
-    where: { slug: params.slug },
-    include: { category: true },
-  });
+  let post = null;
+  try {
+    post = await prisma.post.findUnique({
+      where: { slug: params.slug },
+      include: { category: true },
+    });
+  } catch {
+    return {};
+  }
   if (!post || post.category.slug !== params.category) return {};
   return genMeta({
     title: post.metaTitle || post.title,

@@ -4,16 +4,23 @@ import { prisma } from '@/lib/db';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, categories] = await Promise.all([
-    prisma.post.findMany({
-      where: { status: 'PUBLISHED' },
-      select: { slug: true, updatedAt: true, category: { select: { slug: true } } },
-      orderBy: { publishedAt: 'desc' },
-    }),
-    prisma.category.findMany({
-      select: { slug: true, updatedAt: true },
-    }),
-  ]);
+  let posts: { slug: string; updatedAt: Date; category: { slug: string } }[] = [];
+  let categories: { slug: string; updatedAt: Date }[] = [];
+
+  try {
+    [posts, categories] = await Promise.all([
+      prisma.post.findMany({
+        where: { status: 'PUBLISHED' },
+        select: { slug: true, updatedAt: true, category: { select: { slug: true } } },
+        orderBy: { publishedAt: 'desc' },
+      }),
+      prisma.category.findMany({
+        select: { slug: true, updatedAt: true },
+      }),
+    ]);
+  } catch {
+    // DB 미연결 시 기본 sitemap만 반환
+  }
 
   const postUrls: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${SITE_URL}/${post.category.slug}/${post.slug}`,

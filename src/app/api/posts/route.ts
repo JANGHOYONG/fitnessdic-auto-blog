@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 // 내부 API: 게시글 목록 (RSS, 사이트맵 갱신 등 활용)
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

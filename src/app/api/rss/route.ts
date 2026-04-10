@@ -4,13 +4,20 @@ import { prisma } from '@/lib/db';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com';
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'Smart Info Blog';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
-  const posts = await prisma.post.findMany({
-    where: { status: 'PUBLISHED' },
-    include: { category: true },
-    orderBy: { publishedAt: 'desc' },
-    take: 30,
-  });
+  let posts: Awaited<ReturnType<typeof prisma.post.findMany<{ include: { category: true } }>>> = [];
+  try {
+    posts = await prisma.post.findMany({
+      where: { status: 'PUBLISHED' },
+      include: { category: true },
+      orderBy: { publishedAt: 'desc' },
+      take: 30,
+    });
+  } catch {
+    // DB 미연결 시 빈 RSS 반환
+  }
 
   const rssItems = posts
     .map(
