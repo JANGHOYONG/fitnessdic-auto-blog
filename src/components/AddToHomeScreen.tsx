@@ -108,7 +108,7 @@ export default function AddToHomeScreen() {
               <div
                 style={{
                   width: '52px', height: '52px', borderRadius: '12px', flexShrink: 0,
-                  background: 'linear-gradient(135deg, #C4501A, #E8631A)',
+                  background: 'linear-gradient(135deg, #6B5540, #8B7355)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '24px',
                 }}

@@ -6,14 +6,14 @@
 
 @layer base {
   :root {
-    --bg:           #FFF8F3;
-    --bg-card:      #FFFFFF;
-    --bg-bar:       #FDEEE0;
-    --text:         #2D1A0E;
-    --text-muted:   #7A4020;
-    --border:       #F5D5B8;
-    --primary:      #E8631A;
-    --primary-dark: #C4501A;
+    --bg:           #F7F4EF;
+    --bg-card:      #FDFCFA;
+    --bg-bar:       #EDE8DF;
+    --text:         #1E1A14;
+    --text-muted:   #7A6A54;
+    --border:       #D4C5B0;
+    --primary:      #8B7355;
+    --primary-dark: #6B5540;
     --font-scale:   1;
   }
 
@@ -47,18 +47,18 @@
     background-color: var(--bg-card);
     border: 1px solid var(--border);
     @apply rounded-2xl overflow-hidden;
-    box-shadow: 0 2px 12px rgba(30, 158, 122, 0.08);
+    box-shadow: 0 2px 12px rgba(139, 115, 85, 0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(30, 158, 122, 0.15);
+    box-shadow: 0 8px 24px rgba(139, 115, 85, 0.15);
   }
 
   /* 카테고리 배지 */
   .category-badge {
     @apply inline-block px-3 py-1 rounded-full text-xs font-semibold;
-    background-color: rgba(30, 158, 122, 0.15);
+    background-color: rgba(139, 115, 85, 0.12);
     color: var(--primary-dark);
   }
 
@@ -107,7 +107,7 @@
   /* 본문 표 */
   .prose-custom table {
     @apply w-full border-collapse my-8 text-sm rounded-xl overflow-hidden;
-    box-shadow: 0 2px 12px rgba(30, 158, 122, 0.08);
+    box-shadow: 0 2px 12px rgba(139, 115, 85, 0.08);
   }
   .prose-custom th {
     @apply px-4 py-3 text-left font-bold;
@@ -198,7 +198,7 @@
   /* Featured Snippet 정의형 박스 */
   .prose-custom .definition-box {
     @apply my-6 p-5 rounded-2xl;
-    background: linear-gradient(135deg, #E8F5EE 0%, #D1F0E3 100%);
+    background: linear-gradient(135deg, #F2EDE4 0%, #E8DFD0 100%);
     border: 2px solid var(--primary);
   }
   .prose-custom .definition-box h3 {
@@ -213,8 +213,8 @@
   /* 마무리 CTA 박스 */
   .prose-custom .cta-box {
     @apply my-10 p-6 rounded-2xl text-center;
-    background: linear-gradient(135deg, #1E9E7A 0%, #157a5e 100%);
-    box-shadow: 0 8px 32px rgba(30,158,122,0.25);
+    background: linear-gradient(135deg, #6B5540 0%, #8B7355 100%);
+    box-shadow: 0 8px 32px rgba(107, 85, 64, 0.25);
   }
   .prose-custom .cta-box .cta-title {
     @apply text-lg font-bold mb-4;
@@ -231,7 +231,7 @@
     color: var(--primary-dark);
   }
   .prose-custom .cta-box .cta-btn-primary:hover {
-    background: #E8F5EE;
+    background: #F2EDE4;
     transform: translateY(-1px);
   }
   .prose-custom .cta-box .cta-btn-share {

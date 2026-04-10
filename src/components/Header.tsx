@@ -7,9 +7,9 @@ import { useRouter } from 'next/navigation';
 /** 공통 스텝 박스 */
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#FFF8F3', borderRadius: '12px', padding: '14px 16px', border: '1.5px solid #F5D5B8' }}>
-      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#C4501A,#E8631A)', color: '#fff', fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</div>
-      <div style={{ fontSize: '13px', color: '#2D1A0E', fontWeight: 600, paddingTop: '4px' }}>{children}</div>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#F7F4EF', borderRadius: '12px', padding: '14px 16px', border: '1.5px solid #D4C5B0' }}>
+      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#6B5540,#8B7355)', color: '#fff', fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</div>
+      <div style={{ fontSize: '13px', color: '#1E1A14', fontWeight: 600, paddingTop: '4px' }}>{children}</div>
     </div>
   );
 }
@@ -26,15 +26,15 @@ function CopyLinkRow() {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <p style={{ flex: 1, fontSize: '12px', color: '#555', background: '#fff', borderRadius: '8px', padding: '7px 10px', border: '1px solid #F5D5B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <p style={{ flex: 1, fontSize: '12px', color: '#555', background: '#fff', borderRadius: '8px', padding: '7px 10px', border: '1px solid #D4C5B0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           fitnessdic.co.kr
         </p>
-        <button onClick={copy} style={{ flexShrink: 0, padding: '7px 12px', background: 'linear-gradient(90deg,#C4501A,#E8631A)', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={copy} style={{ flexShrink: 0, padding: '7px 12px', background: 'linear-gradient(90deg,#6B5540,#8B7355)', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
           링크 복사
         </button>
       </div>
       {copied && (
-        <p style={{ marginTop: '6px', fontSize: '12px', color: '#E8631A', fontWeight: 600 }}>
+        <p style={{ marginTop: '6px', fontSize: '12px', color: '#8B7355', fontWeight: 600 }}>
           ✓ 링크가 복사되었습니다. Safari에 붙여넣기 해주세요!
         </p>
       )}
@@ -89,7 +89,7 @@ function AppDownloadHeaderBtn() {
         className="md:hidden"
         style={{
           padding: '5px 10px',
-          background: 'linear-gradient(90deg, #177A5E, #E8631A)',
+          background: 'linear-gradient(90deg, #177A5E, #8B7355)',
           color: '#fff',
           borderRadius: '8px',
           border: 'none',
@@ -125,10 +125,10 @@ function AppDownloadHeaderBtn() {
           >
             {/* 헤더 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0, background: 'linear-gradient(135deg,#C4501A,#E8631A)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>💪</div>
+              <div style={{ width: '48px', height: '48px', borderRadius: '12px', flexShrink: 0, background: 'linear-gradient(135deg,#6B5540,#8B7355)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>💪</div>
               <div>
-                <p style={{ fontSize: '15px', fontWeight: 800, color: '#2D1A0E' }}>홈 화면에 추가하기</p>
-                <p style={{ fontSize: '12px', color: '#7A4020', marginTop: '2px' }}>앱처럼 바로 실행할 수 있어요</p>
+                <p style={{ fontSize: '15px', fontWeight: 800, color: '#1E1A14' }}>홈 화면에 추가하기</p>
+                <p style={{ fontSize: '12px', color: '#7A6A54', marginTop: '2px' }}>앱처럼 바로 실행할 수 있어요</p>
               </div>
             </div>
 
@@ -138,7 +138,7 @@ function AppDownloadHeaderBtn() {
               {/* ── iOS ── */}
               {isIOS && (<>
                 <Step n={1}>
-                  <p style={{ fontSize: '13px', color: '#2D1A0E', fontWeight: 600, marginBottom: '8px' }}>
+                  <p style={{ fontSize: '13px', color: '#1E1A14', fontWeight: 600, marginBottom: '8px' }}>
                     Safari를 열고 아래 링크를 복사해주세요
                   </p>
                   <CopyLinkRow />
@@ -155,7 +155,7 @@ function AppDownloadHeaderBtn() {
 
             </div>
 
-            <button onClick={() => setShowSheet(false)} style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg,#C4501A,#E8631A)', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => setShowSheet(false)} style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg,#6B5540,#8B7355)', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
               확인
             </button>
           </div>
