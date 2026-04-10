@@ -127,26 +127,26 @@ function insertCoupangBox(content, product, topicId) {
   return content + box;
 }
 
-// ─── Pexels 이미지 ───────────────────────────────────────────────────────────
+// ─── Unsplash 이미지 ──────────────────────────────────────────────────────────
 async function fetchPexelsImage(query) {
-  const key = process.env.PEXELS_API_KEY;
+  const key = process.env.UNSPLASH_ACCESS_KEY;
   if (!key) return null;
   try {
     const res = await fetch(
-      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&orientation=landscape&per_page=10`,
-      { headers: { Authorization: key } }
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=10`,
+      { headers: { Authorization: `Client-ID ${key}` } }
     );
     if (!res.ok) return null;
     const data = await res.json();
-    if (!data.photos || !data.photos.length) return null;
+    if (!data.results || !data.results.length) return null;
     // 상위 5개 중 랜덤 선택
-    const pool = data.photos.slice(0, 5);
+    const pool = data.results.slice(0, 5);
     const photo = pool[Math.floor(Math.random() * pool.length)];
     return {
-      url: photo.src.large,
-      alt: photo.alt || query,
-      credit: `Photo by ${photo.photographer} on Pexels`,
-      creditUrl: photo.photographer_url,
+      url: photo.urls.regular,
+      alt: photo.alt_description || query,
+      credit: `Photo by ${photo.user.name} on Unsplash`,
+      creditUrl: `${photo.user.links.html}?utm_source=fitnessdic&utm_medium=referral`,
     };
   } catch {
     return null;
@@ -583,8 +583,8 @@ async function linkRelated(postId, categoryId, keywords) {
 
 // ─── 메인 ────────────────────────────────────────────────────────────────────
 async function main() {
-  const hasPexels = !!process.env.PEXELS_API_KEY;
-  console.log(`=== 콘텐츠 생성 시작 (GPT-4o-mini${hasPexels ? ' + Pexels' : ''}) ===`);
+  const hasPexels = !!process.env.UNSPLASH_ACCESS_KEY;
+  console.log(`=== 콘텐츠 생성 시작 (GPT-4o-mini${hasPexels ? ' + Unsplash' : ''}) ===`);
   console.log(`생성 목표: ${generateCount}개\n`);
 
   let success = 0, fail = 0;

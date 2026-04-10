@@ -230,23 +230,23 @@ JSON 형식:
   return JSON.parse(res.choices[0].message.content);
 }
 
-// ─── 2. Pexels 이미지 다운로드 ────────────────────────────────────────────────
+// ─── 2. Unsplash 이미지 다운로드 ──────────────────────────────────────────────
 async function fetchPexelsPhoto(query, outPath) {
-  const key = process.env.PEXELS_API_KEY;
-  if (!key) throw new Error('PEXELS_API_KEY 없음');
+  const key = process.env.UNSPLASH_ACCESS_KEY;
+  if (!key) throw new Error('UNSPLASH_ACCESS_KEY 없음');
 
   const searches = [
-    `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&orientation=portrait&size=large&per_page=10`,
-    `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=10`,
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=portrait&per_page=10`,
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=10`,
   ];
 
   for (const url of searches) {
-    const res = await axios.get(url, { headers: { Authorization: key } });
-    const photos = res.data.photos || [];
+    const res = await axios.get(url, { headers: { Authorization: `Client-ID ${key}` } });
+    const photos = res.data.results || [];
     if (!photos.length) continue;
 
     const photo = photos[Math.floor(Math.random() * Math.min(5, photos.length))];
-    const imageUrl = photo.src.large2x || photo.src.large || photo.src.original;
+    const imageUrl = photo.urls.full || photo.urls.regular;
 
     const writer = fs.createWriteStream(outPath);
     const response = await axios({ url: imageUrl, method: 'GET', responseType: 'stream' });
