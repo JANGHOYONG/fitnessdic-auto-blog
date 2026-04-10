@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db';
 import VisitorStats from './VisitorStats';
 
 export default async function TopBar() {
-  let popularPosts: Awaited<ReturnType<typeof prisma.post.findMany>> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let popularPosts: any[] = [];
   try {
     popularPosts = await prisma.post.findMany({
       where: { status: 'PUBLISHED' },
