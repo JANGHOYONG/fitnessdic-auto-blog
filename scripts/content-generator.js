@@ -683,7 +683,7 @@ async function main() {
 
         // 쿠팡파트너스 상품 — DB 필드로 분리 저장 (사이드바 카드 렌더링용)
         let coupangProductJson = null;
-        if (TOPIC_TO_SHEET[topic]) {
+        if (true) {
           try {
             const coupangProducts = await fetchCoupangProducts(topic);
             if (coupangProducts.length) {
