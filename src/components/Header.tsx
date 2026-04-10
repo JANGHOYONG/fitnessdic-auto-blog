@@ -4,21 +4,58 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+/** 공통 스텝 박스 */
+function Step({ n, children }: { n: number; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', background: '#F2FAF7', borderRadius: '12px', padding: '14px 16px', border: '1.5px solid #C5E8DA' }}>
+      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#177A5E,#1E9E7A)', color: '#fff', fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</div>
+      <div style={{ fontSize: '13px', color: '#1B3A32', fontWeight: 600, paddingTop: '4px' }}>{children}</div>
+    </div>
+  );
+}
+
+/** 링크 복사 행 */
+function CopyLinkRow() {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText('https://smartinfoblog.co.kr').then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <p style={{ flex: 1, fontSize: '12px', color: '#555', background: '#fff', borderRadius: '8px', padding: '7px 10px', border: '1px solid #C5E8DA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        smartinfoblog.co.kr
+      </p>
+      <button onClick={copy} style={{ flexShrink: 0, padding: '7px 12px', background: copied ? '#aaa' : 'linear-gradient(90deg,#177A5E,#1E9E7A)', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+        {copied ? '복사됨 ✓' : '링크 복사'}
+      </button>
+    </div>
+  );
+}
+
 /** 모바일 헤더 전용 앱 다운로드 버튼 */
 function AppDownloadHeaderBtn() {
   const [show, setShow]           = useState(false);
   const [showSheet, setShowSheet] = useState(false);
   const [isIOS, setIsIOS]         = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
+  const [isSamsung, setIsSamsung] = useState(false);
   const [prompt, setPrompt]       = useState<any>(null);
 
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) return;
     if ((window.navigator as any).standalone === true) return;
 
-    const ua   = navigator.userAgent;
-    const ios    = /iphone|ipad|ipod/i.test(ua);
-    const safari = /safari/i.test(ua) && !/chrome|crios|fxios/i.test(ua);
-    if (ios && safari) setIsIOS(true);
+    const ua = navigator.userAgent;
+    const ios     = /iphone|ipad|ipod/i.test(ua);
+    const android = /android/i.test(ua);
+    const samsung = /samsungbrowser/i.test(ua);
+
+    if (ios) setIsIOS(true);
+    if (android) setIsAndroid(true);
+    if (samsung) setIsSamsung(true);
 
     setShow(true);
 
@@ -29,12 +66,12 @@ function AppDownloadHeaderBtn() {
 
   const handleClick = async () => {
     if (prompt) {
-      // Android: 네이티브 설치 다이얼로그
+      // Android Chrome: beforeinstallprompt 지원 → 네이티브 설치 다이얼로그
       prompt.prompt();
       await prompt.userChoice;
       setPrompt(null);
     } else {
-      // iOS 및 기타: 안내 팝업
+      // iOS / 삼성 브라우저 / 기타 → 안내 팝업
       setShowSheet(true);
     }
   };
@@ -92,42 +129,35 @@ function AppDownloadHeaderBtn() {
               </div>
             </div>
 
-            {/* 단계 */}
+            {/* 단계 — OS별 분기 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-              {/* Step 1 */}
-              <div style={{ background: '#F2FAF7', borderRadius: '12px', padding: '14px 16px', border: '1.5px solid #C5E8DA' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#177A5E,#1E9E7A)', color: '#fff', fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>1</div>
-                  <p style={{ fontSize: '13px', color: '#1B3A32', fontWeight: 600 }}>Safari를 열고 아래 링크를 복사해주세요</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <p style={{ flex: 1, fontSize: '12px', color: '#555', background: '#fff', borderRadius: '8px', padding: '7px 10px', border: '1px solid #C5E8DA', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    smartinfoblog.co.kr
+
+              {/* ── iOS ── */}
+              {isIOS && (<>
+                <Step n={1}>
+                  <p style={{ fontSize: '13px', color: '#1B3A32', fontWeight: 600, marginBottom: '8px' }}>
+                    Safari를 열고 아래 링크를 복사해주세요
                   </p>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText('https://smartinfoblog.co.kr').then(() => {
-                        alert('링크가 복사되었습니다!');
-                      });
-                    }}
-                    style={{ flexShrink: 0, padding: '7px 12px', background: 'linear-gradient(90deg,#177A5E,#1E9E7A)', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}
-                  >
-                    링크 복사
-                  </button>
-                </div>
-              </div>
+                  <CopyLinkRow />
+                </Step>
+                <Step n={2}><span>하단 <strong>공유 버튼 ⬆️</strong> 을 눌러주세요</span></Step>
+                <Step n={3}><span><strong>"홈 화면에 추가"</strong> 를 눌러주세요</span></Step>
+              </>)}
 
-              {/* Step 2 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#F2FAF7', borderRadius: '12px', padding: '14px 16px', border: '1.5px solid #C5E8DA' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#177A5E,#1E9E7A)', color: '#fff', fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>2</div>
-                <p style={{ fontSize: '13px', color: '#1B3A32', fontWeight: 600 }}>하단 <strong>⋯ 버튼</strong> → <strong>공유</strong> 버튼을 눌러주세요</p>
-              </div>
+              {/* ── Android 삼성 인터넷 ── */}
+              {isAndroid && isSamsung && (<>
+                <Step n={1}><span>하단 탭바 <strong>≡ 더보기</strong> 를 눌러주세요</span></Step>
+                <Step n={2}><span><strong>"페이지 추가"</strong> 를 눌러주세요</span></Step>
+                <Step n={3}><span><strong>"홈 화면"</strong> 을 선택해주세요</span></Step>
+              </>)}
 
-              {/* Step 3 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#F2FAF7', borderRadius: '12px', padding: '14px 16px', border: '1.5px solid #C5E8DA' }}>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'linear-gradient(135deg,#177A5E,#1E9E7A)', color: '#fff', fontSize: '13px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>3</div>
-                <p style={{ fontSize: '13px', color: '#1B3A32', fontWeight: 600 }}><strong>"홈 화면에 추가"</strong> 버튼을 눌러주세요</p>
-              </div>
+              {/* ── Android 크롬 / 기타 (beforeinstallprompt 없는 경우) ── */}
+              {isAndroid && !isSamsung && (<>
+                <Step n={1}><span>오른쪽 상단 <strong>⋮ 메뉴</strong> 를 눌러주세요</span></Step>
+                <Step n={2}><span><strong>"홈 화면에 추가"</strong> 또는 <strong>"앱 설치"</strong> 를 눌러주세요</span></Step>
+                <Step n={3}><span><strong>"추가"</strong> 버튼을 눌러 완료해주세요</span></Step>
+              </>)}
+
             </div>
 
             <button onClick={() => setShowSheet(false)} style={{ width: '100%', padding: '14px', background: 'linear-gradient(90deg,#177A5E,#1E9E7A)', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
