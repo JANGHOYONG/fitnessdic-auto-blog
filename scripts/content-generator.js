@@ -412,7 +412,7 @@ ${angleInfo ? `콘텐츠 각도: ${angleInfo.angle}
   const contentRes = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.75,
-    max_tokens: 5000,
+    max_tokens: 8000,
     messages: [
       { role: 'system', content: `${systemPrompt}\nHTML 형식의 블로그 본문만 작성합니다. JSON 없이 HTML만 출력합니다.` },
       {
@@ -429,16 +429,17 @@ ${angleInfo ? `
   - ${angleInfo.focus[1]}
   - ${angleInfo.focus[2]}
 ` : ''}
-위 구성으로 핵심만 담은 간결하고 완성도 높은 블로그 본문 HTML을 작성하세요.
+위 구성으로 깊이 있고 완성도 높은 블로그 본문 HTML을 작성하세요.
 
 [필수 조건]
-1. 순수 텍스트 기준 1,800~2,500자 (HTML 태그 제외) — 간결하고 핵심만 담아야 합니다
-2. 각 섹션 300~400자 내외 — 핵심 정보만 압축
-3. 구체적 수치(연구 결과, 통계, %) 1~2개씩 포함
-4. 문단은 2~3문장 단위로 짧고 명확하게
+1. 순수 텍스트 기준 2,000~3,000자 (HTML 태그 제외) — 깊이 있는 정보 제공
+2. 각 섹션 400~600자 내외 — 충분한 설명과 근거 포함
+3. 구체적 수치(연구 결과, 통계, %, 시간, 횟수) 각 섹션 1~2개 포함
+4. 문단은 3~4문장 단위로 작성 (너무 짧으면 안 됨)
 5. ⚠️ 뻔한 상식(운동하세요, 균형 잡힌 식단, 금연 등)은 절대 쓰지 말 것
-6. 독자가 스크롤 없이 5분 안에 끝까지 읽을 수 있는 분량
-7. 각 섹션은 핵심 포인트 1~2개에 집중 — 여러 가지 나열 금지
+6. 전문적인 근거와 메커니즘 설명 포함 (왜 그런지 원리까지)
+7. 실제 사례나 구체적 시나리오를 들어 독자가 공감하게 작성
+8. 각 섹션은 소주제를 충분히 다루되, 핵심에서 벗어나지 않을 것
 
 HTML 구조 (반드시 이 순서로, </article>로 반드시 닫을 것):
 <article>
@@ -446,68 +447,78 @@ HTML 구조 (반드시 이 순서로, </article>로 반드시 닫을 것):
 <section class="intro">
   <div class="summary-box">
     <ul>
-      <li>핵심 포인트 1 (한 줄)</li>
-      <li>핵심 포인트 2 (한 줄)</li>
-      <li>핵심 포인트 3 (한 줄)</li>
+      <li>핵심 포인트 1 (한 줄 — 독자가 몰랐을 반전 정보)</li>
+      <li>핵심 포인트 2 (한 줄 — 구체적 수치 또는 메커니즘)</li>
+      <li>핵심 포인트 3 (한 줄 — 오늘 당장 실천 가능한 것)</li>
     </ul>
   </div>
-  <p>서론 (독자 공감 + 글 방향, 2~3문장)</p>
+  <p>서론 (독자 공감 + 문제 제기, 3~4문장. 독자가 겪는 구체적 상황 묘사)</p>
+  <p>이 글에서 다룰 내용 예고 (2문장)</p>
 </section>
 
 <section>
-  <h2>${meta.sections[0] || '핵심 원인'}</h2>
-  <p>핵심 내용 (3문장, 수치/근거 포함)</p>
-  <div class="info-box"><p>핵심 요약 1줄</p></div>
+  <h2>${meta.sections[0] || '핵심 원인 분석'}</h2>
+  <p>이 현상이 생기는 생리적·과학적 메커니즘 설명 (3~4문장, 연구/통계 포함)</p>
+  <p>일반적으로 알려진 상식과 다른 점, 반전 정보 (3문장)</p>
+  <div class="info-box"><p>📌 핵심 요약: [이 섹션의 핵심을 1~2문장으로 압축]</p></div>
 </section>
 
 <section>
-  <h2>${meta.sections[1] || '당장 실천하는 방법'}</h2>
-  <p>핵심 방법 설명 (2~3문장)</p>
+  <h2>${meta.sections[1] || '올바른 접근법'}</h2>
+  <p>올바른 방법의 근거와 원리 설명 (3~4문장)</p>
   <ol>
-    <li><strong>방법 1:</strong> 구체적 설명 (1~2문장)</li>
-    <li><strong>방법 2:</strong> 구체적 설명 (1~2문장)</li>
-    <li><strong>방법 3:</strong> 구체적 설명 (1~2문장)</li>
+    <li><strong>방법 1:</strong> 구체적 설명 + 실천 방법 (2~3문장)</li>
+    <li><strong>방법 2:</strong> 구체적 설명 + 주의사항 포함 (2~3문장)</li>
+    <li><strong>방법 3:</strong> 구체적 설명 + 효과 기간/수치 (2~3문장)</li>
   </ol>
+  <p>위 방법을 실천할 때 놓치기 쉬운 포인트 (2문장)</p>
 </section>
 
 <section>
-  <h2>${meta.sections[2] || '많이 하는 실수'}</h2>
-  <p>흔한 오해 설명 (2~3문장, 반전 정보 포함)</p>
+  <h2>${meta.sections[2] || '많이 하는 실수와 오해'}</h2>
+  <p>가장 흔한 오해와 그 오해가 생긴 이유 (3~4문장, 반전 정보 포함)</p>
   <div class="warning-box">
     <ul>
-      <li>주의사항 1 — 이유 한 줄</li>
-      <li>주의사항 2 — 이유 한 줄</li>
+      <li>❌ 실수 1: [구체적 상황] — 왜 문제인지 이유</li>
+      <li>❌ 실수 2: [구체적 상황] — 왜 문제인지 이유</li>
+      <li>❌ 실수 3: [구체적 상황] — 올바른 대안</li>
     </ul>
   </div>
+  <p>이 실수들이 장기적으로 미치는 영향 (2~3문장)</p>
 </section>
 
 <section>
-  <h2>${meta.sections[3] || '병원 가야 할 신호'}</h2>
-  <p>위험 신호 설명 (2~3문장)</p>
+  <h2>${meta.sections[3] || '전문가가 권장하는 실전 팁'}</h2>
+  <p>실제 현장에서 효과가 검증된 방법 소개 (3문장)</p>
   <div class="tip-box">
     <ul>
-      <li>즉시 병원 가야 할 증상 1</li>
-      <li>즉시 병원 가야 할 증상 2</li>
-      <li>즉시 병원 가야 할 증상 3</li>
+      <li>💡 팁 1: 구체적 수치/방법 포함</li>
+      <li>💡 팁 2: 구체적 수치/방법 포함</li>
+      <li>💡 팁 3: 즉시 실천 가능한 것</li>
+      <li>💡 팁 4: 장기적 관점의 조언</li>
     </ul>
   </div>
+  <p>이 팁들을 적용할 때 개인차가 있을 수 있는 부분 언급 (2문장)</p>
 </section>
 
 <section>
-  <h2>자주 묻는 질문</h2>
-  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 1?</p><p>A. 간결한 답변 (2문장)</p></div>
-  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 2?</p><p>A. 간결한 답변 (2문장)</p></div>
+  <h2>자주 묻는 질문 (FAQ)</h2>
+  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 1? (구체적이고 실용적인 질문)</p><p>A. 명확하고 근거 있는 답변 (3~4문장, 수치 포함)</p></div>
+  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 2? (독자가 헷갈려하는 것)</p><p>A. 명확하고 근거 있는 답변 (3~4문장)</p></div>
+  <div class="faq-item"><p class="faq-q">Q. 자주 묻는 질문 3? (심화 질문)</p><p>A. 전문적이지만 쉬운 답변 (3~4문장)</p></div>
 </section>
 
 <section class="conclusion">
-  <div class="info-box"><p>핵심 한 줄 요약: <strong>[오늘 당장 실천할 것]</strong></p></div>
+  <h2>마무리 — 오늘부터 바꿀 한 가지</h2>
+  <p>이 글의 핵심 내용을 다시 한번 정리 (3~4문장)</p>
+  <div class="info-box"><p>✅ 오늘 당장 실천할 것: <strong>[구체적이고 즉시 실천 가능한 행동 1가지]</strong></p></div>
   <div class="cta-box">
     <p class="cta-title">📌 이 글이 도움이 되셨나요?</p>
     <div class="cta-buttons">
-      <a href="/" class="cta-btn cta-btn-primary">더 많은 건강 정보 보기 →</a>
+      <a href="/" class="cta-btn cta-btn-primary">더 많은 운동 정보 보기 →</a>
       <button class="cta-btn cta-btn-share" onclick="navigator.share ? navigator.share({title: document.title, url: location.href}) : window.open('https://story.kakao.com/share?url=' + encodeURIComponent(location.href))">📤 카카오톡 공유</button>
     </div>
-    <p class="cta-sub">가족·친구에게 공유하면 더 큰 도움이 됩니다 💚</p>
+    <p class="cta-sub">운동하는 가족·친구에게 공유하면 더 큰 도움이 됩니다 💪</p>
   </div>
 </section>
 
