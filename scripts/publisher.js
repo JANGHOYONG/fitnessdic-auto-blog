@@ -15,7 +15,7 @@ const http = require('http');
 
 // IndexNow: 네이버·빙에 새 URL 즉시 색인 요청
 async function pingIndexNow(urls) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr';
   const key = '928bf1c4fe8f4ec2ae418e100cedd18e';
   const body = JSON.stringify({
     host: siteUrl.replace(/^https?:\/\//, ''),
@@ -45,7 +45,7 @@ async function pingIndexNow(urls) {
 }
 
 function callRevalidate() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr';
   const secret = process.env.REVALIDATE_SECRET || 'blog-revalidate';
   const url = `${siteUrl}/api/revalidate?secret=${secret}`;
   const lib = url.startsWith('https') ? https : http;
@@ -181,7 +181,7 @@ async function main() {
 
     for (let i = 0; i < drafts.length; i++) {
       const draft = drafts[i];
-      const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr'}/${draft.category.slug}/${draft.slug}`;
+      const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr'}/${draft.category.slug}/${draft.slug}`;
 
       if (mode === 'immediate') {
         // 즉시 발행

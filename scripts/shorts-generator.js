@@ -381,7 +381,7 @@ ${keyword ? `<div class="keyword-area"><div class="keyword-text${isHook ? ' hook
 <!-- ③ 하단 흰색 자막 바 -->
 <div class="caption-bar">
   <div class="caption-text">${narration.replace(/\n/g, '<br>')}</div>
-  <div class="caption-url">fitnessdic.co.kr</div>
+  <div class="caption-url">smartinfohealth.co.kr</div>
 </div>
 
 <!-- ④ 진행 바 -->
@@ -554,7 +554,7 @@ html, body {
 </div>
 <div class="title-bar">
   <div class="title-text">${youtubeTitle}</div>
-  <div class="site-url">fitnessdic.co.kr</div>
+  <div class="site-url">smartinfohealth.co.kr</div>
 </div>
 <div class="bottom-pad"></div>
 </body>
@@ -677,7 +677,7 @@ async function main() {
     console.log(`  완성: ${sizeMB}MB\n`);
 
     // 4. 업로드 또는 저장
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr';
     const postUrl = `${siteUrl}/${post.category.slug}/${post.slug}`;
     // 블로그 링크를 첫 줄에 배치 — 설명란을 펼치면 바로 클릭 가능
     const fullDesc =

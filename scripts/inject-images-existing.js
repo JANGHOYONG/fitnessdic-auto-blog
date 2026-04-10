@@ -172,7 +172,7 @@ async function main() {
   }
 
   // 캐시 갱신
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr';
   const secret = process.env.REVALIDATE_SECRET || 'blog-revalidate';
   try {
     await fetch(`${siteUrl}/api/revalidate?secret=${secret}`, { method: 'POST' });

@@ -18,7 +18,7 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
 function CopyLinkRow() {
   const [copied, setCopied] = useState(false);
   const copy = () => {
-    navigator.clipboard.writeText('https://fitnessdic.co.kr').then(() => {
+    navigator.clipboard.writeText('https://smartinfohealth.co.kr').then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     });
@@ -27,7 +27,7 @@ function CopyLinkRow() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <p style={{ flex: 1, fontSize: '12px', color: '#555', background: '#fff', borderRadius: '8px', padding: '7px 10px', border: '1px solid #E5D9C8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          fitnessdic.co.kr
+          smartinfohealth.co.kr
         </p>
         <button onClick={copy} style={{ flexShrink: 0, padding: '7px 12px', background: 'linear-gradient(90deg,#8B7050,#B09070)', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
           링크 복사

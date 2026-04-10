@@ -78,7 +78,7 @@ export default function PrivacyPage() {
             개인정보처리방침에 관한 문의사항은 아래 이메일로 연락해 주시기 바랍니다.
           </p>
           <p>
-            이메일: <a href="mailto:fitnessdic@gmail.com">fitnessdic@gmail.com</a>
+            이메일: <a href="mailto:smartinfohealth@gmail.com">smartinfohealth@gmail.com</a>
           </p>
         </section>
 

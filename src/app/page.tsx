@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: '다이어트·운동 백과',
     description: '30·40·50대를 위한 과학적 다이어트·운동 가이드',
-    url: 'https://fitnessdic.co.kr',
+    url: 'https://smartinfohealth.co.kr',
     siteName: '다이어트·운동 백과',
     locale: 'ko_KR',
     type: 'website',

@@ -121,7 +121,7 @@ async function fetchPexelsImage(query) {
       url: photo.urls.regular,
       alt: photo.alt_description || query,
       credit: `Photo by ${photo.user.name} on Unsplash`,
-      creditUrl: `${photo.user.links.html}?utm_source=fitnessdic&utm_medium=referral`,
+      creditUrl: `${photo.user.links.html}?utm_source=smartinfohealth&utm_medium=referral`,
     };
   } catch {
     return null;

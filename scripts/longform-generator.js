@@ -315,7 +315,7 @@ html, body {
 <div class="progress-wrap">
   <div class="progress-fill"></div>
 </div>
-<div class="blog-url">fitnessdic.co.kr</div>
+<div class="blog-url">smartinfohealth.co.kr</div>
 
 </body>
 </html>`;
@@ -682,7 +682,7 @@ async function main() {
     console.log(`  완성: ${sizeMB}MB\n`);
 
     // 설명 + 챕터 타임스탬프
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr';
     const postUrl = `${siteUrl}/${post.category.slug}/${post.slug}`;
     const timestamps = buildChapterTimestamps(script.chapters, durations);
     // 블로그 링크를 첫 줄에 배치 — 설명란을 펼치면 바로 클릭 가능
