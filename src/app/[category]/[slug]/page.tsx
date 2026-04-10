@@ -101,18 +101,23 @@ export default async function PostPage({ params }: Props) {
   })();
 
   // 이전/다음 글
-  const [prevPost, nextPost] = await Promise.all([
-    prisma.post.findFirst({
-      where: { status: 'PUBLISHED', categoryId: post.categoryId, publishedAt: { lt: post.publishedAt ?? new Date() } },
-      orderBy: { publishedAt: 'desc' },
-      select: { title: true, slug: true, category: { select: { slug: true } } },
-    }),
-    prisma.post.findFirst({
-      where: { status: 'PUBLISHED', categoryId: post.categoryId, publishedAt: { gt: post.publishedAt ?? new Date() } },
-      orderBy: { publishedAt: 'asc' },
-      select: { title: true, slug: true, category: { select: { slug: true } } },
-    }),
-  ]);
+  let prevPost = null, nextPost = null;
+  try {
+    [prevPost, nextPost] = await Promise.all([
+      prisma.post.findFirst({
+        where: { status: 'PUBLISHED', categoryId: post.categoryId, publishedAt: { lt: post.publishedAt ?? new Date() } },
+        orderBy: { publishedAt: 'desc' },
+        select: { title: true, slug: true, category: { select: { slug: true } } },
+      }),
+      prisma.post.findFirst({
+        where: { status: 'PUBLISHED', categoryId: post.categoryId, publishedAt: { gt: post.publishedAt ?? new Date() } },
+        orderBy: { publishedAt: 'asc' },
+        select: { title: true, slug: true, category: { select: { slug: true } } },
+      }),
+    ]);
+  } catch {
+    // 이전/다음 글 없어도 계속 진행
+  }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://yourdomain.com';
   const postUrl = `${siteUrl}/${post.category.slug}/${post.slug}`;

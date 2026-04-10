@@ -77,27 +77,32 @@ export async function generateStaticParams() {
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const category = await prisma.category.findUnique({
-    where: { slug: params.category },
-  });
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let category: any = null;
+  try {
+    category = await prisma.category.findUnique({ where: { slug: params.category } });
+  } catch { notFound(); }
   if (!category) notFound();
 
   const page = parseInt(searchParams.page || '1');
   const skip = (page - 1) * PAGE_SIZE;
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
-      where: { status: 'PUBLISHED', categoryId: category.id },
-      include: { category: true },
-      orderBy: { publishedAt: 'desc' },
-      skip,
-      take: PAGE_SIZE,
-    }),
-    prisma.post.count({
-      where: { status: 'PUBLISHED', categoryId: category.id },
-    }),
-  ]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let posts: any[] = [], total = 0;
+  try {
+    [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where: { status: 'PUBLISHED', categoryId: category.id },
+        include: { category: true },
+        orderBy: { publishedAt: 'desc' },
+        skip,
+        take: PAGE_SIZE,
+      }),
+      prisma.post.count({
+        where: { status: 'PUBLISHED', categoryId: category.id },
+      }),
+    ]);
+  } catch { /* DB 오류 시 빈 목록 */ }
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
