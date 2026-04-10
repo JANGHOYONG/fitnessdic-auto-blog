@@ -52,7 +52,7 @@ export default function CoupangProductCard({ product }: Props) {
       {/* 헤더 */}
       <div
         style={{
-          background: 'linear-gradient(90deg, #8B7355 0%, #6B5540 100%)',
+          background: 'linear-gradient(90deg, #B09070 0%, #8B7050 100%)',
           padding: '10px 14px',
           display: 'flex',
           alignItems: 'center',
@@ -67,7 +67,7 @@ export default function CoupangProductCard({ product }: Props) {
         </div>
         <span
           style={{
-            background: '#8B7355',
+            background: '#B09070',
             color: '#fff',
             fontSize: '10px',
             fontWeight: 800,
@@ -169,7 +169,7 @@ export default function CoupangProductCard({ product }: Props) {
         <div
           style={{
             marginTop: '10px',
-            background: 'linear-gradient(90deg, #8B7355 0%, #A08B6A 100%)',
+            background: 'linear-gradient(90deg, #B09070 0%, #C4A882 100%)',
             borderRadius: '10px',
             padding: '9px',
             textAlign: 'center',
