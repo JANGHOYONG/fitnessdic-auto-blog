@@ -657,6 +657,9 @@ async function main() {
         kw = fallback;
       }
 
+      // 이번 실행 중 중복 선택 방지 — 즉시 사용 처리
+      usedKeywordSet.add(kw.keyword);
+
       const topic = getSubTopic(kw.keyword) || targetTopic;
       const topicLabel = HEALTH_TOPICS.find((h) => h.id === topic)?.label || topic;
       console.log(`[${success + 1}/${generateCount}] [${topicLabel}] "${kw.keyword}" 생성 중...`);
