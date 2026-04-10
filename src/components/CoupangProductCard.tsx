@@ -17,13 +17,14 @@ interface Props {
 
 // 주제별 대표 이모지 (이미지 없을 때 플레이스홀더)
 const TOPIC_EMOJI: Record<string, string> = {
-  '혈당': '🩸', '당뇨': '🩸',
-  '혈압': '❤️', '심장': '❤️', '혈관': '❤️',
-  '관절': '🦴', '무릎': '🦴', '연골': '🦴',
-  '수면': '😴', '피로': '😴',
-  '뇌': '🧠', '치매': '🧠', '기억력': '🧠',
-  '갱년기': '🌸', '호르몬': '🌸',
-  '영양': '💊', '비타민': '💊', '영양제': '💊',
+  '단백질': '🥩', '프로틴': '🥩', '닭가슴살': '🥩',
+  '다이어트': '🔥', '체중': '🔥', '지방': '🔥', '살빼기': '🔥',
+  '근력': '💪', '헬스': '💪', '웨이트': '💪', '근육': '💪',
+  '유산소': '🏃', '러닝': '🏃', '달리기': '🏃',
+  '홈트': '🏠', '맨몸': '🏠', '매트': '🏠',
+  '영양제': '💊', '비타민': '💊', '오메가': '💊',
+  '크레아틴': '⚡', 'bcaa': '⚡', 'BCAA': '⚡',
+  '운동화': '👟', '러닝화': '👟', '운동복': '👟',
 };
 
 function getEmoji(ctaText = '', name = '') {
@@ -51,7 +52,7 @@ export default function CoupangProductCard({ product }: Props) {
       {/* 헤더 */}
       <div
         style={{
-          background: 'linear-gradient(90deg, #1E9E7A 0%, #177A5E 100%)',
+          background: 'linear-gradient(90deg, #E8631A 0%, #C4501A 100%)',
           padding: '10px 14px',
           display: 'flex',
           alignItems: 'center',
@@ -61,7 +62,7 @@ export default function CoupangProductCard({ product }: Props) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ fontSize: '14px' }}>🛒</span>
           <span style={{ color: '#fff', fontSize: '12px', fontWeight: 700, letterSpacing: '0.3px' }}>
-            {ctaText || '추천 건강 제품'}
+            {ctaText || '추천 운동 제품'}
           </span>
         </div>
         <span
@@ -109,7 +110,7 @@ export default function CoupangProductCard({ product }: Props) {
                 width: '80px',
                 height: '80px',
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, #E3F4ED 0%, #C5E8DA 100%)',
+                background: 'linear-gradient(135deg, #FFF0E8 0%, #FDDBC4 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

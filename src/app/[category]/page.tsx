@@ -15,30 +15,20 @@ const PAGE_SIZE = 12;
 
 // 카테고리별 풍부한 SEO 메타 description 맵
 const CATEGORY_META: Record<string, { title: string; description: string; keywords: string[] }> = {
+  fitness: {
+    title: '다이어트·운동 정보 — 3050 과학적 운동 백과',
+    description: '30·40·50대를 위한 체중감량·근력운동·유산소·식단·홈트레이닝 정보. 국가공인 스포츠지도사가 알려주는 과학적 운동 지식과 오늘 당장 실천할 수 있는 다이어트 가이드.',
+    keywords: ['다이어트', '운동', '체중감량', '근력운동', '홈트레이닝', '식단', '지방연소'],
+  },
   health: {
-    title: '시니어 건강 정보 — 5060 중장년 건강 백과',
-    description: '50·60대를 위한 혈압·혈당·관절·수면·치매 예방 건강 정보. 전문의가 검토한 신뢰할 수 있는 건강 지식과 오늘 당장 실천할 수 있는 생활 습관 가이드를 제공합니다.',
-    keywords: ['시니어 건강', '5060 건강', '중장년 건강', '건강 정보', '혈압 관리', '혈당 조절'],
+    title: '운동·다이어트 건강 정보 — 과학적 운동 백과',
+    description: '체중감량·근력운동·유산소·식단 정보. 과학적 근거 기반의 다이어트·운동 지식과 오늘 당장 실천할 수 있는 가이드.',
+    keywords: ['다이어트', '운동', '체중감량', '근력운동', '홈트레이닝', '식단', '지방연소'],
   },
-  tech: {
-    title: 'IT·테크 정보 — 스마트폰·앱 활용 가이드',
-    description: '시니어도 쉽게 따라하는 스마트폰·앱·AI 활용법. 디지털 세상을 편리하게 만드는 실용 IT 정보와 최신 기술 트렌드를 알기 쉽게 안내합니다.',
-    keywords: ['시니어 IT', '스마트폰 활용', '앱 사용법', 'IT 정보', '디지털 생활'],
-  },
-  economy: {
-    title: '재테크·경제 정보 — 은퇴 준비 & 자산 관리',
-    description: '5060 중장년층을 위한 은퇴 준비·연금·부동산·절세 전략. 공인 재무설계사가 알려주는 실전 재테크 가이드로 노후 자산을 든든하게 지키세요.',
-    keywords: ['은퇴 준비', '노후 자산 관리', '연금', '재테크', '절세', '부동산 투자'],
-  },
-  lifestyle: {
-    title: '라이프스타일 — 건강한 일상·취미·여가',
-    description: '건강하고 활기찬 중장년 라이프스타일 정보. 취미·운동·요리·여가 활용까지, 삶의 질을 높이는 생활 습관과 실용 꿀팁을 소개합니다.',
-    keywords: ['중장년 라이프스타일', '시니어 취미', '건강한 일상', '생활 꿀팁'],
-  },
-  travel: {
-    title: '여행 정보 — 5060 시니어 국내외 여행 가이드',
-    description: '중장년이 편안하게 즐기는 국내외 여행 정보. 시니어 친화 여행지·코스·숙소 추천과 여행 준비 노하우, 건강한 여행을 위한 실용 팁을 제공합니다.',
-    keywords: ['시니어 여행', '5060 여행', '국내 여행', '해외 여행', '여행 준비'],
+  knowledge: {
+    title: '운동 지식 — 스포츠과학·영양 심화 정보',
+    description: '체지방률·근섬유·VO2max·스포츠 영양 등 운동과학 심화 정보. 더 깊이 있는 다이어트·운동 지식을 탐구하세요.',
+    keywords: ['스포츠과학', '운동영양', '체지방률', 'VO2max', '운동생리학'],
   },
 };
 
@@ -50,20 +40,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!category) return {};
 
   const meta = CATEGORY_META[params.category];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfoblog.co.kr';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
 
   return {
-    title: meta?.title || `${category.name} 글 모음 | 시니어 건강백과`,
+    title: meta?.title || `${category.name} 글 모음 | 다이어트·운동 백과`,
     description: category.description || meta?.description || `${category.name} 관련 유용한 정보 모음. 전문가가 검토한 신뢰할 수 있는 최신 정보를 확인하세요.`,
     keywords: meta?.keywords,
     alternates: {
       canonical: `${siteUrl}/${params.category}`,
     },
     openGraph: {
-      title: meta?.title || `${category.name} | 시니어 건강백과`,
+      title: meta?.title || `${category.name} | 다이어트·운동 백과`,
       description: category.description || meta?.description || `${category.name} 관련 정보`,
       url: `${siteUrl}/${params.category}`,
-      siteName: '시니어 건강백과',
+      siteName: '다이어트·운동 백과',
       locale: 'ko_KR',
       type: 'website',
     },

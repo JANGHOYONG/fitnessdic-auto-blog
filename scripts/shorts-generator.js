@@ -30,87 +30,87 @@ const FONT = `'Noto Sans CJK KR','Apple SD Gothic Neo','맑은 고딕','Malgun G
 
 // ─── 주제별 훅 공식 (쇼츠 특화 — 긍정·정보 전달형) ────────────────────────────
 const TOPIC_HOOK_FORMULAS = {
-  blood_sugar: {
-    formula: '정보공유형',
+  weightloss: {
+    formula: '반전형',
     hookPatterns: [
-      '혈당 걱정된다면, 이 식품부터 알아두세요',
-      '혈당을 자연스럽게 낮춰주는 음식이 있어요',
-      '당뇨 예방에 진짜 도움 되는 습관, 알려드릴게요',
+      '살 빼고 싶다면, 이것부터 알아두세요',
+      '다이어트해도 살 안 빠지는 이유가 있어요',
+      '지방 연소에 진짜 효과 있는 방법 알려드릴게요',
     ],
-    titleFormulas: ['혈당 낮추는 의외의 식품', '혈당 관리에 좋은 생활 습관', '당뇨 예방에 효과적인 방법'],
-    imageQueries: ['Korean woman healthy food blood sugar', 'senior woman eating vegetables', 'healthy Korean food glucose'],
+    titleFormulas: ['살 빠지는 의외의 방법', '다이어트 실패 이유 TOP3', '지방 연소 속도 높이는 법'],
+    imageQueries: ['Korean woman diet exercise fitness', 'Asian woman weight loss workout', 'fit woman healthy body transformation'],
   },
-  blood_pressure: {
+  strength: {
     formula: '정보공유형',
     hookPatterns: [
-      '혈압 관리, 이것만 알아도 달라져요',
-      '고혈압에 좋은 식품, 제대로 알고 드세요',
-      '혈압을 자연스럽게 낮추는 방법이 있어요',
+      '근육 키우려면, 이것만 알면 돼요',
+      '헬스 처음이라면, 이 순서로 하세요',
+      '웨이트 운동 효과 제대로 보는 방법이에요',
     ],
-    titleFormulas: ['혈압에 좋은 식품 TOP3', '혈압 낮추는 생활 습관', '고혈압 관리 핵심 포인트'],
-    imageQueries: ['Korean woman healthy heart food', 'senior woman blood pressure healthy', 'healthy lifestyle hypertension'],
+    titleFormulas: ['근육 키우는 핵심 원칙', '헬스 초보 루틴 완성', '스쿼트 제대로 하는 법'],
+    imageQueries: ['Korean woman gym workout fitness', 'Asian woman strength training weights', 'fit woman barbell exercise'],
   },
-  joint: {
+  cardio: {
     formula: '정보공유형',
     hookPatterns: [
-      '무릎 건강, 이 영양소가 핵심이에요',
-      '관절에 좋은 운동, 제대로 알고 하세요',
-      '연골 지키는 방법, 의외로 간단해요',
+      '유산소 운동 효과, 이렇게 하면 달라져요',
+      '달리기로 살 빠지는 정확한 방법이에요',
+      '지방 태우는 유산소, 제대로 알고 하세요',
     ],
-    titleFormulas: ['무릎 건강에 좋은 영양소', '관절 튼튼하게 만드는 방법', '연골 지키는 핵심 습관'],
-    imageQueries: ['Korean woman senior stretching exercise', 'Asian woman knee health care', 'senior woman healthy walking'],
-  },
-  sleep: {
-    formula: '정보공유형',
-    hookPatterns: [
-      '숙면이 건강에 이렇게 중요한 줄 몰랐어요',
-      '잠 잘 자는 방법, 생각보다 간단해요',
-      '수면 질 높이는 습관, 알려드릴게요',
-    ],
-    titleFormulas: ['숙면에 좋은 저녁 습관', '수면 질 높이는 방법', '잘 자면 이렇게 달라져요'],
-    imageQueries: ['Korean woman sleeping well healthy', 'senior woman good sleep routine', 'Asian woman relaxing bedtime'],
-  },
-  brain: {
-    formula: '정보공유형',
-    hookPatterns: [
-      '뇌 건강 지키는 습관, 지금부터 시작하세요',
-      '기억력 좋아지는 방법이 있어요',
-      '치매 예방에 도움 되는 생활 습관이에요',
-    ],
-    titleFormulas: ['뇌 건강에 좋은 식품', '기억력 높이는 생활 습관', '치매 예방하는 핵심 방법'],
-    imageQueries: ['Korean woman brain health food', 'senior woman memory healthy lifestyle', 'Asian woman cognitive health'],
-  },
-  menopause: {
-    formula: '정보공유형',
-    hookPatterns: [
-      '갱년기 증상, 이렇게 하면 훨씬 편해져요',
-      '갱년기에 좋은 식품, 알고 드세요',
-      '호르몬 균형 잡는 방법, 알려드릴게요',
-    ],
-    titleFormulas: ['갱년기 증상 완화하는 방법', '갱년기에 좋은 식품', '호르몬 균형 잡는 습관'],
-    imageQueries: ['Korean woman menopause healthy lifestyle', 'senior woman hormone health food', 'Asian woman midlife wellness'],
+    titleFormulas: ['지방 연소 유산소 방법', '달리기 입문 핵심 포인트', '유산소 효과 최대화하는 법'],
+    imageQueries: ['Korean woman running jogging outdoor', 'Asian woman cardio exercise fitness', 'fit woman running park'],
   },
   nutrition: {
     formula: '정보공유형',
     hookPatterns: [
-      '올바른 영양제 복용법, 이것만 기억하세요',
-      '시니어에게 꼭 필요한 영양소가 있어요',
-      '영양제 효과 제대로 보는 방법이에요',
+      '다이어트 식단, 이렇게 짜면 달라져요',
+      '단백질 제대로 먹는 방법, 알려드릴게요',
+      '칼로리 계산보다 중요한 것이 있어요',
     ],
-    titleFormulas: ['시니어에게 꼭 필요한 영양소', '영양제 제대로 먹는 방법', '건강기능식품 효과적으로 먹기'],
-    imageQueries: ['Korean woman taking vitamins healthy', 'senior woman nutrition supplement', 'Asian woman healthy eating habits'],
+    titleFormulas: ['다이어트 식단 짜는 법', '단백질 섭취 핵심 가이드', '살 안 찌는 식사 습관'],
+    imageQueries: ['Korean woman healthy meal prep diet', 'Asian woman protein food healthy eating', 'fit woman balanced diet meal'],
+  },
+  hometraining: {
+    formula: '정보공유형',
+    hookPatterns: [
+      '집에서도 이렇게 하면 몸이 달라져요',
+      '기구 없이 할 수 있는 최강 운동이에요',
+      '홈트로 헬스장 못지않은 효과 낼 수 있어요',
+    ],
+    titleFormulas: ['홈트 최강 루틴 TOP5', '집에서 하는 복근 운동', '맨몸 운동 효과 극대화'],
+    imageQueries: ['Korean woman home workout exercise mat', 'Asian woman bodyweight training indoors', 'fit woman plank pushup home'],
+  },
+  supplement: {
+    formula: '경고형',
+    hookPatterns: [
+      '단백질 보충제, 이것만 알고 드세요',
+      '다이어트 보조제 효과, 솔직하게 알려드릴게요',
+      '헬스 영양제 제대로 먹는 방법이에요',
+    ],
+    titleFormulas: ['프로틴 고르는 방법', '다이어트 보조제 효과 검증', '헬스 영양제 완전 가이드'],
+    imageQueries: ['Korean woman protein shake supplement', 'Asian woman diet supplement powder', 'fit woman nutrition supplement gym'],
+  },
+  motivation: {
+    formula: '공감형',
+    hookPatterns: [
+      '운동 습관 만드는 방법, 생각보다 간단해요',
+      '다이어트 작심삼일 극복하는 법이에요',
+      '바디프로필 준비, 이렇게 시작하세요',
+    ],
+    titleFormulas: ['운동 습관 만드는 핵심', '다이어트 동기 유지하는 법', '바디프로필 입문 가이드'],
+    imageQueries: ['Korean woman motivation fitness workout', 'Asian woman body transformation progress', 'fit woman sports gym inspiration'],
   },
 };
 
-// 건강 7대 주제 키워드로 주제 감지
+// 운동·다이어트 7대 주제 키워드로 주제 감지
 const HEALTH_WORDS = {
-  blood_sugar:    ['혈당', '당뇨', '인슐린', '공복혈당'],
-  blood_pressure: ['혈압', '심장', '고혈압', '콜레스테롤', '뇌졸중', '심혈관'],
-  joint:          ['관절', '무릎', '연골', '허리', '척추', '근육', '골다공증'],
-  sleep:          ['수면', '불면', '피로', '잠', '멜라토닌', '수면장애'],
-  brain:          ['치매', '뇌', '기억력', '알츠하이머', '인지', '파킨슨'],
-  menopause:      ['갱년기', '폐경', '호르몬', '안면홍조', '에스트로겐'],
-  nutrition:      ['영양', '영양제', '비타민', '식이', '보충제', '건강기능식품'],
+  weightloss:   ['체중감량', '살빼기', '지방연소', '다이어트', '감량', '체지방'],
+  strength:     ['근력운동', '헬스', '웨이트', '근육', '스쿼트', '데드리프트', '벤치프레스'],
+  cardio:       ['유산소', '러닝', '달리기', '조깅', '자전거', '수영', '마라톤'],
+  nutrition:    ['식단', '영양', '단백질', '칼로리', '탄수화물', '식이'],
+  hometraining: ['홈트', '홈트레이닝', '맨몸운동', '플랭크', '버피', '푸시업'],
+  supplement:   ['단백질보충제', '프로틴', '보충제', '크레아틴', 'BCAA', '다이어트식품'],
+  motivation:   ['바디프로필', '운동동기', '습관', '루틴', '몸만들기'],
 };
 
 function detectTopicFromPost(post) {
@@ -144,7 +144,7 @@ async function generateShortsScript(post) {
       {
         role: 'system',
         content: `당신은 유튜브 쇼츠 바이럴 전문 작가입니다.
-5060 시니어가 끝까지 보는 건강 쇼츠를 만듭니다.
+30~50대가 끝까지 보는 다이어트·운동 쇼츠를 만듭니다.
 
 핵심 원칙:
 ① 제목에서 약속한 정보를 영상 안에서 반드시 전달할 것
@@ -190,7 +190,7 @@ JSON 형식:
   "youtubeTitle": "유튜브 제목 (40자 이내, 숫자/반전 포함, #Shorts 포함)",
   "hookText": "썸네일 강조 문구 (10~15자)",
   "description": "영상 설명 1줄 (60~80자) + '전체 내용은 블로그에서 확인하세요 👇'",
-  "tags": ["건강", "5060건강", "시니어건강", "관련태그"],
+  "tags": ["다이어트", "운동", "체중감량", "관련태그"],
   "slides": [
     {
       "type": "hook",
@@ -273,7 +273,7 @@ function makeOverlayHtml(narration, slideIdx, totalSlides, keyword = '', type = 
   const kwColor  = type === 'ending' ? '#7EFFC5' : '#FFD700';
   const progressColor = isHook
     ? 'linear-gradient(90deg, #FF6B35, #FFD700)'
-    : 'linear-gradient(90deg, #1E9E7A, #4fc3f7)';
+    : 'linear-gradient(90deg, #E8631A, #4fc3f7)';
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -299,13 +299,13 @@ html, body {
   display:flex; align-items:center; gap:16px;
 }
 .brand-icon { font-size:48px; line-height:1; }
-.brand-text  { font-size:46px; font-weight:900; color:#1E9E7A; letter-spacing:1px; }
+.brand-text  { font-size:46px; font-weight:900; color:#E8631A; letter-spacing:1px; }
 
 /* ② 이미지 창 위 — 훅 배지 (hook 슬라이드) */
 .hook-badge {
   position:absolute;
   top:220px; left:50%; transform:translateX(-50%);
-  background:linear-gradient(135deg, #1E9E7A, #177A5E);
+  background:linear-gradient(135deg, #E8631A, #C4501A);
   color:#fff; white-space:nowrap;
   font-size:36px; font-weight:800;
   padding:14px 52px; border-radius:60px;
@@ -348,7 +348,7 @@ html, body {
   text-align:center; letter-spacing:-0.5px;
 }
 .caption-url {
-  font-size:28px; font-weight:700; color:#1E9E7A;
+  font-size:28px; font-weight:700; color:#E8631A;
 }
 
 /* ④ 진행 바 (y=1700) — YouTube UI 여백 안 */
@@ -370,7 +370,7 @@ html, body {
 <div class="top-bar">
   <div class="brand-inner">
     <span class="brand-icon">🏥</span>
-    <span class="brand-text">시니어 건강백과</span>
+    <span class="brand-text">다이어트·운동 백과</span>
   </div>
 </div>
 
@@ -381,7 +381,7 @@ ${keyword ? `<div class="keyword-area"><div class="keyword-text${isHook ? ' hook
 <!-- ③ 하단 흰색 자막 바 -->
 <div class="caption-bar">
   <div class="caption-text">${narration.replace(/\n/g, '<br>')}</div>
-  <div class="caption-url">smartinfoblog.co.kr</div>
+  <div class="caption-url">fitnessdic.co.kr</div>
 </div>
 
 <!-- ④ 진행 바 -->
@@ -501,13 +501,13 @@ html, body {
   display:flex; align-items:center; justify-content:center; gap:18px;
 }
 .brand-icon { font-size:56px; line-height:1; }
-.brand-text  { font-size:50px; font-weight:900; color:#1E9E7A; letter-spacing:0.5px; }
+.brand-text  { font-size:50px; font-weight:900; color:#E8631A; letter-spacing:0.5px; }
 .keyword-wrap {
   position:absolute; top:260px; left:60px; right:60px;
   display:flex; flex-direction:column; align-items:center; gap:28px;
 }
 .topic-badge {
-  background:linear-gradient(135deg,#1E9E7A,#177A5E);
+  background:linear-gradient(135deg,#E8631A,#C4501A);
   color:#fff; font-size:38px; font-weight:800;
   padding:18px 56px; border-radius:60px; letter-spacing:0.5px;
   box-shadow:0 6px 24px rgba(0,0,0,0.35);
@@ -525,7 +525,7 @@ html, body {
 .title-bar {
   position:absolute; bottom:240px; left:0; right:0;
   background:#ffffff; padding:44px 64px 36px;
-  border-top:6px solid #1E9E7A;
+  border-top:6px solid #E8631A;
 }
 .title-text {
   font-size:58px; font-weight:900; color:#1B3A32;
@@ -533,7 +533,7 @@ html, body {
   letter-spacing:-0.5px;
 }
 .site-url {
-  font-size:30px; font-weight:700; color:#1E9E7A;
+  font-size:30px; font-weight:700; color:#E8631A;
   text-align:center; margin-top:18px; opacity:0.85;
 }
 .bottom-pad {
@@ -546,7 +546,7 @@ html, body {
 <body>
 <div class="top-bar">
   <span class="brand-icon">🏥</span>
-  <span class="brand-text">시니어 건강백과</span>
+  <span class="brand-text">다이어트·운동 백과</span>
 </div>
 <div class="keyword-wrap">
   <div class="topic-badge">🎯 오늘의 건강 정보</div>
@@ -554,7 +554,7 @@ html, body {
 </div>
 <div class="title-bar">
   <div class="title-text">${youtubeTitle}</div>
-  <div class="site-url">smartinfoblog.co.kr</div>
+  <div class="site-url">fitnessdic.co.kr</div>
 </div>
 <div class="bottom-pad"></div>
 </body>
@@ -677,17 +677,17 @@ async function main() {
     console.log(`  완성: ${sizeMB}MB\n`);
 
     // 4. 업로드 또는 저장
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfoblog.co.kr';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
     const postUrl = `${siteUrl}/${post.category.slug}/${post.slug}`;
     // 블로그 링크를 첫 줄에 배치 — 설명란을 펼치면 바로 클릭 가능
     const fullDesc =
       `📖 전체 내용 블로그에서 보기 👇\n` +
       `${postUrl}\n\n` +
       `${script.description}\n\n` +
-      `이 영상이 도움이 됐다면 구독 & 좋아요 눌러주세요! 💚\n` +
-      `매일 새로운 5060 건강 정보를 쇼츠로 전해드립니다.\n\n` +
+      `이 영상이 도움이 됐다면 구독 & 좋아요 눌러주세요! 🔥\n` +
+      `매일 새로운 다이어트·운동 정보를 쇼츠로 전해드립니다.\n\n` +
       `─────────────────────\n` +
-      `${(script.tags || []).map((t) => '#' + t.replace(/\s/g, '')).join(' ')} #Shorts #건강정보 #시니어건강 #5060건강`;
+      `${(script.tags || []).map((t) => '#' + t.replace(/\s/g, '')).join(' ')} #Shorts #다이어트 #운동 #체중감량`;
 
     if (process.env.YOUTUBE_REFRESH_TOKEN) {
       const { uploadToYouTube, uploadThumbnail, postComment } = require('./youtube-uploader');
@@ -695,7 +695,7 @@ async function main() {
         videoPath: finalPath,
         title: script.youtubeTitle,
         description: fullDesc,
-        tags: [...(script.tags || []), '건강', '시니어', '건강정보', 'Shorts'],
+        tags: [...(script.tags || []), '다이어트', '운동', '체중감량', 'Shorts'],
         categoryId: '26',
       });
 

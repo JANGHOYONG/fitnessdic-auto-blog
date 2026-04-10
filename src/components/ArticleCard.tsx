@@ -12,7 +12,7 @@ const CAT_GRADIENT: Record<string, string> = {
 };
 
 const CAT_EMOJI: Record<string, string> = {
-  health: '🏥', tech: '💻', economy: '📈', lifestyle: '🏠', travel: '✈️',
+  fitness: '💪', health: '💪', knowledge: '🏋️', tech: '💻', economy: '📈', lifestyle: '🏠', travel: '✈️',
 };
 
 interface Props {

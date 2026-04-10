@@ -94,12 +94,12 @@ async function generateLongformScript(post) {
     messages: [
       {
         role: 'system',
-        content: `당신은 시청자 체류시간을 극대화하는 건강 정보 영상 전문 작가입니다.
-5060 시니어를 대상으로, 처음부터 끝까지 이탈 없이 보게 만드는 영상을 만듭니다.
+        content: `당신은 시청자 체류시간을 극대화하는 다이어트·운동 정보 영상 전문 작가입니다.
+30~50대를 대상으로, 처음부터 끝까지 이탈 없이 보게 만드는 영상을 만듭니다.
 
 [대본 구조 원칙 - 반드시 지킬 것]
-1. 훅(Hook): 첫 챕터에서 충격적인 사실이나 반전 질문으로 시작. "이 증상이 있다면 바로 확인하세요" 형태.
-2. 문제 심화: 왜 50·60대에 특히 위험한지, 구체적 수치로 공포심과 공감 유발.
+1. 훅(Hook): 첫 챕터에서 충격적인 반전 사실로 시작. "이렇게 하면 오히려 살이 찐다" 형태.
+2. 문제 심화: 왜 30·40·50대에 특히 다이어트가 어려운지, 구체적 수치로 공감 유발.
 3. 핵심 정보 (본론): 블로그 내용의 구체적 정보를 단계별·번호별로 명확히 전달.
 4. 반전/의외성: "사실 이것이 더 중요합니다" 식의 예상 밖 정보로 집중력 유지.
 5. 실천법: 오늘 당장 할 수 있는 구체적 행동 3가지.
@@ -136,12 +136,12 @@ JSON 응답 (반드시 아래 구조 유지):
   "thumbnailText": "썸네일 메인 문구 (18자 이내, 숫자 포함 권장. 예: '혈당 폭등 3가지 신호', '관절 망가지는 이유')",
   "thumbnailSub": "썸네일 부제목 (20자 이내. 예: '당신도 해당될 수 있습니다', '지금 바로 확인하세요')",
   "description": "영상 설명 250~300자. 첫 줄: 시청자가 얻을 핵심 혜택. 둘째줄~: 핵심 내용 3가지 요약. 마지막 줄: '자세한 내용과 실천 가이드는 블로그에서 확인하세요 👇'",
-  "tags": ["건강", "5060건강", "시니어건강", "건강정보", "관련태그"],
+  "tags": ["다이어트", "운동", "체중감량", "건강", "관련태그"],
   "chapters": [
     {
       "title": "이것 모르면 큰일 납니다",
       "imageQuery": "worried senior patient doctor consultation",
-      "narration": "안녕하세요, 시니어 건강백과입니다. [충격적 사실로 시작]. 혹시 여러분도 [공감 가는 상황]이신가요? 오늘 이 영상을 끝까지 보시면, [시청자가 얻을 명확한 혜택]을 알게 되실 겁니다. (200~230자. 반드시 충격적 훅으로 시작. 각 문장 25~50자)"
+      "narration": "안녕하세요, 다이어트·운동 백과입니다. [충격적 사실로 시작]. 혹시 여러분도 [공감 가는 상황]이신가요? 오늘 이 영상을 끝까지 보시면, [시청자가 얻을 명확한 혜택]을 알게 되실 겁니다. (200~230자. 반드시 충격적 훅으로 시작. 각 문장 25~50자)"
     },
     {
       "title": "왜 50·60대에 더 위험한가",
@@ -303,7 +303,7 @@ html, body {
 <body>
 
 <div class="top-bar">
-  <div class="channel-badge">🏥 시니어 건강백과</div>
+  <div class="channel-badge">🏥 다이어트·운동 백과</div>
   <div class="chapter-num">${chapterIdx} / ${totalChapters}</div>
 </div>
 
@@ -315,7 +315,7 @@ html, body {
 <div class="progress-wrap">
   <div class="progress-fill"></div>
 </div>
-<div class="blog-url">smartinfoblog.co.kr</div>
+<div class="blog-url">fitnessdic.co.kr</div>
 
 </body>
 </html>`;
@@ -332,7 +332,7 @@ function makeThumbnailHtml(thumbnailText, thumbnailSub, bgImagePath) {
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body {
   width:1280px; height:720px; overflow:hidden;
-  font-family:${FONT}; background:#0a2a1f;
+  font-family:${FONT}; background:#1a0800;
 }
 .bg-img {
   position:absolute; inset:0;
@@ -352,7 +352,7 @@ html, body {
 }
 .channel-badge {
   display:inline-flex; align-items:center; gap:10px;
-  background:linear-gradient(135deg,#0d5c45,#1a9e7a);
+  background:linear-gradient(135deg,#8B2500,#E8631A);
   border:2px solid rgba(255,255,255,0.22);
   border-radius:12px; padding:14px 32px;
   font-size:30px; font-weight:800; color:#fff;
@@ -395,7 +395,7 @@ html, body {
 <img class="bg-img" src="file://${bgImagePath}" alt="">
 <div class="overlay"></div>
 <div class="content">
-  <div class="channel-badge">🏥 시니어 건강백과</div>
+  <div class="channel-badge">🏥 다이어트·운동 백과</div>
   <div class="main-block">
     <div class="main-title">${formattedTitle}</div>
     <div class="sub-title">${thumbnailSub}</div>
@@ -682,7 +682,7 @@ async function main() {
     console.log(`  완성: ${sizeMB}MB\n`);
 
     // 설명 + 챕터 타임스탬프
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfoblog.co.kr';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
     const postUrl = `${siteUrl}/${post.category.slug}/${post.slug}`;
     const timestamps = buildChapterTimestamps(script.chapters, durations);
     // 블로그 링크를 첫 줄에 배치 — 설명란을 펼치면 바로 클릭 가능
@@ -696,7 +696,7 @@ async function main() {
       `⏱️ 챕터\n${timestamps}\n` +
       `─────────────────────\n\n` +
       `💬 궁금한 점은 댓글로 남겨주세요!\n\n` +
-      `${script.tags.map((t) => '#' + t.replace(/\s/g, '')).join(' ')} #5060건강 #건강정보 #시니어건강 #건강채널`;
+      `${script.tags.map((t) => '#' + t.replace(/\s/g, '')).join(' ')} #다이어트 #운동 #체중감량 #건강채널`;
 
     if (process.env.YOUTUBE_REFRESH_TOKEN) {
       const { uploadToYouTube, uploadThumbnail, postComment } = require('./youtube-uploader');
@@ -705,7 +705,7 @@ async function main() {
         videoPath: finalVideoPath,
         title: script.youtubeTitle,
         description: fullDesc,
-        tags: [...script.tags, '건강', '5060', '시니어건강', '건강정보'],
+        tags: [...script.tags, '다이어트', '운동', '체중감량', '건강정보'],
         categoryId: '26',
       });
 

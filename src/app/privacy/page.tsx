@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '개인정보처리방침 | 시니어 건강백과',
-  description: '시니어 건강백과의 개인정보처리방침입니다.',
+  title: '개인정보처리방침 | 다이어트·운동 백과',
+  description: '다이어트·운동 백과의 개인정보처리방침입니다.',
 };
 
 export default function PrivacyPage() {
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         <section>
           <h2>1. 개인정보 수집 항목 및 목적</h2>
           <p>
-            시니어 건강백과(이하 "본 사이트")는 별도의 회원가입 없이 운영되며, 이용자의 개인정보를 직접 수집하지 않습니다.
+            다이어트·운동 백과(이하 "본 사이트")는 별도의 회원가입 없이 운영되며, 이용자의 개인정보를 직접 수집하지 않습니다.
             다만, 아래의 제3자 서비스를 통해 일부 정보가 자동으로 수집될 수 있습니다.
           </p>
         </section>
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
             개인정보처리방침에 관한 문의사항은 아래 이메일로 연락해 주시기 바랍니다.
           </p>
           <p>
-            이메일: <a href="mailto:smartinfoblog@gmail.com">smartinfoblog@gmail.com</a>
+            이메일: <a href="mailto:fitnessdic@gmail.com">fitnessdic@gmail.com</a>
           </p>
         </section>
 

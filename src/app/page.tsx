@@ -13,14 +13,14 @@ import DailyHealthTip from '@/components/DailyHealthTip';
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: '시니어 건강백과 — 50·60대를 위한 건강 정보',
-  description: '시니어를 위한 혈당·혈압·관절·수면·뇌건강·갱년기 건강 정보. 전문의가 검토한 신뢰할 수 있는 최신 건강 지식으로 오늘부터 건강을 지키세요.',
-  keywords: ['시니어 건강', '5060 건강', '혈당 관리', '혈압 관리', '관절 건강', '수면 건강', '치매 예방', '갱년기'],
+  title: '다이어트·운동 백과 — 30·40·50대를 위한 과학적 다이어트·운동 가이드',
+  description: '체중감량·근력운동·유산소·식단·홈트레이닝·다이어트 식품 정보. 국가공인 스포츠지도사가 알려주는 과학적 다이어트·운동 백과사전.',
+  keywords: ['다이어트', '운동', '체중감량', '근력운동', '홈트레이닝', '식단', '단백질', '지방연소'],
   openGraph: {
-    title: '시니어 건강백과',
-    description: '50·60대를 위한 혈당·혈압·관절·수면·치매 예방 건강 백과사전',
-    url: 'https://smartinfoblog.co.kr',
-    siteName: '시니어 건강백과',
+    title: '다이어트·운동 백과',
+    description: '30·40·50대를 위한 과학적 다이어트·운동 가이드',
+    url: 'https://fitnessdic.co.kr',
+    siteName: '다이어트·운동 백과',
     locale: 'ko_KR',
     type: 'website',
   },
@@ -36,8 +36,8 @@ export default async function HomePage() {
 
   const jsonLd = generateJsonLd({
     type: 'WebSite',
-    title: '시니어 건강백과',
-    description: '시니어를 위한 혈당·혈압·관절·수면·치매 예방 건강 백과사전',
+    title: '다이어트·운동 백과',
+    description: '30·40·50대를 위한 과학적 다이어트·운동 가이드',
   });
 
   return (

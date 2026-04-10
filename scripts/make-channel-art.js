@@ -1,5 +1,5 @@
 /**
- * YouTube 채널 프로필 이미지 생성 - 시니어 건강백과
+ * YouTube 채널 프로필 이미지 생성 - 다이어트·운동 백과
  */
 require('dotenv').config();
 const puppeteer = require('puppeteer');
@@ -16,7 +16,7 @@ const html = `<!DOCTYPE html>
 html, body { width:${SIZE}px; height:${SIZE}px; overflow:hidden; }
 .wrap {
   width:${SIZE}px; height:${SIZE}px;
-  background: linear-gradient(135deg, #0d5c45 0%, #1a9e7a 60%, #4fc3a1 100%);
+  background: linear-gradient(135deg, #7A2E0E 0%, #C4501A 60%, #E8631A 100%);
   display:flex; flex-direction:column;
   justify-content:center; align-items:center;
   font-family:'Noto Sans CJK KR','Apple SD Gothic Neo','맑은 고딕',sans-serif;
@@ -58,9 +58,9 @@ html, body { width:${SIZE}px; height:${SIZE}px; overflow:hidden; }
 </head>
 <body>
 <div class="wrap">
-  <div class="icon">📚</div>
-  <div class="main">시니어<br>건강백과</div>
-  <div class="sub">Senior Health</div>
+  <div class="icon">💪</div>
+  <div class="main">다이어트<br>운동백과</div>
+  <div class="sub">Fitness &amp; Diet</div>
 </div>
 </body>
 </html>`;

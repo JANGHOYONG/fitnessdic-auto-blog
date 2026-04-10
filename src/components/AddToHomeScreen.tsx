@@ -108,16 +108,16 @@ export default function AddToHomeScreen() {
               <div
                 style={{
                   width: '52px', height: '52px', borderRadius: '12px', flexShrink: 0,
-                  background: 'linear-gradient(135deg, #177A5E, #1E9E7A)',
+                  background: 'linear-gradient(135deg, #C4501A, #E8631A)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '24px',
                 }}
               >
-                🏥
+                💪
               </div>
               <div>
                 <p style={{ fontSize: '16px', fontWeight: 800, color: '#1B3A32', marginBottom: '3px' }}>
-                  시니어 건강백과
+                  다이어트·운동 백과
                 </p>
                 <p style={{ fontSize: '13px', color: '#2E5A4D' }}>홈 화면에 추가하면 앱처럼 바로 열려요</p>
               </div>

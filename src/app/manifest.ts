@@ -2,16 +2,16 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: '시니어 건강백과',
-    short_name: '건강백과',
-    description: '50·60대를 위한 혈당·혈압·관절·수면·치매 예방 건강 정보',
+    name: '다이어트·운동 백과',
+    short_name: '운동백과',
+    description: '30·40·50대를 위한 과학적 다이어트·운동 가이드',
     start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#F2FAF7',
-    theme_color: '#1E9E7A',
-    categories: ['health', 'lifestyle', 'medical'],
+    background_color: '#FFF8F3',
+    theme_color: '#E8631A',
+    categories: ['health', 'fitness', 'lifestyle'],
     lang: 'ko',
     icons: [
       {

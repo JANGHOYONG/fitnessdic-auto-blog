@@ -6,9 +6,9 @@ import ProgressBar from '@/components/ProgressBar';
 import ScrollToTop from '@/components/ScrollToTop';
 import './globals.css';
 
-const SITE_NAME  = process.env.NEXT_PUBLIC_SITE_NAME || '시니어 건강백과';
-const SITE_DESC  = process.env.NEXT_PUBLIC_SITE_DESCRIPTION || '50·60대 시니어를 위한 혈당·혈압·관절·수면·치매 예방 건강 정보 백과사전';
-const SITE_URL   = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfoblog.co.kr';
+const SITE_NAME  = process.env.NEXT_PUBLIC_SITE_NAME || '다이어트·운동 백과';
+const SITE_DESC  = process.env.NEXT_PUBLIC_SITE_DESCRIPTION || '30·40·50대를 위한 과학적 다이어트·운동 가이드. 체중감량·근력운동·식단·홈트레이닝 정보 백과사전';
+const SITE_URL   = process.env.NEXT_PUBLIC_SITE_URL || 'https://fitnessdic.co.kr';
 const GA_ID      = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const ADSENSE    = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
 const KAKAO_KEY  = process.env.NEXT_PUBLIC_KAKAO_API_KEY;

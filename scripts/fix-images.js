@@ -37,7 +37,7 @@ async function fetchUnsplashImage(query) {
       url: data.urls.regular,
       alt: data.alt_description || query,
       credit: `Photo by ${data.user.name} on Unsplash`,
-      creditUrl: `${data.user.links.html}?utm_source=smartinfoblog&utm_medium=referral`,
+      creditUrl: `${data.user.links.html}?utm_source=fitnessdic&utm_medium=referral`,
     };
   } catch (e) {
     console.error(`Unsplash 요청 실패: ${e.message}`);

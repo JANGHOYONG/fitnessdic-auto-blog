@@ -31,34 +31,33 @@ const SEASONAL_KEYWORDS = {
   spring: { // 3~5월
     label: '봄',
     keywords: [
-      '춘곤증 극복 방법', '봄나물 효능 TOP10', '봄 황사 폐 건강 지키기',
-      '봄철 환절기 면역력 높이는 법', '봄 알레르기 비염 대처법',
-      '봄에 먹으면 좋은 제철 음식', '봄 피로 회복 음식',
-      '꽃가루 알레르기 50대 대처법', '봄 나들이 시니어 건강 주의사항',
+      '봄 다이어트 시작하는 법', '봄철 야외 달리기 주의사항', '봄 환절기 운동 면역력',
+      '봄 나들이 칼로리 소모 운동', '봄에 살 빠지는 이유', '봄 단기 다이어트 식단',
+      '봄 등산 초보자 주의사항', '벚꽃 시즌 체중 관리 팁', '봄 알레르기 있어도 할 수 있는 운동',
     ],
   },
   summer: { // 6~8월
     label: '여름',
     keywords: [
-      '여름 열사병 예방법', '여름 냉방병 원인 증상', '무더위 고혈압 관리',
-      '여름 수분 보충 방법', '여름철 장염 예방', '시니어 여름 더위 대처법',
-      '여름 면역력 음식', '에어컨 관절통 해결법', '열대야 수면 방법',
+      '여름 다이어트 식단 짜는 법', '무더위 실내 운동 루틴', '여름 수영 다이어트 효과',
+      '여름 휴가 전 복근 만들기', '폭염 헬스장 운동 주의사항', '여름 단백질 보충제 섭취법',
+      '여름철 야외 운동 탈수 예방', '냉방병과 근육통 관계', '여름 체중 증가 원인',
     ],
   },
   autumn: { // 9~11월
     label: '가을',
     keywords: [
-      '가을 환절기 감기 예방', '추석 음식 혈당 관리', '가을 우울증 극복법',
-      '가을 운동 시작하는 법', '늦가을 면역력 관리', '10월 건강검진 항목',
-      '가을 제철 음식 효능', '기온차 관절통 대처법', '가을 피부 건강 관리',
+      '가을 마라톤 초보 준비법', '선선한 날씨 야외 운동 루틴', '가을 다이어트 골든타임',
+      '추석 연휴 살 안 찌는 방법', '가을 바디프로필 준비 식단', '가을철 체중 감량 팁',
+      '겨울 대비 근육 쌓는 가을 루틴', '가을 조깅 초보 거리 늘리기', '추석 음식 칼로리 소모 운동',
     ],
   },
   winter: { // 12~2월
     label: '겨울',
     keywords: [
-      '겨울 뇌졸중 예방법', '한파 고혈압 위험', '겨울 관절 통증 원인',
-      '겨울철 실내 운동 방법', '연말 과음 간 건강 회복', '설날 음식 혈당 관리',
-      '겨울 비타민D 부족 증상', '한겨울 낙상 예방 시니어', '면역력 높이는 겨울 음식',
+      '겨울 실내 운동 루틴 초보', '연말 폭식 후 다이어트 리셋', '겨울 체중 증가 원인과 해결',
+      '설날 음식 칼로리 줄이는 법', '겨울 홈트레이닝 기구 추천', '추운 날씨 달리기 옷차림',
+      '겨울 기초대사량 높이는 법', '새해 다이어트 작심삼일 극복', '겨울 체지방 감량 운동',
     ],
   },
 };
@@ -71,27 +70,23 @@ function getCurrentSeason() {
   return 'winter';
 }
 
-// 건강 7대 주제 (health 카테고리)
+// 운동·다이어트 7대 주제 (fitness 카테고리)
 const HEALTH_SUBTOPICS = [
-  { id: 'blood_sugar',    label: '혈당·당뇨',   guide: '혈당, 당뇨병, 인슐린 저항성, 공복혈당, 혈당 관리, 당뇨 식단, 혈당 낮추는 방법 등' },
-  { id: 'blood_pressure', label: '혈압·심장',   guide: '고혈압, 심장건강, 콜레스테롤, 심혈관, 동맥경화, 부정맥, 심근경색 예방 등' },
-  { id: 'joint',          label: '관절·근육',   guide: '무릎관절, 연골, 허리통증, 척추, 근육감소, 골다공증, 어깨통증, 류마티스 등' },
-  { id: 'sleep',          label: '수면·피로',   guide: '불면증, 수면장애, 만성피로, 멜라토닌, 수면의 질, 졸음, 피로 해소법 등' },
-  { id: 'brain',          label: '뇌건강·치매', guide: '치매 예방, 알츠하이머, 기억력 저하, 뇌 건강, 파킨슨, 뇌졸중 예방, 인지 기능 등' },
-  { id: 'menopause',      label: '갱년기',      guide: '갱년기 증상, 폐경, 호르몬 변화, 안면홍조, 골밀도, 남성갱년기, 에스트로겐 등' },
-  { id: 'nutrition',      label: '영양·식이',   guide: '영양제, 비타민, 단백질 섭취, 식단 관리, 건강식품, 오메가3, 보충제, 노년 영양 등' },
+  { id: 'weightloss',   label: '체중감량',        guide: '체중감량, 지방연소, 다이어트 식단, 살빼기, 체지방 줄이는 법, 요요 방지, 간헐적 단식 등' },
+  { id: 'strength',     label: '근력운동',        guide: '헬스, 웨이트트레이닝, 스쿼트, 데드리프트, 벤치프레스, 근비대, 근육 키우는 법, 분할 루틴 등' },
+  { id: 'cardio',       label: '유산소·러닝',     guide: '달리기, 조깅, 자전거, 수영, 유산소 운동, 지방 연소, 심폐 기능, 마라톤 입문 등' },
+  { id: 'nutrition',    label: '식단·영양',       guide: '다이어트 식단, 단백질 섭취, 칼로리 계산, 탄수화물 조절, 헬스 식단, 영양소 균형, 끼니 구성 등' },
+  { id: 'hometraining', label: '홈트레이닝',      guide: '홈트, 맨몸운동, 집에서 운동, 플랭크, 버피, 푸시업, 스쿼트 집에서, 운동기구 없이 등' },
+  { id: 'supplement',   label: '다이어트 식품',   guide: '단백질 보충제, 프로틴, 다이어트 식품, 크레아틴, BCAA, 영양제, 체중감량 보조제, 헬스 보충제 등' },
+  { id: 'motivation',   label: '바디프로필·동기', guide: '바디프로필, 운동 습관, 운동 동기, 다이어트 루틴, 몸만들기, 눈바디, 운동일지, 헬스장 처음 등' },
 ];
 
-// 건강지식 8개 주제 (knowledge 카테고리)
+// 운동지식 추가 주제 (knowledge 카테고리)
 const KNOWLEDGE_SUBTOPICS = [
-  { id: 'immunity',  label: '면역력·감염',       guide: '면역력 강화, 감기·독감 예방, 자가면역질환, 바이러스 감염, 항체, 백신, 코로나 후유증 등' },
-  { id: 'digestion', label: '소화·장건강',       guide: '위염, 역류성식도염, 장내세균, 프로바이오틱스, 변비, 과민성대장증후군, 위산, 헬리코박터 등' },
-  { id: 'eye',       label: '눈건강·시력',       guide: '노안, 황반변성, 백내장, 안구건조증, 녹내장, 망막 질환, 루테인, 눈 피로 등' },
-  { id: 'skin',      label: '피부·노화',         guide: '피부 노화, 주름, 검버섯, 피부탄력, 콜라겐, 자외선 차단, 피부과 시술, 피부 건강 등' },
-  { id: 'oral',      label: '구강·치아',         guide: '잇몸 질환, 치주염, 임플란트, 틀니, 구강 건강, 구취, 치석, 구강건조증 등' },
-  { id: 'liver',     label: '간·해독',           guide: '지방간, 간수치, 간 건강, 간염, 간경화, 알코올성 간질환, 간 기능 검사 등' },
-  { id: 'lung',      label: '폐·호흡기',         guide: '폐 건강, COPD, 기관지염, 폐암 예방, 천식, 폐 기능 검사, 호흡기 질환 등' },
-  { id: 'mental',    label: '정신건강·스트레스', guide: '노년 우울증, 불안장애, 스트레스 관리, 정신건강, 공황장애, 수면과 정신건강, 치매와 우울증 등' },
+  { id: 'weightloss',   label: '체중감량 심화',   guide: '체지방률, 인슐린 저항성과 다이어트, 대사증후군, 체중 정체기 돌파, 지방 타입별 감량법 등' },
+  { id: 'strength',     label: '근력운동 심화',   guide: '근섬유 유형, 운동 후 회복, 오버트레이닝 징후, 운동 프로그래밍, 부상 예방 등' },
+  { id: 'cardio',       label: '유산소 심화',     guide: '최대산소섭취량(VO2max), 심박수 구간 훈련, HIIT vs 저강도 유산소, 인터벌 트레이닝 등' },
+  { id: 'nutrition',    label: '스포츠 영양 심화', guide: '운동 전후 영양 타이밍, 탄수화물 로딩, 단백질 합성 메커니즘, 수분 전해질 보충 등' },
 ];
 
 async function collectKeywordsForSubtopic(categoryName, subtopic, count) {
@@ -106,31 +101,31 @@ async function collectKeywordsForSubtopic(categoryName, subtopic, count) {
       },
       {
         role: 'user',
-        content: `5060 시니어 건강 블로그의 [${subtopic.label}] 주제로 롱테일 키워드 ${count}개를 추천해주세요.
+        content: `30~50대 다이어트·운동 블로그의 [${subtopic.label}] 주제로 롱테일 키워드 ${count}개를 추천해주세요.
 
 주제 범위: ${subtopic.guide}
 
 ━━━ 핵심 규칙 (반드시 준수) ━━━
-✅ 키워드 형식: 최소 3어절 이상 (예: "50대 공복혈당 130 정상인가" → 4어절 ✅)
+✅ 키워드 형식: 최소 3어절 이상 (예: "40대 여성 뱃살 빼는 운동 순서" → 4어절 ✅)
 ✅ 목표 검색량: 월 500~5,000 (경쟁 낮은 틈새 키워드)
 ✅ 허용 형식 (다양하게 섞어서):
-   - 증상/자가진단형: "○○ 초기 증상 자가진단", "○○ 있으면 나타나는 신호"
-   - 비교형: "○○ vs ○○ 차이점", "○○이랑 ○○ 같이 먹으면"
-   - 원인/이유형: "○○ 생기는 이유 원인", "○○ 먹으면 안 되는 이유"
-   - 나이/연령 특화: "50대 ○○ 정상수치", "60대 ○○ 주의사항"
-   - 약/영양제형: "○○약 부작용 증상", "○○ 영양제 언제 먹어야"
-   - 상황 특화: "밤에 ○○ 심해지는 이유", "아침에 ○○ 증상"
+   - 반전/충격형: "○○ 하면 오히려 살 찌는 이유", "○○이 다이어트에 독인 이유"
+   - 비교형: "○○ vs ○○ 다이어트 효과 차이", "○○ 운동이랑 ○○ 운동 같이 하면"
+   - 원인/이유형: "○○ 해도 살 안 빠지는 이유", "○○ 먹으면 안 되는 이유"
+   - 나이/성별 특화: "40대 여성 ○○", "30대 남성 ○○ 루틴"
+   - 보충제/식품형: "○○ 보충제 효과 없는 경우", "○○ 먹으면 진짜 살 빠지나"
+   - 상황 특화: "운동 후 ○○ 먹으면 안 되는 이유", "공복에 ○○ 운동 효과"
 
 ❌ 절대 금지 (경쟁 극심한 대형 키워드):
-   - "혈당 관리 방법" (2어절, 월 검색 10만+)
-   - "고혈압 예방" (2어절, 범용)
-   - "관절에 좋은 음식" (경쟁 극심)
-   - "불면증 해결법" (2어절 수준)
+   - "다이어트 방법" (2어절, 월 검색 10만+)
+   - "운동 루틴" (2어절, 범용)
+   - "단백질 식품" (경쟁 극심)
+   - "살빼는 운동" (2어절 수준)
 
 JSON 형식:
 {
   "keywords": [
-    { "keyword": "50대 공복혈당 130 이상이면 어떻게 해야 하나", "priority": 1, "estimatedVolume": 1200 }
+    { "keyword": "40대 여성 뱃살만 빼는 운동 순서와 식단", "priority": 1, "estimatedVolume": 1200 }
   ]
 }`,
       },
@@ -141,8 +136,8 @@ JSON 형식:
 }
 
 async function collectKeywords(categoryName, count) {
-  // 건강지식 카테고리: 8개 주제별 균등 수집
-  if (categoryName === '건강지식' || categoryName.toLowerCase() === 'knowledge') {
+  // 운동지식 카테고리: 주제별 균등 수집
+  if (categoryName === '운동지식' || categoryName.toLowerCase() === 'knowledge') {
     const perTopic = Math.ceil(count / KNOWLEDGE_SUBTOPICS.length);
     const allKeywords = [];
     for (const subtopic of KNOWLEDGE_SUBTOPICS) {
@@ -158,8 +153,8 @@ async function collectKeywords(categoryName, count) {
     return { keywords: allKeywords };
   }
 
-  // 비건강 카테고리는 기존 방식 사용
-  if (!categoryName.includes('건강') && categoryName.toLowerCase() !== 'health') {
+  // 비운동 카테고리는 기존 방식 사용
+  if (!categoryName.includes('운동') && !categoryName.includes('다이어트') && !categoryName.includes('fitness') && categoryName.toLowerCase() !== 'health' && categoryName.toLowerCase() !== 'fitness') {
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       temperature: 0.7,
@@ -177,7 +172,7 @@ JSON: { "keywords": [{ "keyword": "키워드", "priority": 1, "estimatedVolume":
     return JSON.parse(response.choices[0].message.content);
   }
 
-  // 건강 카테고리: 7개 주제별 균등 수집
+  // 운동·다이어트 카테고리: 7대 주제별 균등 수집
   const perTopic = Math.ceil(count / HEALTH_SUBTOPICS.length);
   const allKeywords = [];
 
