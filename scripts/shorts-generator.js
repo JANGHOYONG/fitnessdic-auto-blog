@@ -32,14 +32,15 @@ const W = 1080;
 const H = 1920;
 const FONT = `'Noto Sans CJK KR','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif`;
 
-// ─── BGM 트랙 목록 (로열티 프리 — Mixkit) ────────────────────────────────────
+// ─── BGM 트랙 목록 (로열티 프리 — Mixkit CDN) ────────────────────────────────
 const BGM_TRACKS = [
+  'https://assets.mixkit.co/music/preview/mixkit-gym-hard-workout-600.mp3',
   'https://assets.mixkit.co/music/preview/mixkit-hip-hop-02-738.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-keep-up-953.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-upbeat-driving-154.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-feeling-happy-5.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-pop-celebration-3-438.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-driving-ambition-32.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-a-very-happy-christmas-897.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-life-is-a-dream-837.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-hip-hop-03-738.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-summer-fun-13.mp3',
 ];
 
 // ─── 슬라이드 유형별 표시 시간(초) ──────────────────────────────────────────
@@ -255,25 +256,66 @@ async function downloadImage(query, outPath) {
   throw new Error(`이미지 없음: "${query}"`);
 }
 
-// ─── 3. BGM 다운로드 ──────────────────────────────────────────────────────────
+// ─── 3. BGM 다운로드 (실패 시 ffmpeg 합성 폴백) ──────────────────────────────
 async function downloadBGM(outPath) {
   const shuffled = [...BGM_TRACKS].sort(() => Math.random() - 0.5);
   for (const url of shuffled) {
     try {
-      console.log(`  🎵 BGM: ${url.split('/').pop()}`);
-      const res = await axios({ url, method: 'GET', responseType: 'stream', timeout: 15000 });
+      console.log(`  🎵 BGM 시도: ${url.split('/').pop()}`);
+      const res = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream',
+        timeout: 20000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; shorts-bot/1.0)',
+          'Accept': 'audio/mpeg,audio/*;q=0.9,*/*;q=0.8',
+        },
+      });
+      // 응답 상태 코드 체크
+      if (res.status !== 200) { console.log(`  ⚠️  HTTP ${res.status} — 다음 시도`); continue; }
       const writer = fs.createWriteStream(outPath);
       res.data.pipe(writer);
       await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
-      if (fs.statSync(outPath).size > 10000) {
-        console.log('  ✅ BGM 다운로드 완료');
+      const sz = fs.statSync(outPath).size;
+      if (sz > 30000) {           // 30KB 이상이면 유효한 MP3
+        console.log(`  ✅ BGM 다운로드 완료 (${(sz/1024).toFixed(0)}KB)`);
         return true;
       }
+      console.log(`  ⚠️  파일 너무 작음 (${sz}B) — 다음 시도`);
     } catch (e) {
       console.log(`  ⚠️  BGM 실패: ${e.message}`);
     }
   }
-  console.log('  ⚠️  BGM 없음 — 무음으로 진행');
+  // ── 폴백: ffmpeg aevalsrc로 간단한 비트 합성 ──
+  console.log('  🔊 BGM 합성 폴백 시작 (ffmpeg aevalsrc)...');
+  try {
+    await new Promise((resolve, reject) => {
+      const expr =
+        '0.18*sin(2*PI*110*t)+' +
+        '0.10*sin(2*PI*220*t)*sin(2*PI*1.5*t)+' +
+        '0.06*sin(2*PI*440*t)*sin(2*PI*3*t)';
+      ffmpeg()
+        .input(`aevalsrc=${expr}:s=44100:c=stereo`)
+        .inputOptions(['-f', 'lavfi'])
+        .outputOptions([
+          '-t', '120',
+          '-c:a', 'aac', '-b:a', '128k',
+          '-af', 'volume=0.55,highpass=f=60,lowpass=f=8000',
+        ])
+        .output(outPath)
+        .on('end', resolve)
+        .on('error', reject)
+        .run();
+    });
+    if (fs.existsSync(outPath) && fs.statSync(outPath).size > 1000) {
+      console.log('  ✅ BGM 합성 완료');
+      return true;
+    }
+  } catch (e) {
+    console.log(`  ⚠️  BGM 합성 실패: ${e.message}`);
+  }
+  console.log('  ⚠️  BGM 완전 실패 — 무음으로 진행');
   return false;
 }
 
@@ -336,14 +378,15 @@ html, body {
   font-family:${FONT};
 }
 
-/* 하단 그라디언트 (이미지 위) */
+/* 하단 그라디언트 (이미지 위 — 텍스트 가독성 보장) */
 .gradient-overlay {
   position:absolute; bottom:0; left:0; right:0;
-  height:${isData ? '300px' : '1050px'};
+  height:${isData ? '380px' : '1200px'};
   background:linear-gradient(to top,
     rgba(0,0,0,0.97) 0%,
-    rgba(0,0,0,0.82) 35%,
-    rgba(0,0,0,0.25) 70%,
+    rgba(0,0,0,0.88) 25%,
+    rgba(0,0,0,0.60) 55%,
+    rgba(0,0,0,0.15) 80%,
     transparent 100%
   );
 }
@@ -431,28 +474,32 @@ ${!isData ? `.keyword-area {
 .card-total-label { font-size:46px; font-weight:900; color:#fff; }
 .card-total-value { font-size:54px; font-weight:900; color:#FFE066; }
 
-/* 자막 */
+/* 자막 — 유튜브 UI(하단 버튼)에 가리지 않도록 충분히 위로 */
 .caption-area {
   position:absolute;
-  bottom:140px; left:0; right:0;
-  padding:0 64px; text-align:center;
+  bottom:330px; left:0; right:0;
+  padding:0 72px; text-align:center;
 }
 .caption-line {
-  font-size:${isData ? '50px' : '58px'};
+  font-size:${isData ? '50px' : '60px'};
   font-weight:900; color:#ffffff;
-  line-height:1.55; word-break:keep-all;
-  text-shadow:0 3px 14px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.7);
-  display:block; margin-bottom:4px;
+  line-height:1.6; word-break:keep-all;
+  text-shadow:
+    0 3px 16px rgba(0,0,0,0.99),
+    0 0 50px rgba(0,0,0,0.8),
+    -3px -3px 0 rgba(0,0,0,0.6),
+    3px 3px 0 rgba(0,0,0,0.6);
+  display:block; margin-bottom:6px;
 }
-.caption-line.highlight { color:#FFE066; font-size:62px; }
+.caption-line.highlight { color:#FFE066; font-size:64px; }
 
-/* 진행 점 */
+/* 진행 점 — 자막 바로 아래 */
 .progress-dots {
-  position:absolute; bottom:52px; left:50%; transform:translateX(-50%);
+  position:absolute; bottom:260px; left:50%; transform:translateX(-50%);
   display:flex; gap:14px; align-items:center;
 }
-.dot { width:14px; height:14px; border-radius:50%; background:rgba(255,255,255,0.28); }
-.dot.active { width:40px; height:14px; border-radius:7px; background:#E8631A; }
+.dot { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.30); }
+.dot.active { width:44px; height:16px; border-radius:8px; background:#E8631A; }
 </style>
 </head>
 <body>
@@ -617,7 +664,8 @@ function concatClips(clipPaths, outPath) {
 }
 
 // ─── 8. BGM 삽입 (기존 무음 오디오를 BGM으로 교체) ──────────────────────────
-function addBGMToVideo(videoPath, bgmPath, outPath) {
+function addBGMToVideo(videoPath, bgmPath, outPath, totalDuration) {
+  const fadeOutSt = Math.max(1, (totalDuration || 45) - 3.5).toFixed(2);
   return new Promise((resolve, reject) => {
     ffmpeg()
       .input(videoPath)
@@ -627,7 +675,7 @@ function addBGMToVideo(videoPath, bgmPath, outPath) {
         '-map', '1:a',
         '-c:v', 'copy',
         '-c:a', 'aac', '-b:a', '128k',
-        '-af', 'volume=0.32,afade=t=in:st=0:d=1.5,afade=t=out:st=40:d=5',
+        '-af', `volume=0.30,afade=t=in:st=0:d=1.5,afade=t=out:st=${fadeOutSt}:d=3.0`,
         '-shortest',
         '-movflags', '+faststart',
       ])
@@ -750,11 +798,14 @@ async function main() {
     const rawPath   = path.join(tmpDir, 'raw.mp4');
     await concatClips(clipPaths, rawPath);
 
+    // 총 재생시간 계산
+    const totalDuration = slides.reduce((sum, s) => sum + (SLIDE_DURATIONS[s.type] || 9), 0);
+
     let finalPath = rawPath;
     if (bgmReady && fs.existsSync(bgmPath)) {
       finalPath = path.join(tmpDir, 'final.mp4');
       process.stdout.write('  🎵 BGM 삽입...');
-      await addBGMToVideo(rawPath, bgmPath, finalPath);
+      await addBGMToVideo(rawPath, bgmPath, finalPath, totalDuration);
       console.log(' ✅');
     }
     const sizeMB = (fs.statSync(finalPath).size / 1024 / 1024).toFixed(1);
