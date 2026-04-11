@@ -46,11 +46,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icon" />
         {adsenseReady && (
-          <Script
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script
             async
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}`}
             crossOrigin="anonymous"
-            strategy="afterInteractive"
           />
         )}
       </head>
