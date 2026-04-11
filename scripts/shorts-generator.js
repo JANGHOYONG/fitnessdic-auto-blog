@@ -1,19 +1,23 @@
 /**
- * YouTube Shorts 자동 생성 스크립트 v6
- * - 슬라이드당 narration만 사용, 그대로 자막으로 표시
- * - 6슬라이드 × 10초 = 60초 이내
- * - 한국어 TTS: Google ko-KR-Standard-C
+ * YouTube Shorts 자동 생성 스크립트 v8
+ * 타겟: 10~30대 여성
+ * 변경사항:
+ *   ① 이미지: 젊고 세련된 여성 (인종 무관, 피트니스 모델 스타일)
+ *   ② 디자인: 풀스크린 트렌디 (흰 바 제거, 그라디언트 오버레이)
+ *   ③ 콘텐츠: 전문 꿀팁 (kcal·세트·횟수 수치 필수)
+ *   ④ 오디오: TTS 제거 → 로열티 프리 BGM
+ *   ⑤ 정보 카드: DATA 슬라이드에 식단표/운동표 표시
  */
 
 require('dotenv').config();
 const puppeteer = require('puppeteer');
-const OpenAI = require('openai');
+const OpenAI    = require('openai');
 const { PrismaClient } = require('@prisma/client');
 const ffmpeg = require('fluent-ffmpeg');
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+const axios  = require('axios');
+const fs     = require('fs');
+const path   = require('path');
+const os     = require('os');
 
 const prisma = new PrismaClient();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -28,199 +32,193 @@ const W = 1080;
 const H = 1920;
 const FONT = `'Noto Sans CJK KR','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif`;
 
-// ─── 주제별 훅 공식 (쇼츠 특화 — 긍정·정보 전달형) ────────────────────────────
-const TOPIC_HOOK_FORMULAS = {
+// ─── BGM 트랙 목록 (로열티 프리 — Mixkit) ────────────────────────────────────
+const BGM_TRACKS = [
+  'https://assets.mixkit.co/music/preview/mixkit-hip-hop-02-738.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-keep-up-953.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-upbeat-driving-154.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-feeling-happy-5.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-pop-celebration-3-438.mp3',
+  'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3',
+];
+
+// ─── 슬라이드 유형별 표시 시간(초) ──────────────────────────────────────────
+const SLIDE_DURATIONS = {
+  hook:    7,
+  fact:    9,
+  howto:   10,
+  data:    12,
+  summary: 7,
+};
+
+// ─── 주제별 설정 ──────────────────────────────────────────────────────────────
+const TOPIC_CONFIG = {
   weightloss: {
-    formula: '반전형',
-    hookPatterns: [
-      '살 빼고 싶다면, 이것부터 알아두세요',
-      '다이어트해도 살 안 빠지는 이유가 있어요',
-      '지방 연소에 진짜 효과 있는 방법 알려드릴게요',
+    imageQueries: [
+      'fit woman workout gym smiling athletic',
+      'woman fitness body motivation healthy lifestyle',
+      'athletic woman running outdoor sporty',
+      'fit woman yoga exercise beautiful',
     ],
-    titleFormulas: ['살 빠지는 의외의 방법', '다이어트 실패 이유 TOP3', '지방 연소 속도 높이는 법'],
-    imageQueries: ['Korean woman diet exercise fitness', 'Asian woman weight loss workout', 'fit woman healthy body transformation'],
+    dataType: 'nutrition',
   },
   strength: {
-    formula: '정보공유형',
-    hookPatterns: [
-      '근육 키우려면, 이것만 알면 돼요',
-      '헬스 처음이라면, 이 순서로 하세요',
-      '웨이트 운동 효과 제대로 보는 방법이에요',
+    imageQueries: [
+      'fit woman lifting weights gym confident',
+      'athletic woman strength training barbell',
+      'woman fitness gym workout beautiful',
+      'fit woman squat deadlift exercise',
     ],
-    titleFormulas: ['근육 키우는 핵심 원칙', '헬스 초보 루틴 완성', '스쿼트 제대로 하는 법'],
-    imageQueries: ['Korean woman gym workout fitness', 'Asian woman strength training weights', 'fit woman barbell exercise'],
+    dataType: 'workout',
   },
   cardio: {
-    formula: '정보공유형',
-    hookPatterns: [
-      '유산소 운동 효과, 이렇게 하면 달라져요',
-      '달리기로 살 빠지는 정확한 방법이에요',
-      '지방 태우는 유산소, 제대로 알고 하세요',
+    imageQueries: [
+      'fit woman running park outdoors happy',
+      'athletic woman cardio jogging sunrise',
+      'woman fitness running shoes outdoor',
+      'fit woman cycling spinning class',
     ],
-    titleFormulas: ['지방 연소 유산소 방법', '달리기 입문 핵심 포인트', '유산소 효과 최대화하는 법'],
-    imageQueries: ['Korean woman running jogging outdoor', 'Asian woman cardio exercise fitness', 'fit woman running park'],
+    dataType: 'workout',
   },
   nutrition: {
-    formula: '정보공유형',
-    hookPatterns: [
-      '다이어트 식단, 이렇게 짜면 달라져요',
-      '단백질 제대로 먹는 방법, 알려드릴게요',
-      '칼로리 계산보다 중요한 것이 있어요',
+    imageQueries: [
+      'healthy food meal prep colorful diet',
+      'fresh salad protein bowl healthy eating',
+      'woman healthy meal prep kitchen',
+      'colorful healthy food vegetables fruit',
     ],
-    titleFormulas: ['다이어트 식단 짜는 법', '단백질 섭취 핵심 가이드', '살 안 찌는 식사 습관'],
-    imageQueries: ['Korean woman healthy meal prep diet', 'Asian woman protein food healthy eating', 'fit woman balanced diet meal'],
+    dataType: 'nutrition',
   },
   hometraining: {
-    formula: '정보공유형',
-    hookPatterns: [
-      '집에서도 이렇게 하면 몸이 달라져요',
-      '기구 없이 할 수 있는 최강 운동이에요',
-      '홈트로 헬스장 못지않은 효과 낼 수 있어요',
+    imageQueries: [
+      'fit woman home workout yoga mat',
+      'athletic woman bodyweight exercise indoors',
+      'woman fitness training living room',
+      'fit woman stretching exercise beautiful',
     ],
-    titleFormulas: ['홈트 최강 루틴 TOP5', '집에서 하는 복근 운동', '맨몸 운동 효과 극대화'],
-    imageQueries: ['Korean woman home workout exercise mat', 'Asian woman bodyweight training indoors', 'fit woman plank pushup home'],
-  },
-  supplement: {
-    formula: '경고형',
-    hookPatterns: [
-      '단백질 보충제, 이것만 알고 드세요',
-      '다이어트 보조제 효과, 솔직하게 알려드릴게요',
-      '헬스 영양제 제대로 먹는 방법이에요',
-    ],
-    titleFormulas: ['프로틴 고르는 방법', '다이어트 보조제 효과 검증', '헬스 영양제 완전 가이드'],
-    imageQueries: ['Korean woman protein shake supplement', 'Asian woman diet supplement powder', 'fit woman nutrition supplement gym'],
+    dataType: 'workout',
   },
   motivation: {
-    formula: '공감형',
-    hookPatterns: [
-      '운동 습관 만드는 방법, 생각보다 간단해요',
-      '다이어트 작심삼일 극복하는 법이에요',
-      '바디프로필 준비, 이렇게 시작하세요',
+    imageQueries: [
+      'fit woman confident body positive gym',
+      'athletic woman fitness motivation beautiful',
+      'woman sports fashion gym trendy',
+      'fit woman happiness workout outdoor',
     ],
-    titleFormulas: ['운동 습관 만드는 핵심', '다이어트 동기 유지하는 법', '바디프로필 입문 가이드'],
-    imageQueries: ['Korean woman motivation fitness workout', 'Asian woman body transformation progress', 'fit woman sports gym inspiration'],
+    dataType: 'motivation',
   },
 };
 
-// 운동·다이어트 7대 주제 키워드로 주제 감지
-const HEALTH_WORDS = {
+// ─── 주제 감지 키워드 ─────────────────────────────────────────────────────────
+const TOPIC_WORDS = {
   weightloss:   ['체중감량', '살빼기', '지방연소', '다이어트', '감량', '체지방'],
   strength:     ['근력운동', '헬스', '웨이트', '근육', '스쿼트', '데드리프트', '벤치프레스'],
-  cardio:       ['유산소', '러닝', '달리기', '조깅', '자전거', '수영', '마라톤'],
+  cardio:       ['유산소', '러닝', '달리기', '조깅', '자전거', '수영'],
   nutrition:    ['식단', '영양', '단백질', '칼로리', '탄수화물', '식이'],
-  hometraining: ['홈트', '홈트레이닝', '맨몸운동', '플랭크', '버피', '푸시업'],
-  supplement:   ['단백질보충제', '프로틴', '보충제', '크레아틴', 'BCAA', '다이어트식품'],
+  hometraining: ['홈트', '홈트레이닝', '맨몸운동', '플랭크', '버피'],
   motivation:   ['바디프로필', '운동동기', '습관', '루틴', '몸만들기'],
 };
 
-function detectTopicFromPost(post) {
+function detectTopic(post) {
   const text = `${post.title} ${post.excerpt || ''}`;
-  for (const [topicId, words] of Object.entries(HEALTH_WORDS)) {
-    if (words.some((w) => text.includes(w))) return topicId;
+  for (const [id, words] of Object.entries(TOPIC_WORDS)) {
+    if (words.some((w) => text.includes(w))) return id;
   }
-  return null;
+  return 'weightloss';
 }
 
-// ─── 1. GPT 스크립트 생성 (바이럴 v4 — 5슬라이드×3문장=15문장, ~50초) ─────────
+// ─── 1. GPT 스크립트 생성 (전문 꿀팁 + 수치 필수) ────────────────────────────
 async function generateShortsScript(post) {
-  const topicId = detectTopicFromPost(post);
-  const hookInfo = topicId ? TOPIC_HOOK_FORMULAS[topicId] : null;
-
-  const hookExamples = hookInfo
-    ? hookInfo.hookPatterns.map((p) => `"${p}"`).join('\n- ')
-    : '"이거 알면 건강이 달라져요"\n- "이렇게 하면 훨씬 좋아집니다"';
-
-  const imageHint = hookInfo ? hookInfo.imageQueries[0] : 'senior health warning';
-  const hookTitleExamples = hookInfo
-    ? hookInfo.titleFormulas.map((t) => `"${t}"`).join(', ')
-    : '"3가지 신호", "몰랐던 진실", "전문의 경고"';
+  const topicId = detectTopic(post);
+  const config  = TOPIC_CONFIG[topicId] || TOPIC_CONFIG.weightloss;
+  const imgQ    = config.imageQueries[Math.floor(Math.random() * config.imageQueries.length)];
+  const isNutrition = config.dataType === 'nutrition';
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
-    temperature: 0.80,
-    max_tokens: 1800,
+    temperature: 0.82,
+    max_tokens: 2200,
     response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
-        content: `당신은 유튜브 쇼츠 바이럴 전문 작가입니다.
-30~50대가 끝까지 보는 다이어트·운동 쇼츠를 만듭니다.
+        content: `당신은 10~30대 여성을 위한 다이어트·운동 쇼츠 전문 크리에이터입니다.
+국가공인 트레이너 + 영양사처럼 꿀팁을 알려주는 콘텐츠를 만듭니다.
 
-핵심 원칙:
-① 제목에서 약속한 정보를 영상 안에서 반드시 전달할 것
-   - "블로그에서 확인하세요"로만 끝내는 것은 절대 금지 ❌
-② 긍정적·도움이 되는 어투로 작성할 것 ✅
-   - "이게 좋아요", "이렇게 하면 도움돼요", "알아두면 유익해요" 스타일
-   - "위험합니다", "망가집니다", "폭등합니다" 등 공포·부정 표현 금지 ❌
-③ 정확한 건강 정보만 사용 — 과장·극단적 주장 금지
-   - 귀리처럼 실제로 건강에 좋은 식품을 나쁘다고 하는 오류 절대 금지 ❌
-   - 블로그 요약 내용에 근거한 사실만 전달
-④ 슬라이드당 정확히 3문장, 전체 15문장 (목표 영상 길이 50초 내외)
-   - 문장은 \\n으로 구분, 각 문장 18~28자
-   - 슬라이드마다 새로운 정보 추가 — 같은 내용 반복 금지
-⑤ 끊어 말하기 스타일 (완벽한 문장보다 자연스러운 구어체)
-⑥ 블로그 내용의 구체적 정보(식품명·성분·수치·효능) 반드시 포함
-⑦ 이미지 규칙: "Korean woman" 또는 "Asian woman"으로 시작
+⚡ 핵심 원칙:
+① 반드시 구체적 수치 포함 (가장 중요):
+   - 식단 → 실제 음식명 + kcal 수치 + 그램 수 (예: 닭가슴살 100g = 165kcal)
+   - 운동 → 세트 수 + 횟수 + 무게 기준 + 자세 꿀팁 (예: 3세트×12회, 2~3kg)
+   - 기간 → "2주", "4주", "하루 15분" 등
+② 전문가 꿀팁 스타일 — 트레이너가 직접 귀띔해주는 느낌
+③ 시청자가 보고 "진짜 도움됐다!" 느껴야 함
+④ 짧고 임팩트 있는 문장 (한 문장 18~26자)
+⑤ 긍정적이고 따뜻한 어조. 공포·부정 표현 금지
 
-슬라이드 5개 구조 (각 3문장, 총 15문장, ~50초):
-[1번 HOOK  3문장] 관심 끄는 질문 + 왜 봐야 하는지 + 핵심 예고
-[2번 BODY-A 3문장] 구체적 식품/방법 소개 + 이유 + 보충 설명
-[3번 BODY-B 3문장] 효능 메커니즘 + 수치/연구 데이터 + 심화 설명
-[4번 BODY-C 3문장] 올바른 섭취법/실천법 + 주의사항 + 구체적 팁
-[5번 ENDING 3문장] 핵심 요약 + 오늘 바로 실천할 한 가지 + 따뜻한 마무리`,
+슬라이드 구조 (5개):
+[1 HOOK  ] 눈에 확 들어오는 질문·팩트로 시작
+[2 FACT  ] 구체적 수치·연구 결과·전문 지식
+[3 HOW-TO] 단계별 실천 방법 (번호 포함 가능)
+[4 DATA  ] 실제 데이터 카드 (식단 kcal표 or 운동 세트표)
+[5 SUMMARY] 오늘 바로 실천할 것 1가지`,
       },
       {
         role: 'user',
-        content: `제목: ${post.title}
-요약: ${post.excerpt}
+        content: `블로그 제목: ${post.title}
+블로그 요약: ${post.excerpt || ''}
 
-훅 참고 예시:
-- ${hookExamples}
+10~30대 여성이 끝까지 보게 되는 쇼츠 스크립트를 만들어주세요.
 
-제목 참고 예시: ${hookTitleExamples}
+⚠️ DATA 슬라이드 규칙:
+${isNutrition
+  ? '- 실제 식품명 + kcal 수치 3개 항목 이상 포함 (예: 닭가슴살 100g → 165kcal)'
+  : '- 운동명 + 세트×횟수 + 무게 기준 3개 항목 이상 (예: 스쿼트 → 3세트×15회)'}
 
-⚠️ 중요 규칙:
-1. 블로그 요약에 근거한 정확한 정보만 사용 (임의로 식품명·수치를 만들어내지 말 것)
-2. 긍정적·도움이 되는 어투 유지 ("~에 좋아요", "~하면 도움돼요")
-3. 공포·부정 표현 사용 금지 ("위험", "망가짐", "폭등" 등)
-4. 시청자가 영상만 봐도 핵심 정보를 얻을 수 있어야 함
-
-JSON 형식:
+아래 JSON으로만 응답 (다른 텍스트 없이):
 {
-  "youtubeTitle": "유튜브 제목 (40자 이내, 숫자/반전 포함, #Shorts 포함)",
-  "hookText": "썸네일 강조 문구 (10~15자)",
-  "description": "영상 설명 1줄 (60~80자) + '전체 내용은 블로그에서 확인하세요 👇'",
-  "tags": ["다이어트", "운동", "체중감량", "관련태그"],
+  "youtubeTitle": "유튜브 제목 40자 이내 #Shorts (숫자·꿀팁 느낌 포함)",
+  "hookText": "썸네일 강조 문구 8자 이내",
+  "description": "영상 설명 70자 이내",
+  "tags": ["다이어트", "운동", "피트니스", "관련태그1", "관련태그2"],
   "slides": [
     {
       "type": "hook",
-      "narration": "훅 문장 1 (18~28자)\\n훅 문장 2 (18~28자)\\n훅 문장 3 (18~28자)",
-      "keyword": "핵심 강조 단어 1~3개",
-      "imageQuery": "Korean woman senior portrait ${imageHint}"
+      "narration": "첫 문장 (20자 내외)\\n둘째 문장 (20자 내외)\\n셋째 문장 (20자 내외)",
+      "keyword": "핵심 강조어 3~5자",
+      "imageQuery": "${imgQ}"
     },
     {
-      "type": "body",
-      "narration": "식품/방법 소개 문장 1\\n이유 설명 문장 2\\n보충 설명 문장 3",
-      "keyword": "핵심 단어",
-      "imageQuery": "Korean woman 주제관련 영어단어"
+      "type": "fact",
+      "narration": "팩트 첫 문장\\n팩트 둘째 문장 (수치 포함)\\n팩트 셋째 문장",
+      "keyword": "구체적 수치",
+      "imageQuery": "fit woman fitness gym workout beautiful"
     },
     {
-      "type": "body",
-      "narration": "메커니즘 설명 문장 1\\n수치/연구 데이터 문장 2\\n심화 설명 문장 3",
-      "keyword": "핵심 단어",
-      "imageQuery": "Korean woman 주제관련 영어단어"
+      "type": "howto",
+      "narration": "방법 첫 문장\\n방법 둘째 문장 (단계별)\\n방법 셋째 문장",
+      "keyword": "핵심 행동어",
+      "imageQuery": "athletic woman exercise training healthy"
     },
     {
-      "type": "body",
-      "narration": "섭취법/실천법 문장 1\\n주의사항 문장 2\\n구체적 팁 문장 3",
-      "keyword": "핵심 단어",
-      "imageQuery": "Asian woman senior 주제관련 영어단어"
+      "type": "data",
+      "narration": "데이터 소개 첫 문장\\n수치 강조 둘째 문장\\n오늘 바로 해보세요!",
+      "keyword": "${isNutrition ? '총 kcal' : '세트 수'}",
+      "imageQuery": "${isNutrition ? 'healthy meal prep food nutrition colorful' : 'gym equipment weights fitness'}",
+      "cardData": {
+        "title": "${isNutrition ? '🥗 추천 식단 예시' : '💪 추천 운동 루틴'}",
+        "items": [
+          {"label": "${isNutrition ? '음식명 + 양' : '운동명'}", "value": "${isNutrition ? 'Xkcal' : 'X세트×X회'}"},
+          {"label": "항목2", "value": "수치2"},
+          {"label": "항목3", "value": "수치3"}
+        ],
+        "total": "${isNutrition ? '합계 XXXkcal' : '총 XX분'}"
+      }
     },
     {
-      "type": "ending",
-      "narration": "핵심 요약 문장 1\\n오늘 바로 실천할 것 문장 2\\n따뜻한 마무리 문장 3",
+      "type": "summary",
+      "narration": "핵심 요약 첫 문장\\n오늘 할 것 한 가지 (구체적)\\n응원 마무리 문장",
       "keyword": "핵심 단어",
-      "imageQuery": "Korean woman senior healthy smile"
+      "imageQuery": "fit woman smiling confident healthy happy"
     }
   ]
 }`,
@@ -231,49 +229,100 @@ JSON 형식:
 }
 
 // ─── 2. Unsplash 이미지 다운로드 ──────────────────────────────────────────────
-async function fetchPexelsPhoto(query, outPath) {
+async function downloadImage(query, outPath) {
   const key = process.env.UNSPLASH_ACCESS_KEY;
   if (!key) throw new Error('UNSPLASH_ACCESS_KEY 없음');
 
-  const searches = [
-    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=portrait&per_page=10`,
+  const urls = [
+    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=portrait&per_page=15`,
     `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=10`,
   ];
 
-  for (const url of searches) {
-    const res = await axios.get(url, { headers: { Authorization: `Client-ID ${key}` } });
-    const photos = res.data.results || [];
-    if (!photos.length) continue;
-
-    const photo = photos[Math.floor(Math.random() * Math.min(5, photos.length))];
-    const imageUrl = photo.urls.full || photo.urls.regular;
-
-    const writer = fs.createWriteStream(outPath);
-    const response = await axios({ url: imageUrl, method: 'GET', responseType: 'stream' });
-    response.data.pipe(writer);
-    await new Promise((resolve, reject) => {
-      writer.on('finish', resolve);
-      writer.on('error', reject);
-    });
-    return;
+  for (const url of urls) {
+    try {
+      const res = await axios.get(url, { headers: { Authorization: `Client-ID ${key}` } });
+      const photos = (res.data.results || []);
+      if (!photos.length) continue;
+      const photo = photos[Math.floor(Math.random() * Math.min(8, photos.length))];
+      const imgUrl = photo.urls.regular || photo.urls.full;
+      const writer = fs.createWriteStream(outPath);
+      const response = await axios({ url: imgUrl, method: 'GET', responseType: 'stream' });
+      response.data.pipe(writer);
+      await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
+      return;
+    } catch { /* try next */ }
   }
   throw new Error(`이미지 없음: "${query}"`);
 }
 
-// ─── 3. 오버레이 HTML - 바이럴 v2: 키워드 강조 + 썸네일 특화 ─────────────────
-function makeOverlayHtml(narration, slideIdx, totalSlides, keyword = '', type = 'body') {
-  // 레이아웃 (1080×1920):
-  //  ① 상단 흰색 바  : y=0    ~ y=190   (브랜드)
-  //  ② 이미지 창     : y=190  ~ y=1080  (투명 — 배경 이미지 표시)
-  //  ③ 하단 자막 바  : y=1080 ~ y=1680  (흰색 — 텍스트)
-  //  ④ 하단 여백     : y=1680 ~ y=1920  (YouTube UI 겹침 방지)
+// ─── 3. BGM 다운로드 ──────────────────────────────────────────────────────────
+async function downloadBGM(outPath) {
+  const shuffled = [...BGM_TRACKS].sort(() => Math.random() - 0.5);
+  for (const url of shuffled) {
+    try {
+      console.log(`  🎵 BGM: ${url.split('/').pop()}`);
+      const res = await axios({ url, method: 'GET', responseType: 'stream', timeout: 15000 });
+      const writer = fs.createWriteStream(outPath);
+      res.data.pipe(writer);
+      await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
+      if (fs.statSync(outPath).size > 10000) {
+        console.log('  ✅ BGM 다운로드 완료');
+        return true;
+      }
+    } catch (e) {
+      console.log(`  ⚠️  BGM 실패: ${e.message}`);
+    }
+  }
+  console.log('  ⚠️  BGM 없음 — 무음으로 진행');
+  return false;
+}
 
-  const progress = Math.round((slideIdx / totalSlides) * 100);
-  const isHook   = type === 'hook';
-  const kwColor  = type === 'ending' ? '#7EFFC5' : '#FFD700';
-  const progressColor = isHook
-    ? 'linear-gradient(90deg, #FF6B35, #FFD700)'
-    : 'linear-gradient(90deg, #E8631A, #4fc3f7)';
+// ─── 4. 오버레이 HTML (풀스크린 트렌디 디자인) ──────────────────────────────
+function makeOverlayHtml(slide, slideIdx, totalSlides) {
+  const { narration = '', keyword = '', type = 'body', cardData } = slide;
+  const lines   = narration.split('\n').filter(Boolean);
+  const isHook  = type === 'hook';
+  const isData  = type === 'data';
+  const isSummary = type === 'summary';
+
+  const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // 진행 점
+  const dots = Array.from({ length: totalSlides }, (_, i) =>
+    `<div class="dot${i === slideIdx ? ' active' : ''}"></div>`
+  ).join('');
+
+  // 배지 라벨
+  const badgeLabel = isHook ? '✅ 꿀팁' :
+    type === 'fact'   ? '📊 팩트' :
+    type === 'howto'  ? '🔥 방법' :
+    isData            ? '📋 데이터' : '💪 실천';
+
+  const badgeBg = isHook    ? 'linear-gradient(135deg,#E8631A,#FF8C42)' :
+                  isData    ? 'linear-gradient(135deg,#6C63FF,#9D4EDD)' :
+                  isSummary ? 'linear-gradient(135deg,#11998e,#38ef7d)' :
+                              'rgba(0,0,0,0.45)';
+
+  // 정보 카드 HTML
+  const cardHtml = isData && cardData ? `
+<div class="info-card">
+  <div class="card-title">${esc(cardData.title)}</div>
+  ${(cardData.items || []).map((item) =>
+    `<div class="card-item">
+       <span class="card-label">${esc(item.label)}</span>
+       <span class="card-value">${esc(item.value)}</span>
+     </div>`).join('')}
+  ${cardData.total ? `
+  <div class="card-total">
+    <span class="card-total-label">합계</span>
+    <span class="card-total-value">${esc(cardData.total)}</span>
+  </div>` : ''}
+</div>` : '';
+
+  // 자막 줄
+  const captionHtml = lines.map((line, i) =>
+    `<span class="caption-line${i === 0 && isHook ? ' highlight' : ''}">${esc(line)}</span>`
+  ).join('');
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -287,170 +336,257 @@ html, body {
   font-family:${FONT};
 }
 
-/* ① 상단 흰색 바 (y=0~190) */
-.top-bar {
-  position:absolute;
-  top:0; left:0; right:0; height:190px;
-  background:#ffffff;
-  border-bottom:4px solid rgba(30,158,122,0.25);
-  display:flex; align-items:center; justify-content:center;
-}
-.brand-inner {
-  display:flex; align-items:center; gap:16px;
-}
-.brand-icon { font-size:48px; line-height:1; }
-.brand-text  { font-size:46px; font-weight:900; color:#E8631A; letter-spacing:1px; }
-
-/* ② 이미지 창 위 — 훅 배지 (hook 슬라이드) */
-.hook-badge {
-  position:absolute;
-  top:220px; left:50%; transform:translateX(-50%);
-  background:linear-gradient(135deg, #E8631A, #C4501A);
-  color:#fff; white-space:nowrap;
-  font-size:36px; font-weight:800;
-  padding:14px 52px; border-radius:60px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.35);
+/* 하단 그라디언트 (이미지 위) */
+.gradient-overlay {
+  position:absolute; bottom:0; left:0; right:0;
+  height:${isData ? '300px' : '1050px'};
+  background:linear-gradient(to top,
+    rgba(0,0,0,0.97) 0%,
+    rgba(0,0,0,0.82) 35%,
+    rgba(0,0,0,0.25) 70%,
+    transparent 100%
+  );
 }
 
-/* ② 이미지 창 위 — 키워드 강조 (이미지 중앙) */
-.keyword-area {
+/* 상단 페이드 */
+.top-fade {
+  position:absolute; top:0; left:0; right:0; height:260px;
+  background:linear-gradient(to bottom, rgba(0,0,0,0.60), transparent);
+}
+
+/* 브랜드 워터마크 */
+.brand {
+  position:absolute; top:38px; left:44px;
+  display:flex; align-items:center; gap:12px;
+  background:rgba(0,0,0,0.38);
+  backdrop-filter:blur(8px);
+  border-radius:50px; padding:10px 26px;
+}
+.brand-icon { font-size:30px; line-height:1; }
+.brand-name { font-size:28px; font-weight:800; color:#fff; letter-spacing:-0.5px; }
+
+/* 슬라이드 타입 배지 */
+.type-badge {
+  position:absolute; top:38px; right:44px;
+  background:${badgeBg};
+  border-radius:50px; padding:12px 32px;
+  font-size:28px; font-weight:800; color:#fff;
+  letter-spacing:1px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.35);
+}
+
+/* 키워드 강조 (중앙) */
+${!isData ? `.keyword-area {
   position:absolute;
-  top:490px; left:50%;
-  transform:translateX(-50%);
-  width:980px; text-align:center;
+  top:${isHook ? '520px' : '600px'};
+  left:50%; transform:translateX(-50%);
+  width:1000px; text-align:center;
 }
 .keyword-text {
-  font-size:92px; font-weight:900;
-  color:${kwColor};
-  line-height:1.20; word-break:keep-all;
-  text-shadow:0 4px 12px rgba(0,0,0,0.95), 0 8px 40px rgba(0,0,0,0.85);
-  letter-spacing:-2px;
-}
-.keyword-text.hook-kw {
-  font-size:100px;
-  text-shadow:0 4px 10px rgba(0,0,0,1),
-    -3px 0 0 rgba(200,0,0,0.55), 3px 0 0 rgba(200,0,0,0.55);
-}
+  font-size:${isHook ? '124px' : '104px'};
+  font-weight:900;
+  color:${isSummary ? '#7EFFC5' : '#FFE066'};
+  line-height:1.2; word-break:keep-all;
+  text-shadow:
+    0 0 50px rgba(255,160,0,0.65),
+    0 5px 20px rgba(0,0,0,0.98),
+    -4px -4px 0 rgba(0,0,0,0.55),
+    4px 4px 0 rgba(0,0,0,0.55);
+  letter-spacing:-3px;
+}` : ''}
 
-/* ③ 하단 흰색 자막 바 (y=1080~1680) — 60대 고가독성 */
-.caption-bar {
+/* 정보 카드 */
+.info-card {
   position:absolute;
-  top:1080px; left:0; right:0; height:600px;
-  background:#ffffff;
-  border-top:5px solid rgba(30,158,122,0.4);
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  padding:32px 56px; gap:18px;
+  top:50%; left:50%;
+  transform:translate(-50%, -50%);
+  width:950px;
+  background:rgba(8,8,8,0.92);
+  backdrop-filter:blur(18px);
+  border-radius:36px;
+  border:2px solid rgba(232,99,26,0.70);
+  padding:52px 60px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.85);
 }
-.caption-text {
-  font-size:56px; font-weight:900; color:#111111;
+.card-title {
+  font-size:54px; font-weight:900; color:#FFE066;
+  text-align:center; margin-bottom:40px;
+  padding-bottom:28px;
+  border-bottom:2px solid rgba(255,255,255,0.14);
+}
+.card-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.card-label { font-size:42px; font-weight:600; color:rgba(255,255,255,0.88); }
+.card-value { font-size:46px; font-weight:900; color:#FF8C42; }
+.card-total {
+  margin-top:30px;
+  display:flex; justify-content:space-between; align-items:center;
+  background:rgba(232,99,26,0.22);
+  border:1px solid rgba(232,99,26,0.45);
+  border-radius:18px; padding:22px 30px;
+}
+.card-total-label { font-size:46px; font-weight:900; color:#fff; }
+.card-total-value { font-size:54px; font-weight:900; color:#FFE066; }
+
+/* 자막 */
+.caption-area {
+  position:absolute;
+  bottom:140px; left:0; right:0;
+  padding:0 64px; text-align:center;
+}
+.caption-line {
+  font-size:${isData ? '50px' : '58px'};
+  font-weight:900; color:#ffffff;
   line-height:1.55; word-break:keep-all;
-  text-align:center; letter-spacing:-0.5px;
+  text-shadow:0 3px 14px rgba(0,0,0,0.98), 0 0 40px rgba(0,0,0,0.7);
+  display:block; margin-bottom:4px;
 }
-.caption-url {
-  font-size:28px; font-weight:700; color:#E8631A;
-}
+.caption-line.highlight { color:#FFE066; font-size:62px; }
 
-/* ④ 진행 바 (y=1700) — YouTube UI 여백 안 */
-.progress-track {
-  position:absolute;
-  top:1700px; left:0; right:0; height:14px;
-  background:rgba(0,0,0,0.08);
+/* 진행 점 */
+.progress-dots {
+  position:absolute; bottom:52px; left:50%; transform:translateX(-50%);
+  display:flex; gap:14px; align-items:center;
 }
-.progress-fill {
-  height:100%; width:${progress}%;
-  background:${progressColor};
-  border-radius:0 7px 7px 0;
-}
+.dot { width:14px; height:14px; border-radius:50%; background:rgba(255,255,255,0.28); }
+.dot.active { width:40px; height:14px; border-radius:7px; background:#E8631A; }
 </style>
 </head>
 <body>
 
-<!-- ① 상단 흰색 바 -->
-<div class="top-bar">
-  <div class="brand-inner">
-    <span class="brand-icon">🏥</span>
-    <span class="brand-text">다이어트·운동 백과</span>
-  </div>
+<div class="gradient-overlay"></div>
+<div class="top-fade"></div>
+
+<div class="brand">
+  <span class="brand-icon">💪</span>
+  <span class="brand-name">다이어트·운동 백과</span>
 </div>
 
-<!-- ② 이미지 창 위 요소 -->
-${isHook ? '<div class="hook-badge">✅ 지금 바로 알아보세요</div>' : ''}
-${keyword ? `<div class="keyword-area"><div class="keyword-text${isHook ? ' hook-kw' : ''}">${keyword}</div></div>` : ''}
+<div class="type-badge">${badgeLabel}</div>
 
-<!-- ③ 하단 흰색 자막 바 -->
-<div class="caption-bar">
-  <div class="caption-text">${narration.replace(/\n/g, '<br>')}</div>
-  <div class="caption-url">smartinfohealth.co.kr</div>
-</div>
+${!isData && keyword ? `<div class="keyword-area"><div class="keyword-text">${esc(keyword)}</div></div>` : ''}
 
-<!-- ④ 진행 바 -->
-<div class="progress-track">
-  <div class="progress-fill"></div>
-</div>
+${cardHtml}
+
+<div class="caption-area">${captionHtml}</div>
+
+<div class="progress-dots">${dots}</div>
 
 </body>
 </html>`;
 }
 
-// ─── 4. TTS 생성 (Google Cloud TTS - ko-KR-Standard-C) ───────────────────────
-async function generateAudio(narration, outPath) {
-  const apiKey = process.env.GOOGLE_TTS_API_KEY;
-  if (!apiKey) throw new Error('GOOGLE_TTS_API_KEY 환경변수가 없습니다.');
+// ─── 5. 썸네일 HTML ───────────────────────────────────────────────────────────
+function makeThumbnailHtml(youtubeTitle, hookText) {
+  const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cleanTitle = youtubeTitle.replace('#Shorts', '').trim();
 
-  // \n → ", " 변환: TTS가 끊어 읽도록 자연스러운 쉼 삽입
-  const ttsText = narration.replace(/\n/g, ', ');
-
-  const res = await axios.post(
-    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
-    {
-      input: { text: ttsText },
-      voice: { languageCode: 'ko-KR', name: 'ko-KR-Standard-C' },
-      audioConfig: {
-        audioEncoding: 'MP3',
-        speakingRate: 1.10,   // 0.90 → 1.10: 자연스럽게 빠른 속도
-        pitch: -2.0,          // 약간 낮은 피치: 또박또박 느낌 감소
-      },
-    }
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width:${W}px; height:${H}px;
+  background:transparent; overflow:hidden;
+  font-family:${FONT};
+}
+.gradient {
+  position:absolute; inset:0;
+  background:linear-gradient(to top,
+    rgba(0,0,0,0.97) 0%,
+    rgba(0,0,0,0.65) 45%,
+    rgba(0,0,0,0.15) 75%,
+    transparent 100%
   );
-  const buf = Buffer.from(res.data.audioContent, 'base64');
-  fs.writeFileSync(outPath, buf);
+}
+.top-fade {
+  position:absolute; top:0; left:0; right:0; height:320px;
+  background:linear-gradient(to bottom, rgba(0,0,0,0.65), transparent);
+}
+.brand {
+  position:absolute; top:48px; left:56px;
+  display:flex; align-items:center; gap:14px;
+}
+.brand-icon { font-size:52px; }
+.brand-name { font-size:44px; font-weight:900; color:#fff; }
+
+.hook-badge {
+  position:absolute;
+  top:170px; left:50%; transform:translateX(-50%);
+  background:linear-gradient(135deg,#E8631A,#FF8C42);
+  border-radius:60px; padding:20px 64px;
+  font-size:44px; font-weight:900; color:#fff;
+  white-space:nowrap;
+  box-shadow:0 10px 40px rgba(232,99,26,0.55);
 }
 
-// ─── 5. 오디오 길이 측정 ─────────────────────────────────────────────────────
-function getAudioDuration(audioPath) {
-  return new Promise((resolve, reject) => {
-    ffmpeg.ffprobe(audioPath, (err, meta) => {
-      if (err) reject(err);
-      else resolve(parseFloat(meta.format.duration));
-    });
-  });
+.title-area {
+  position:absolute;
+  bottom:155px; left:0; right:0;
+  padding:0 64px; text-align:center;
+}
+.title-text {
+  font-size:90px; font-weight:900; color:#fff;
+  line-height:1.2; word-break:keep-all;
+  text-shadow:0 5px 24px rgba(0,0,0,0.95);
+}
+.sub-text {
+  margin-top:28px;
+  font-size:44px; font-weight:700;
+  color:rgba(255,255,255,0.70);
+}
+.dots {
+  position:absolute; bottom:60px; left:50%; transform:translateX(-50%);
+  display:flex; gap:16px; align-items:center;
+}
+.dot { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.35); }
+.dot.first { background:#E8631A; width:40px; border-radius:8px; }
+</style>
+</head>
+<body>
+<div class="gradient"></div>
+<div class="top-fade"></div>
+<div class="brand"><span class="brand-icon">💪</span><span class="brand-name">다이어트·운동 백과</span></div>
+<div class="hook-badge">✅ ${esc(hookText || '꿀팁 공개')}</div>
+<div class="title-area">
+  <div class="title-text">${esc(cleanTitle)}</div>
+  <div class="sub-text">smartinfohealth.co.kr</div>
+</div>
+<div class="dots">
+  <div class="dot first"></div>
+  <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+</div>
+</body>
+</html>`;
 }
 
-// ─── 6. 슬라이드 클립 합성 ────────────────────────────────────────────────────
-function createSlideClip(imagePath, overlayPath, audioPath, duration, outPath) {
+// ─── 6. 슬라이드 클립 합성 (오디오 없음 — BGM은 나중에 삽입) ─────────────────
+function createSlideClip(imagePath, overlayPath, duration, outPath) {
   return new Promise((resolve, reject) => {
-    const d = (duration + 0.3).toFixed(2);
+    const d = duration.toFixed(2);
     ffmpeg()
       .input(imagePath).inputOptions(['-loop', '1', '-framerate', '25'])
-      .input(audioPath)
       .input(overlayPath)
+      .input('anullsrc=r=44100:cl=stereo').inputOptions(['-f', 'lavfi'])
       .complexFilter([
-        `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,` +
-        `crop=${W}:${H},setsar=1[bg]`,
-        `[bg][2:v]overlay=0:0:eof_action=repeat,` +
-        `fade=t=in:st=0:d=0.2,` +
-        `fade=t=out:st=${(parseFloat(d) - 0.3).toFixed(2)}:d=0.3[out]`,
+        `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1[bg]`,
+        `[bg][1:v]overlay=0:0:eof_action=repeat,` +
+        `fade=t=in:st=0:d=0.35,` +
+        `fade=t=out:st=${(parseFloat(d) - 0.45).toFixed(2)}:d=0.45[out]`,
       ])
       .outputOptions([
         '-map', '[out]',
-        '-map', '1:a',
+        '-map', '2:a',
         '-c:v', 'libx264', '-preset', 'fast', '-crf', '22',
         '-c:a', 'aac', '-b:a', '128k',
         '-pix_fmt', 'yuv420p',
         '-t', d,
         '-movflags', '+faststart',
-        '-af', `afade=t=in:st=0:d=0.15,afade=t=out:st=${(duration - 0.2).toFixed(2)}:d=0.2`,
       ])
       .output(outPath)
       .on('end', resolve)
@@ -480,88 +616,29 @@ function concatClips(clipPaths, outPath) {
   });
 }
 
-// ─── 8. 썸네일 전용 HTML (제목·키워드가 크게 보이는 타이틀 카드) ──────────────
-function makeThumbnailHtml(youtubeTitle, keyword) {
-  const kwFontSize = keyword.length > 8 ? 84 : 100;
-  return `<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body {
-  width:${W}px; height:${H}px;
-  background:transparent; overflow:hidden;
-  font-family:${FONT};
-}
-.top-bar {
-  position:absolute; top:0; left:0; right:0; height:200px;
-  background:#ffffff;
-  border-bottom:5px solid rgba(30,158,122,0.3);
-  display:flex; align-items:center; justify-content:center; gap:18px;
-}
-.brand-icon { font-size:56px; line-height:1; }
-.brand-text  { font-size:50px; font-weight:900; color:#E8631A; letter-spacing:0.5px; }
-.keyword-wrap {
-  position:absolute; top:260px; left:60px; right:60px;
-  display:flex; flex-direction:column; align-items:center; gap:28px;
-}
-.topic-badge {
-  background:linear-gradient(135deg,#E8631A,#C4501A);
-  color:#fff; font-size:38px; font-weight:800;
-  padding:18px 56px; border-radius:60px; letter-spacing:0.5px;
-  box-shadow:0 6px 24px rgba(0,0,0,0.35);
-}
-.keyword-text {
-  font-size:${kwFontSize}px; font-weight:900;
-  color:#FFD700; line-height:1.2;
-  word-break:keep-all; text-align:center;
-  text-shadow:
-    0 4px 8px rgba(0,0,0,0.95), 0 8px 40px rgba(0,0,0,0.85),
-    -3px -3px 0 rgba(0,0,0,0.7), 3px -3px 0 rgba(0,0,0,0.7),
-    -3px  3px 0 rgba(0,0,0,0.7), 3px  3px 0 rgba(0,0,0,0.7);
-  letter-spacing:-1px;
-}
-.title-bar {
-  position:absolute; bottom:240px; left:0; right:0;
-  background:#ffffff; padding:44px 64px 36px;
-  border-top:6px solid #E8631A;
-}
-.title-text {
-  font-size:58px; font-weight:900; color:#1B3A32;
-  line-height:1.35; word-break:keep-all; text-align:center;
-  letter-spacing:-0.5px;
-}
-.site-url {
-  font-size:30px; font-weight:700; color:#E8631A;
-  text-align:center; margin-top:18px; opacity:0.85;
-}
-.bottom-pad {
-  position:absolute; bottom:0; left:0; right:0; height:240px;
-  background:#ffffff;
-  border-top:2px solid rgba(30,158,122,0.15);
-}
-</style>
-</head>
-<body>
-<div class="top-bar">
-  <span class="brand-icon">🏥</span>
-  <span class="brand-text">다이어트·운동 백과</span>
-</div>
-<div class="keyword-wrap">
-  <div class="topic-badge">🎯 오늘의 건강 정보</div>
-  <div class="keyword-text">${keyword}</div>
-</div>
-<div class="title-bar">
-  <div class="title-text">${youtubeTitle}</div>
-  <div class="site-url">smartinfohealth.co.kr</div>
-</div>
-<div class="bottom-pad"></div>
-</body>
-</html>`;
+// ─── 8. BGM 삽입 (기존 무음 오디오를 BGM으로 교체) ──────────────────────────
+function addBGMToVideo(videoPath, bgmPath, outPath) {
+  return new Promise((resolve, reject) => {
+    ffmpeg()
+      .input(videoPath)
+      .input(bgmPath).inputOptions(['-stream_loop', '-1'])
+      .outputOptions([
+        '-map', '0:v',
+        '-map', '1:a',
+        '-c:v', 'copy',
+        '-c:a', 'aac', '-b:a', '128k',
+        '-af', 'volume=0.32,afade=t=in:st=0:d=1.5,afade=t=out:st=40:d=5',
+        '-shortest',
+        '-movflags', '+faststart',
+      ])
+      .output(outPath)
+      .on('end', resolve)
+      .on('error', reject)
+      .run();
+  });
 }
 
-// ─── 8-b. 배경 이미지 + 썸네일 오버레이 합성 → JPEG ────────────────────────────
+// ─── 9. 썸네일 합성 (배경이미지 + 오버레이) ─────────────────────────────────
 function compositeThumbnail(bgPath, overlayPath, outPath) {
   return new Promise((resolve, reject) => {
     ffmpeg()
@@ -580,24 +657,25 @@ function compositeThumbnail(bgPath, overlayPath, outPath) {
   });
 }
 
-// ─── 메인 ─────────────────────────────────────────────────────────────────────
+// ─── 메인 ────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log('=== 유튜브 쇼츠 v7 (바이럴 5슬라이드, 25~35초) ===\n');
+  console.log('=== 다이어트·운동 쇼츠 v8 (트렌디 디자인 + BGM + 꿀팁 데이터) ===\n');
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shorts-'));
+  const outDir = path.join(process.cwd(), 'shorts-output');
+  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
 
   const browser = await puppeteer.launch({
     headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
   });
-  const page = await browser.newPage();
-  await page.setViewport({ width: W, height: H, deviceScaleFactor: 1 });
 
   try {
+    // ── 대상 글 조회 ─────────────────────────────────────────────────────────
     const postId = getArg('post-id');
     const post = postId
       ? await prisma.post.findUnique({ where: { id: parseInt(postId) }, include: { category: true } })
       : await prisma.post.findFirst({
-          where: { status: 'PUBLISHED', category: { slug: 'health' }, shortsGenerated: false },
+          where: { status: 'PUBLISHED', shortsGenerated: false },
           orderBy: { publishedAt: 'desc' },
           include: { category: true },
         });
@@ -605,136 +683,154 @@ async function main() {
     if (!post) { console.log('쇼츠를 만들 글이 없습니다.'); return; }
     console.log(`대상 글: "${post.title}"\n`);
 
-    // 1. GPT 스크립트
-    console.log('[1/3] 쇼츠 스크립트 생성...');
+    // ── 1단계: GPT 스크립트 생성 ─────────────────────────────────────────────
+    console.log('[1/4] 쇼츠 스크립트 생성...');
     const script = await generateShortsScript(post);
     const slides = (script.slides || []).slice(0, 5);
     console.log(`  제목: ${script.youtubeTitle}`);
     console.log(`  슬라이드: ${slides.length}개`);
-    slides.forEach((s, i) => console.log(`    ${i + 1}. [${s.type}] 키워드:"${s.keyword}" | ${s.narration.replace(/\n/g, ' / ').slice(0, 30)}...`));
-    console.log('');
+    slides.forEach((s, i) => {
+      const dur = SLIDE_DURATIONS[s.type] || 9;
+      console.log(`    ${i + 1}. [${s.type}/${dur}초] ${s.narration.replace(/\n/g,' / ').slice(0,35)}...`);
+    });
 
-    // 2. 슬라이드별 처리
-    console.log('[2/3] 클립 생성...\n');
+    // ── 2단계: BGM 다운로드 ──────────────────────────────────────────────────
+    console.log('\n[2/4] BGM 다운로드...');
+    const bgmPath = path.join(tmpDir, 'bgm.mp3');
+    const bgmReady = await downloadBGM(bgmPath);
+
+    // ── 3단계: 슬라이드 클립 생성 ────────────────────────────────────────────
+    console.log('\n[3/4] 클립 생성...\n');
     const clipPaths = [];
-    let totalDuration = 0;
 
     for (let i = 0; i < slides.length; i++) {
-      const slide = slides[i];
-      console.log(`  ── 슬라이드 ${i + 1}/${slides.length} ──`);
+      const slide    = slides[i];
+      const duration = SLIDE_DURATIONS[slide.type] || 9;
+      console.log(`  ── 슬라이드 ${i + 1}/${slides.length} [${slide.type}] ${duration}초 ──`);
 
-      // a) 이미지
-      const imagePath = path.join(tmpDir, `image_${i}.jpg`);
-      try {
-        console.log(`     🖼️  "${slide.imageQuery}"`);
-        await fetchPexelsPhoto(slide.imageQuery, imagePath);
-      } catch {
-        console.log(`     ⚠️ 재시도: "Korean woman senior health"`);
-        await fetchPexelsPhoto('Korean woman senior health', imagePath);
+      // 이미지 다운로드
+      const imgPath = path.join(tmpDir, `img_${i}.jpg`);
+      const fallbacks = [
+        slide.imageQuery,
+        'fit woman fitness workout beautiful',
+        'athletic woman healthy lifestyle sport',
+      ];
+      let imgOk = false;
+      for (const q of fallbacks) {
+        try {
+          console.log(`     🖼️  "${q}"`);
+          await downloadImage(q, imgPath);
+          imgOk = true;
+          break;
+        } catch { console.log(`     ⚠️  재시도...`); }
       }
+      if (!imgOk) { console.log('     ❌ 이미지 실패, 스킵'); continue; }
 
-      // b) TTS - narration 그대로 읽기
-      const audioPath = path.join(tmpDir, `audio_${i}.mp3`);
-      await generateAudio(slide.narration, audioPath);
-      const duration = await getAudioDuration(audioPath);
-      totalDuration += duration + 0.3;
-      console.log(`     🔊 ${slide.narration.length}자 → ${duration.toFixed(1)}초`);
-
-      // c) 오버레이 - 키워드 강조 + 나레이션 분리 표시
+      // 오버레이 렌더링 (Puppeteer)
       const overlayPath = path.join(tmpDir, `overlay_${i}.png`);
-      const html = makeOverlayHtml(slide.narration, i + 1, slides.length, slide.keyword || '', slide.type || 'body');
-      await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 10000 });
-      await new Promise((r) => setTimeout(r, 400));
-      await page.screenshot({ path: overlayPath, omitBackground: true });
+      const overPage = await browser.newPage();
+      await overPage.setViewport({ width: W, height: H });
+      await overPage.setContent(makeOverlayHtml(slide, i, slides.length), { waitUntil: 'domcontentloaded' });
+      await new Promise((r) => setTimeout(r, 450));
+      await overPage.screenshot({ path: overlayPath, omitBackground: true });
+      await overPage.close();
 
-      // d) 클립 합성
-      const clipPath = path.join(tmpDir, `clip_${String(i).padStart(2, '0')}.mp4`);
-      await createSlideClip(imagePath, overlayPath, audioPath, duration, clipPath);
+      // 클립 합성
+      const clipPath = path.join(tmpDir, `clip_${String(i).padStart(2,'0')}.mp4`);
+      process.stdout.write(`     🎬 클립 합성...`);
+      await createSlideClip(imgPath, overlayPath, duration, clipPath);
+      console.log(' ✅');
       clipPaths.push(clipPath);
-      console.log(`     ✅ 완료\n`);
     }
 
-    // 썸네일 오버레이 PNG — 브라우저 닫기 전에 생성
-    const thumbOverlayPath = path.join(tmpDir, 'thumb_overlay.png');
-    try {
-      const thumbHtml = makeThumbnailHtml(script.youtubeTitle, slides[0]?.keyword || script.keyword || '');
-      await page.setContent(thumbHtml, { waitUntil: 'domcontentloaded', timeout: 10000 });
-      await new Promise(r => setTimeout(r, 500));
-      await page.screenshot({ path: thumbOverlayPath, omitBackground: true });
-      console.log('  📸 썸네일 오버레이 생성 완료\n');
-    } catch (e) {
-      console.log(`  ⚠️ 썸네일 오버레이 생성 실패: ${e.message}\n`);
+    if (clipPaths.length === 0) { console.log('클립 생성 실패'); return; }
+
+    // ── 4단계: 최종 영상 합성 + BGM ─────────────────────────────────────────
+    console.log('\n[4/4] 최종 영상 합성...');
+    const rawPath   = path.join(tmpDir, 'raw.mp4');
+    await concatClips(clipPaths, rawPath);
+
+    let finalPath = rawPath;
+    if (bgmReady && fs.existsSync(bgmPath)) {
+      finalPath = path.join(tmpDir, 'final.mp4');
+      process.stdout.write('  🎵 BGM 삽입...');
+      await addBGMToVideo(rawPath, bgmPath, finalPath);
+      console.log(' ✅');
     }
-
-    await browser.close();
-    console.log(`총 ${slides.length}슬라이드 | 예상 길이: ~${totalDuration.toFixed(0)}초\n`);
-
-    // 3. 최종 합성
-    console.log('[3/3] 최종 영상 합성...');
-    const finalPath = path.join(tmpDir, 'shorts_final.mp4');
-    await concatClips(clipPaths, finalPath);
     const sizeMB = (fs.statSync(finalPath).size / 1024 / 1024).toFixed(1);
     console.log(`  완성: ${sizeMB}MB\n`);
 
-    // 4. 업로드 또는 저장
+    // ── 썸네일 생성 ──────────────────────────────────────────────────────────
+    const thumbOverlayPath = path.join(tmpDir, 'thumb_overlay.png');
+    const thumbJpgPath     = path.join(tmpDir, 'thumb.jpg');
+    try {
+      const thumbPage = await browser.newPage();
+      await thumbPage.setViewport({ width: W, height: H });
+      await thumbPage.setContent(makeThumbnailHtml(script.youtubeTitle, script.hookText), { waitUntil: 'domcontentloaded' });
+      await new Promise((r) => setTimeout(r, 500));
+      await thumbPage.screenshot({ path: thumbOverlayPath, omitBackground: true });
+      await thumbPage.close();
+
+      const firstImg = path.join(tmpDir, 'img_0.jpg');
+      if (fs.existsSync(firstImg)) {
+        await compositeThumbnail(firstImg, thumbOverlayPath, thumbJpgPath);
+        console.log('  📸 썸네일 생성 완료\n');
+      }
+    } catch (e) {
+      console.log(`  ⚠️  썸네일 실패: ${e.message}\n`);
+    }
+
+    // ── 로컬 저장 ────────────────────────────────────────────────────────────
+    const savePath = path.join(outDir, `${post.slug}.mp4`);
+    fs.copyFileSync(finalPath, savePath);
+    if (fs.existsSync(thumbJpgPath)) {
+      fs.copyFileSync(thumbJpgPath, path.join(outDir, `${post.slug}-thumb.jpg`));
+    }
+    console.log(`💾 영상 저장: ${savePath}`);
+
+    // ── YouTube 업로드 ────────────────────────────────────────────────────────
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr';
     const postUrl = `${siteUrl}/${post.category.slug}/${post.slug}`;
-    // 블로그 링크를 첫 줄에 배치 — 설명란을 펼치면 바로 클릭 가능
     const fullDesc =
-      `📖 전체 내용 블로그에서 보기 👇\n` +
-      `${postUrl}\n\n` +
-      `${script.description}\n\n` +
-      `이 영상이 도움이 됐다면 구독 & 좋아요 눌러주세요! 🔥\n` +
-      `매일 새로운 다이어트·운동 정보를 쇼츠로 전해드립니다.\n\n` +
+      `📖 전체 내용 블로그에서 확인하세요 👇\n${postUrl}\n\n` +
+      `${script.description || ''}\n\n` +
+      `이 영상이 도움이 됐다면 구독 & 좋아요! 💪\n` +
+      `매일 새로운 다이어트·운동 꿀팁을 쇼츠로 전해드립니다.\n\n` +
       `─────────────────────\n` +
-      `${(script.tags || []).map((t) => '#' + t.replace(/\s/g, '')).join(' ')} #Shorts #다이어트 #운동 #체중감량`;
+      `${(script.tags || []).map((t) => '#' + t.replace(/\s/g,'')).join(' ')} #Shorts #다이어트 #운동 #피트니스`;
 
     if (process.env.YOUTUBE_REFRESH_TOKEN) {
       const { uploadToYouTube, uploadThumbnail, postComment } = require('./youtube-uploader');
+      console.log('\n  업로드 진행...');
       const videoId = await uploadToYouTube({
         videoPath: finalPath,
         title: script.youtubeTitle,
         description: fullDesc,
-        tags: [...(script.tags || []), '다이어트', '운동', '체중감량', 'Shorts'],
+        tags: [...(script.tags || []), '다이어트', '운동', '피트니스', '쇼츠', 'Shorts'],
         categoryId: '26',
       });
 
-      // 타이틀 카드 썸네일 업로드 (배경 이미지 + 오버레이 합성)
-      try {
-        const thumbJpgPath = path.join(tmpDir, 'thumbnail.jpg');
-        const firstImagePath = path.join(tmpDir, 'image_0.jpg');
-        console.log('  썸네일 합성 중...');
-        await compositeThumbnail(firstImagePath, thumbOverlayPath, thumbJpgPath);
-        await uploadThumbnail({ videoId, thumbnailPath: thumbJpgPath });
-        console.log('  썸네일 업로드 완료 ✅');
-      } catch (thumbErr) {
-        console.log(`  썸네일 업로드 실패 (건너뜀): ${thumbErr.message}`);
+      if (fs.existsSync(thumbJpgPath)) {
+        try {
+          await uploadThumbnail({ videoId, thumbnailPath: thumbJpgPath });
+          console.log('  ✅ 썸네일 업로드 완료');
+        } catch (e) { console.log(`  ⚠️  썸네일 실패: ${e.message}`); }
       }
 
-      // 댓글로 블로그 링크 게시 — 채널 규모 무관하게 항상 클릭 가능
       try {
-        await postComment({
-          videoId,
-          text: `📖 영상에서 다 못 담은 내용, 블로그에서 확인하세요 👇\n${postUrl}`,
-        });
-        console.log('  블로그 링크 댓글 게시 완료 ✅');
-      } catch (commentErr) {
-        // 댓글 스코프(youtube.force-ssl) 없으면 조용히 건너뜀
-        console.log(`  댓글 게시 건너뜀: ${commentErr.message}`);
-      }
+        await postComment({ videoId, text: `📖 더 자세한 내용은 블로그에서 확인하세요 👇\n${postUrl}` });
+        console.log('  ✅ 블로그 링크 댓글 완료');
+      } catch { /* 댓글 스코프 없으면 스킵 */ }
 
       await prisma.post.update({
         where: { id: post.id },
         data: { shortsGenerated: true, shortsVideoId: videoId },
       });
-      console.log(`✅ 업로드 완료! https://youtube.com/shorts/${videoId}`);
+      console.log(`\n✅ 업로드 완료! https://youtube.com/shorts/${videoId}`);
+
     } else {
-      const outDir = path.join(process.cwd(), 'shorts-output');
-      if (!fs.existsSync(outDir)) fs.mkdirSync(outDir);
-      const savePath = path.join(outDir, `${post.slug}.mp4`);
-      fs.copyFileSync(finalPath, savePath);
       await prisma.post.update({ where: { id: post.id }, data: { shortsGenerated: true } });
-      console.log(`✅ 저장: ${savePath}`);
+      console.log('\n✅ 로컬 저장 완료 (YOUTUBE_REFRESH_TOKEN 없음)');
     }
 
   } catch (e) {
@@ -747,4 +843,4 @@ async function main() {
   }
 }
 
-main();
+main().catch(console.error);
