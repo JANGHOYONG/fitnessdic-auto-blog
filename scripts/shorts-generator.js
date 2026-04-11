@@ -1,12 +1,12 @@
 /**
- * YouTube Shorts 자동 생성 스크립트 v8
- * 타겟: 10~30대 여성
- * 변경사항:
- *   ① 이미지: 젊고 세련된 여성 (인종 무관, 피트니스 모델 스타일)
- *   ② 디자인: 풀스크린 트렌디 (흰 바 제거, 그라디언트 오버레이)
- *   ③ 콘텐츠: 전문 꿀팁 (kcal·세트·횟수 수치 필수)
- *   ④ 오디오: TTS 제거 → 로열티 프리 BGM
- *   ⑤ 정보 카드: DATA 슬라이드에 식단표/운동표 표시
+ * YouTube Shorts 자동 생성 스크립트 v9 — 퀴즈 포맷
+ * 포맷: "이거 알면 천재" 퀴즈 형식
+ * 구조:
+ *   [1] quiz (8초)      — 퀴즈 문제 + A/B/C/D 선택지
+ *   [2] countdown (5초) — 5→4→3→2→1 카운트다운 (각 1초)
+ *   [3] answer (12초)   — 정답 공개 + 이유 설명
+ *   [4] outro (6초)     — 마무리 멘트 + 저장 유도
+ * 총 재생시간: ~31초
  */
 
 require('dotenv').config();
@@ -45,11 +45,10 @@ const BGM_TRACKS = [
 
 // ─── 슬라이드 유형별 표시 시간(초) ──────────────────────────────────────────
 const SLIDE_DURATIONS = {
-  hook:    7,
-  fact:    9,
-  howto:   10,
-  data:    12,
-  summary: 7,
+  quiz:      8,   // 퀴즈 문제 + 선택지
+  countdown: 1,   // 카운트다운 숫자 (5개 × 1초 = 5초)
+  answer:    12,  // 정답 공개 + 설명
+  outro:     6,   // 마무리 멘트
 };
 
 // ─── 주제별 설정 ──────────────────────────────────────────────────────────────
@@ -128,100 +127,57 @@ function detectTopic(post) {
   return 'weightloss';
 }
 
-// ─── 1. GPT 스크립트 생성 (전문 꿀팁 + 수치 필수) ────────────────────────────
+// ─── 1. GPT 스크립트 생성 (퀴즈 포맷) ───────────────────────────────────────
 async function generateShortsScript(post) {
   const topicId = detectTopic(post);
   const config  = TOPIC_CONFIG[topicId] || TOPIC_CONFIG.weightloss;
   const imgQ    = config.imageQueries[Math.floor(Math.random() * config.imageQueries.length)];
-  const isNutrition = config.dataType === 'nutrition';
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
-    temperature: 0.82,
-    max_tokens: 2200,
+    temperature: 0.85,
+    max_tokens: 1800,
     response_format: { type: 'json_object' },
     messages: [
       {
         role: 'system',
-        content: `당신은 10~30대 여성을 위한 다이어트·운동 쇼츠 전문 크리에이터입니다.
-국가공인 트레이너 + 영양사처럼 꿀팁을 알려주는 콘텐츠를 만듭니다.
+        content: `당신은 다이어트·운동 지식 퀴즈 쇼츠 전문 크리에이터입니다.
+"이거 알면 천재" 스타일로 시청자가 끝까지 보게 만드는 퀴즈 콘텐츠를 만듭니다.
 
-⚡ 핵심 원칙:
-① 반드시 구체적 수치 포함 (가장 중요):
-   - 식단 → 실제 음식명 + kcal 수치 + 그램 수 (예: 닭가슴살 100g = 165kcal)
-   - 운동 → 세트 수 + 횟수 + 무게 기준 + 자세 꿀팁 (예: 3세트×12회, 2~3kg)
-   - 기간 → "2주", "4주", "하루 15분" 등
-② 전문가 꿀팁 스타일 — 트레이너가 직접 귀띔해주는 느낌
-③ 시청자가 보고 "진짜 도움됐다!" 느껴야 함
-④ 짧고 임팩트 있는 문장 (한 문장 18~26자)
-⑤ 긍정적이고 따뜻한 어조. 공포·부정 표현 금지
-
-슬라이드 구조 (5개):
-[1 HOOK  ] 눈에 확 들어오는 질문·팩트로 시작
-[2 FACT  ] 구체적 수치·연구 결과·전문 지식
-[3 HOW-TO] 단계별 실천 방법 (번호 포함 가능)
-[4 DATA  ] 실제 데이터 카드 (식단 kcal표 or 운동 세트표)
-[5 SUMMARY] 오늘 바로 실천할 것 1가지`,
+⚡ 퀴즈 원칙:
+① 정답이 의외이거나 많은 사람이 틀리는 내용 (진짜 유용한 지식)
+② A/B/C/D 4지선다 — 각 선택지가 헷갈려야 흥미로움
+③ 정답 설명은 구체적 수치나 과학적 근거 포함 (예: 30g, 48시간, 운동 후 30분)
+④ 긍정적이고 유익한 내용. 공포·혐오 표현 절대 금지
+⑤ 30~50대도 공감할 수 있는 생활 밀착형 내용`,
       },
       {
         role: 'user',
         content: `블로그 제목: ${post.title}
 블로그 요약: ${post.excerpt || ''}
 
-10~30대 여성이 끝까지 보게 되는 쇼츠 스크립트를 만들어주세요.
-
-⚠️ DATA 슬라이드 규칙:
-${isNutrition
-  ? '- 실제 식품명 + kcal 수치 3개 항목 이상 포함 (예: 닭가슴살 100g → 165kcal)'
-  : '- 운동명 + 세트×횟수 + 무게 기준 3개 항목 이상 (예: 스쿼트 → 3세트×15회)'}
+이 주제로 "이거 알면 천재" 스타일의 퀴즈 쇼츠 스크립트를 만들어주세요.
 
 아래 JSON으로만 응답 (다른 텍스트 없이):
 {
-  "youtubeTitle": "유튜브 제목 40자 이내 #Shorts (숫자·꿀팁 느낌 포함)",
-  "hookText": "썸네일 강조 문구 8자 이내",
-  "description": "영상 설명 70자 이내",
-  "tags": ["다이어트", "운동", "피트니스", "관련태그1", "관련태그2"],
-  "slides": [
-    {
-      "type": "hook",
-      "narration": "첫 문장 (20자 내외)\\n둘째 문장 (20자 내외)\\n셋째 문장 (20자 내외)",
-      "keyword": "핵심 강조어 3~5자",
-      "imageQuery": "${imgQ}"
-    },
-    {
-      "type": "fact",
-      "narration": "팩트 첫 문장\\n팩트 둘째 문장 (수치 포함)\\n팩트 셋째 문장",
-      "keyword": "구체적 수치",
-      "imageQuery": "fit woman fitness gym workout beautiful"
-    },
-    {
-      "type": "howto",
-      "narration": "방법 첫 문장\\n방법 둘째 문장 (단계별)\\n방법 셋째 문장",
-      "keyword": "핵심 행동어",
-      "imageQuery": "athletic woman exercise training healthy"
-    },
-    {
-      "type": "data",
-      "narration": "데이터 소개 첫 문장\\n수치 강조 둘째 문장\\n오늘 바로 해보세요!",
-      "keyword": "${isNutrition ? '총 kcal' : '세트 수'}",
-      "imageQuery": "${isNutrition ? 'healthy meal prep food nutrition colorful' : 'gym equipment weights fitness'}",
-      "cardData": {
-        "title": "${isNutrition ? '🥗 추천 식단 예시' : '💪 추천 운동 루틴'}",
-        "items": [
-          {"label": "${isNutrition ? '음식명 + 양' : '운동명'}", "value": "${isNutrition ? 'Xkcal' : 'X세트×X회'}"},
-          {"label": "항목2", "value": "수치2"},
-          {"label": "항목3", "value": "수치3"}
-        ],
-        "total": "${isNutrition ? '합계 XXXkcal' : '총 XX분'}"
-      }
-    },
-    {
-      "type": "summary",
-      "narration": "핵심 요약 첫 문장\\n오늘 할 것 한 가지 (구체적)\\n응원 마무리 문장",
-      "keyword": "핵심 단어",
-      "imageQuery": "fit woman smiling confident healthy happy"
-    }
-  ]
+  "youtubeTitle": "이거 알면 천재? [퀴즈] 핵심키워드 #Shorts (35자 이내)",
+  "description": "퀴즈 내용을 담은 영상 설명 60자 이내",
+  "tags": ["다이어트퀴즈", "운동상식", "피트니스", "관련태그1", "관련태그2"],
+  "quiz": {
+    "question": "퀴즈 질문 (25자 이내, 임팩트 있게)",
+    "subQuestion": "보기를 골라보세요! 🤔",
+    "choices": [
+      "A. 선택지 내용",
+      "B. 선택지 내용",
+      "C. 선택지 내용",
+      "D. 선택지 내용"
+    ],
+    "answer": "B",
+    "answerText": "정답: B. 선택지 내용",
+    "explanation": "정답 이유 설명 (구체적 수치 포함, 2~3문장, 60자 이내)",
+    "bonusTip": "추가 꿀팁 한 줄 (20자 이내)",
+    "imageQuery": "${imgQ}"
+  }
 }`,
       },
     ],
@@ -319,297 +275,418 @@ async function downloadBGM(outPath) {
   return false;
 }
 
-// ─── 4. 오버레이 HTML (풀스크린 트렌디 디자인) ──────────────────────────────
-function makeOverlayHtml(slide, slideIdx, totalSlides) {
-  const { narration = '', keyword = '', type = 'body', cardData } = slide;
-  const lines   = narration.split('\n').filter(Boolean);
-  const isHook  = type === 'hook';
-  const isData  = type === 'data';
-  const isSummary = type === 'summary';
-
+// ─── 4-A. 퀴즈 슬라이드 오버레이 ────────────────────────────────────────────
+function makeQuizHtml(quiz) {
   const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-  // 진행 점
-  const dots = Array.from({ length: totalSlides }, (_, i) =>
-    `<div class="dot${i === slideIdx ? ' active' : ''}"></div>`
-  ).join('');
-
-  // 배지 라벨
-  const badgeLabel = isHook ? '✅ 꿀팁' :
-    type === 'fact'   ? '📊 팩트' :
-    type === 'howto'  ? '🔥 방법' :
-    isData            ? '📋 데이터' : '💪 실천';
-
-  const badgeBg = isHook    ? 'linear-gradient(135deg,#E8631A,#FF8C42)' :
-                  isData    ? 'linear-gradient(135deg,#6C63FF,#9D4EDD)' :
-                  isSummary ? 'linear-gradient(135deg,#11998e,#38ef7d)' :
-                              'rgba(0,0,0,0.45)';
-
-  // 정보 카드 HTML
-  const cardHtml = isData && cardData ? `
-<div class="info-card">
-  <div class="card-title">${esc(cardData.title)}</div>
-  ${(cardData.items || []).map((item) =>
-    `<div class="card-item">
-       <span class="card-label">${esc(item.label)}</span>
-       <span class="card-value">${esc(item.value)}</span>
-     </div>`).join('')}
-  ${cardData.total ? `
-  <div class="card-total">
-    <span class="card-total-label">합계</span>
-    <span class="card-total-value">${esc(cardData.total)}</span>
-  </div>` : ''}
-</div>` : '';
-
-  // 자막 줄
-  const captionHtml = lines.map((line, i) =>
-    `<span class="caption-line${i === 0 && isHook ? ' highlight' : ''}">${esc(line)}</span>`
-  ).join('');
+  const choiceColors = [
+    { bg:'rgba(59,130,246,0.88)',  border:'#60A5FA' },  // A — 파랑
+    { bg:'rgba(34,197,94,0.88)',   border:'#4ADE80' },  // B — 초록
+    { bg:'rgba(249,115,22,0.88)',  border:'#FB923C' },  // C — 오렌지
+    { bg:'rgba(168,85,247,0.88)',  border:'#C084FC' },  // D — 보라
+  ];
 
   return `<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
+<html lang="ko"><head><meta charset="UTF-8">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body {
-  width:${W}px; height:${H}px;
-  background:transparent; overflow:hidden;
-  font-family:${FONT};
+html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
+
+.top-fade    { position:absolute; top:0; left:0; right:0; height:320px;
+               background:linear-gradient(to bottom, rgba(0,0,0,0.75), transparent); }
+.bottom-fade { position:absolute; bottom:0; left:0; right:0; height:700px;
+               background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.75) 40%, transparent 100%); }
+
+/* 상단 배지 */
+.badge {
+  position:absolute; top:50px; left:50%; transform:translateX(-50%);
+  background:linear-gradient(135deg,#E8631A,#FF8C42);
+  border-radius:60px; padding:20px 70px;
+  font-size:46px; font-weight:900; color:#fff;
+  white-space:nowrap;
+  box-shadow:0 8px 30px rgba(232,99,26,0.6);
+  letter-spacing:2px;
 }
 
-/* 하단 그라디언트 (이미지 위 — 텍스트 가독성 보장) */
-.gradient-overlay {
-  position:absolute; bottom:0; left:0; right:0;
-  height:${isData ? '380px' : '1200px'};
-  background:linear-gradient(to top,
-    rgba(0,0,0,0.97) 0%,
-    rgba(0,0,0,0.88) 25%,
-    rgba(0,0,0,0.60) 55%,
-    rgba(0,0,0,0.15) 80%,
-    transparent 100%
-  );
-}
-
-/* 상단 페이드 */
-.top-fade {
-  position:absolute; top:0; left:0; right:0; height:260px;
-  background:linear-gradient(to bottom, rgba(0,0,0,0.60), transparent);
-}
-
-/* 브랜드 워터마크 */
+/* 브랜드 */
 .brand {
-  position:absolute; top:38px; left:44px;
-  display:flex; align-items:center; gap:12px;
-  background:rgba(0,0,0,0.38);
-  backdrop-filter:blur(8px);
-  border-radius:50px; padding:10px 26px;
+  position:absolute; top:170px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:10px;
+  opacity:0.75;
 }
-.brand-icon { font-size:30px; line-height:1; }
-.brand-name { font-size:28px; font-weight:800; color:#fff; letter-spacing:-0.5px; }
+.brand-icon { font-size:28px; }
+.brand-name  { font-size:26px; font-weight:700; color:#fff; }
 
-/* 슬라이드 타입 배지 */
-.type-badge {
-  position:absolute; top:38px; right:44px;
-  background:${badgeBg};
-  border-radius:50px; padding:12px 32px;
-  font-size:28px; font-weight:800; color:#fff;
-  letter-spacing:1px;
-  box-shadow:0 4px 16px rgba(0,0,0,0.35);
-}
-
-/* 키워드 강조 (중앙) */
-${!isData ? `.keyword-area {
+/* 퀴즈 질문 영역 */
+.question-area {
   position:absolute;
-  top:${isHook ? '520px' : '600px'};
-  left:50%; transform:translateX(-50%);
-  width:1000px; text-align:center;
+  top:280px; left:0; right:0;
+  padding:0 70px; text-align:center;
 }
-.keyword-text {
-  font-size:${isHook ? '124px' : '104px'};
-  font-weight:900;
-  color:${isSummary ? '#7EFFC5' : '#FFE066'};
-  line-height:1.2; word-break:keep-all;
-  text-shadow:
-    0 0 50px rgba(255,160,0,0.65),
-    0 5px 20px rgba(0,0,0,0.98),
-    -4px -4px 0 rgba(0,0,0,0.55),
-    4px 4px 0 rgba(0,0,0,0.55);
-  letter-spacing:-3px;
-}` : ''}
+.question-text {
+  font-size:72px; font-weight:900; color:#fff; line-height:1.35;
+  word-break:keep-all;
+  text-shadow:0 4px 20px rgba(0,0,0,0.95), -3px -3px 0 rgba(0,0,0,0.5), 3px 3px 0 rgba(0,0,0,0.5);
+}
+.sub-question {
+  margin-top:24px;
+  font-size:44px; font-weight:600; color:rgba(255,255,255,0.65);
+}
 
-/* 정보 카드 */
-.info-card {
+/* 선택지 */
+.choices {
   position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%, -50%);
-  width:950px;
-  background:rgba(8,8,8,0.92);
-  backdrop-filter:blur(18px);
-  border-radius:36px;
-  border:2px solid rgba(232,99,26,0.70);
-  padding:52px 60px;
-  box-shadow:0 24px 80px rgba(0,0,0,0.85);
+  bottom:280px; left:0; right:0;
+  padding:0 60px;
+  display:flex; flex-direction:column; gap:22px;
 }
-.card-title {
-  font-size:54px; font-weight:900; color:#FFE066;
-  text-align:center; margin-bottom:40px;
-  padding-bottom:28px;
-  border-bottom:2px solid rgba(255,255,255,0.14);
+.choice {
+  display:flex; align-items:center; gap:24px;
+  border-radius:24px; padding:26px 36px;
+  border:3px solid;
+  backdrop-filter:blur(12px);
 }
-.card-item {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:20px 0;
-  border-bottom:1px solid rgba(255,255,255,0.08);
+.choice-label {
+  font-size:48px; font-weight:900; color:#fff; min-width:52px;
 }
-.card-label { font-size:42px; font-weight:600; color:rgba(255,255,255,0.88); }
-.card-value { font-size:46px; font-weight:900; color:#FF8C42; }
-.card-total {
-  margin-top:30px;
-  display:flex; justify-content:space-between; align-items:center;
-  background:rgba(232,99,26,0.22);
-  border:1px solid rgba(232,99,26,0.45);
-  border-radius:18px; padding:22px 30px;
+.choice-text {
+  font-size:46px; font-weight:700; color:#fff; line-height:1.3;
+  word-break:keep-all;
 }
-.card-total-label { font-size:46px; font-weight:900; color:#fff; }
-.card-total-value { font-size:54px; font-weight:900; color:#FFE066; }
 
-/* 자막 — 유튜브 UI(하단 버튼)에 가리지 않도록 충분히 위로 */
-.caption-area {
-  position:absolute;
-  bottom:330px; left:0; right:0;
-  padding:0 72px; text-align:center;
-}
-.caption-line {
-  font-size:${isData ? '50px' : '60px'};
-  font-weight:900; color:#ffffff;
-  line-height:1.6; word-break:keep-all;
-  text-shadow:
-    0 3px 16px rgba(0,0,0,0.99),
-    0 0 50px rgba(0,0,0,0.8),
-    -3px -3px 0 rgba(0,0,0,0.6),
-    3px 3px 0 rgba(0,0,0,0.6);
-  display:block; margin-bottom:6px;
-}
-.caption-line.highlight { color:#FFE066; font-size:64px; }
-
-/* 진행 점 — 자막 바로 아래 */
-.progress-dots {
-  position:absolute; bottom:260px; left:50%; transform:translateX(-50%);
-  display:flex; gap:14px; align-items:center;
-}
-.dot { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.30); }
-.dot.active { width:44px; height:16px; border-radius:8px; background:#E8631A; }
+/* 진행 점 */
+.dots { position:absolute; bottom:210px; left:50%; transform:translateX(-50%);
+        display:flex; gap:14px; align-items:center; }
+.dot  { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.30); }
+.dot.active { width:44px; border-radius:8px; background:#E8631A; }
 </style>
-</head>
-<body>
-
-<div class="gradient-overlay"></div>
+</head><body>
 <div class="top-fade"></div>
+<div class="bottom-fade"></div>
 
+<div class="badge">👑 이거 알면 천재!</div>
+<div class="brand"><span class="brand-icon">💪</span><span class="brand-name">다이어트·운동 백과</span></div>
+
+<div class="question-area">
+  <div class="question-text">${esc(quiz.question)}</div>
+  <div class="sub-question">${esc(quiz.subQuestion || '보기를 골라보세요! 🤔')}</div>
+</div>
+
+<div class="choices">
+  ${(quiz.choices || []).map((c, i) => `
+  <div class="choice" style="background:${choiceColors[i]?.bg || 'rgba(0,0,0,0.6)'};border-color:${choiceColors[i]?.border || '#fff'}">
+    <span class="choice-label">${['A','B','C','D'][i]}</span>
+    <span class="choice-text">${esc(c.replace(/^[A-D]\.\s*/,''))}</span>
+  </div>`).join('')}
+</div>
+
+<div class="dots">
+  <div class="dot active"></div>
+  <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+</div>
+</body></html>`;
+}
+
+// ─── 4-B. 카운트다운 슬라이드 오버레이 ──────────────────────────────────────
+function makeCountdownHtml(num) {
+  const colors = { 5:'#FFE066', 4:'#FFA940', 3:'#FF7A30', 2:'#FF4D4D', 1:'#FF1A1A' };
+  const color  = colors[num] || '#FFE066';
+  const glow   = num <= 2 ? '0 0 80px rgba(255,80,0,0.9)' : '0 0 60px rgba(255,200,0,0.7)';
+  return `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
+.overlay { position:absolute; inset:0; background:rgba(0,0,0,0.72); }
+
+/* 상단 안내 */
+.hint {
+  position:absolute; top:200px; left:50%; transform:translateX(-50%);
+  font-size:56px; font-weight:800; color:rgba(255,255,255,0.80);
+  white-space:nowrap; letter-spacing:2px;
+  text-shadow:0 3px 12px rgba(0,0,0,0.8);
+}
+
+/* 원형 테두리 + 숫자 */
+.circle {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-58%);
+  width:540px; height:540px; border-radius:50%;
+  border:14px solid ${color};
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 0 6px rgba(255,255,255,0.08), ${glow};
+}
+.number {
+  font-size:360px; font-weight:900; color:${color}; line-height:1;
+  text-shadow:${glow}, 0 6px 30px rgba(0,0,0,0.95);
+}
+
+/* 하단 안내 */
+.sub {
+  position:absolute; bottom:330px; left:50%; transform:translateX(-50%);
+  font-size:48px; font-weight:700; color:rgba(255,255,255,0.65);
+  white-space:nowrap;
+}
+
+/* 진행 점 */
+.dots { position:absolute; bottom:260px; left:50%; transform:translateX(-50%);
+        display:flex; gap:14px; align-items:center; }
+.dot  { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.28); }
+.dot.active { width:44px; border-radius:8px; background:#E8631A; }
+</style>
+</head><body>
+<div class="overlay"></div>
+<div class="hint">⏳ 생각해보세요!</div>
+<div class="circle"><div class="number">${num}</div></div>
+<div class="sub">정답은 ${num}초 후 공개!</div>
+<div class="dots">
+  <div class="dot"></div>
+  <div class="dot active"></div>
+  <div class="dot"></div><div class="dot"></div>
+</div>
+</body></html>`;
+}
+
+// ─── 4-C. 정답 슬라이드 오버레이 ────────────────────────────────────────────
+function makeAnswerHtml(quiz) {
+  const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
+
+.top-fade    { position:absolute; top:0; left:0; right:0; height:350px;
+               background:linear-gradient(to bottom, rgba(0,0,0,0.80), transparent); }
+.bottom-fade { position:absolute; bottom:0; left:0; right:0; height:900px;
+               background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.80) 35%, transparent 100%); }
+
+/* 상단 배지 */
+.badge {
+  position:absolute; top:50px; left:50%; transform:translateX(-50%);
+  background:linear-gradient(135deg,#11998e,#38ef7d);
+  border-radius:60px; padding:20px 70px;
+  font-size:46px; font-weight:900; color:#fff;
+  white-space:nowrap; letter-spacing:2px;
+  box-shadow:0 8px 30px rgba(17,153,142,0.6);
+}
+
+/* 정답 텍스트 */
+.answer-area {
+  position:absolute;
+  top:230px; left:0; right:0;
+  padding:0 70px; text-align:center;
+}
+.answer-label { font-size:48px; font-weight:700; color:rgba(255,255,255,0.70); margin-bottom:18px; }
+.answer-text  {
+  font-size:84px; font-weight:900; color:#FFE066; line-height:1.25;
+  word-break:keep-all;
+  text-shadow:0 0 60px rgba(255,220,0,0.5), 0 5px 20px rgba(0,0,0,0.95);
+}
+
+/* 설명 카드 */
+.explanation-card {
+  position:absolute;
+  bottom:350px; left:60px; right:60px;
+  background:rgba(8,8,8,0.90);
+  backdrop-filter:blur(16px);
+  border-radius:32px;
+  border:2px solid rgba(56,239,125,0.45);
+  padding:48px 56px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.80);
+}
+.explanation-title {
+  font-size:38px; font-weight:800; color:#38ef7d;
+  margin-bottom:22px; letter-spacing:1px;
+}
+.explanation-text {
+  font-size:48px; font-weight:700; color:#fff; line-height:1.55;
+  word-break:keep-all;
+  text-shadow:0 2px 10px rgba(0,0,0,0.9);
+}
+.bonus-tip {
+  margin-top:24px; padding-top:22px;
+  border-top:1px solid rgba(255,255,255,0.12);
+  font-size:40px; font-weight:600; color:#FF8C42;
+}
+
+/* 진행 점 */
+.dots { position:absolute; bottom:265px; left:50%; transform:translateX(-50%);
+        display:flex; gap:14px; align-items:center; }
+.dot  { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.28); }
+.dot.active { width:44px; border-radius:8px; background:#38ef7d; }
+</style>
+</head><body>
+<div class="top-fade"></div>
+<div class="bottom-fade"></div>
+
+<div class="badge">✅ 정답 공개!</div>
+
+<div class="answer-area">
+  <div class="answer-label">정답은</div>
+  <div class="answer-text">${esc(quiz.answerText)}</div>
+</div>
+
+<div class="explanation-card">
+  <div class="explanation-title">💡 이유는?</div>
+  <div class="explanation-text">${esc(quiz.explanation)}</div>
+  ${quiz.bonusTip ? `<div class="bonus-tip">⭐ ${esc(quiz.bonusTip)}</div>` : ''}
+</div>
+
+<div class="dots">
+  <div class="dot"></div><div class="dot"></div>
+  <div class="dot active"></div>
+  <div class="dot"></div>
+</div>
+</body></html>`;
+}
+
+// ─── 4-D. 아웃트로 슬라이드 오버레이 ────────────────────────────────────────
+function makeOutroHtml() {
+  return `<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
+
+.overlay { position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.80) 45%, rgba(0,0,0,0.30) 100%); }
+
+/* 중앙 콘텐츠 */
+.content {
+  position:absolute;
+  top:50%; left:50%; transform:translate(-50%,-50%);
+  width:980px; text-align:center;
+}
+.emoji { font-size:130px; line-height:1; margin-bottom:30px; }
+.main-text {
+  font-size:76px; font-weight:900; color:#FFE066; line-height:1.3;
+  word-break:keep-all;
+  text-shadow:0 0 50px rgba(255,200,0,0.4), 0 4px 20px rgba(0,0,0,0.95);
+  margin-bottom:20px;
+}
+.divider {
+  width:160px; height:5px; background:rgba(255,255,255,0.35);
+  border-radius:3px; margin:24px auto;
+}
+.action-text {
+  font-size:56px; font-weight:800; color:#fff; line-height:1.5;
+  word-break:keep-all;
+  text-shadow:0 3px 14px rgba(0,0,0,0.95);
+}
+.save-text {
+  margin-top:22px;
+  font-size:48px; font-weight:700; color:rgba(255,255,255,0.75);
+  word-break:keep-all;
+}
+
+/* 브랜드 */
+.brand {
+  position:absolute; bottom:330px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:12px;
+  background:rgba(0,0,0,0.40); backdrop-filter:blur(8px);
+  border-radius:50px; padding:14px 36px;
+}
+.brand-icon { font-size:32px; }
+.brand-name  { font-size:30px; font-weight:800; color:#fff; }
+
+/* 진행 점 */
+.dots { position:absolute; bottom:260px; left:50%; transform:translateX(-50%);
+        display:flex; gap:14px; align-items:center; }
+.dot  { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.28); }
+.dot.active { width:44px; border-radius:8px; background:#E8631A; }
+</style>
+</head><body>
+<div class="overlay"></div>
+<div class="content">
+  <div class="emoji">💬</div>
+  <div class="main-text">당신은 몇 번이었나요?</div>
+  <div class="divider"></div>
+  <div class="action-text">댓글로 남겨주세요!</div>
+  <div class="save-text">🔖 저장하시고<br>다양한 정보 받아가세요 💪</div>
+</div>
 <div class="brand">
   <span class="brand-icon">💪</span>
   <span class="brand-name">다이어트·운동 백과</span>
 </div>
-
-<div class="type-badge">${badgeLabel}</div>
-
-${!isData && keyword ? `<div class="keyword-area"><div class="keyword-text">${esc(keyword)}</div></div>` : ''}
-
-${cardHtml}
-
-<div class="caption-area">${captionHtml}</div>
-
-<div class="progress-dots">${dots}</div>
-
-</body>
-</html>`;
+<div class="dots">
+  <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  <div class="dot active"></div>
+</div>
+</body></html>`;
 }
 
-// ─── 5. 썸네일 HTML ───────────────────────────────────────────────────────────
-function makeThumbnailHtml(youtubeTitle, hookText) {
+// ─── 5. 썸네일 HTML (퀴즈 스타일) ───────────────────────────────────────────
+function makeThumbnailHtml(youtubeTitle, question) {
   const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const cleanTitle = youtubeTitle.replace('#Shorts', '').trim();
+  const cleanTitle = youtubeTitle.replace(/#Shorts/gi, '').trim();
 
   return `<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
+<html lang="ko"><head><meta charset="UTF-8">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-html, body {
-  width:${W}px; height:${H}px;
-  background:transparent; overflow:hidden;
-  font-family:${FONT};
-}
-.gradient {
-  position:absolute; inset:0;
-  background:linear-gradient(to top,
-    rgba(0,0,0,0.97) 0%,
-    rgba(0,0,0,0.65) 45%,
-    rgba(0,0,0,0.15) 75%,
-    transparent 100%
-  );
-}
-.top-fade {
-  position:absolute; top:0; left:0; right:0; height:320px;
-  background:linear-gradient(to bottom, rgba(0,0,0,0.65), transparent);
-}
-.brand {
-  position:absolute; top:48px; left:56px;
-  display:flex; align-items:center; gap:14px;
-}
-.brand-icon { font-size:52px; }
-.brand-name { font-size:44px; font-weight:900; color:#fff; }
+html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
+.gradient  { position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.70) 45%, rgba(0,0,0,0.20) 80%, transparent 100%); }
+.top-fade  { position:absolute; top:0; left:0; right:0; height:360px;
+  background:linear-gradient(to bottom, rgba(0,0,0,0.70), transparent); }
 
-.hook-badge {
-  position:absolute;
-  top:170px; left:50%; transform:translateX(-50%);
+/* 상단 배지 */
+.badge {
+  position:absolute; top:60px; left:50%; transform:translateX(-50%);
   background:linear-gradient(135deg,#E8631A,#FF8C42);
-  border-radius:60px; padding:20px 64px;
-  font-size:44px; font-weight:900; color:#fff;
-  white-space:nowrap;
-  box-shadow:0 10px 40px rgba(232,99,26,0.55);
+  border-radius:60px; padding:22px 72px;
+  font-size:50px; font-weight:900; color:#fff;
+  white-space:nowrap; letter-spacing:2px;
+  box-shadow:0 10px 40px rgba(232,99,26,0.60);
 }
 
-.title-area {
+/* 퀴즈 질문 */
+.question-box {
   position:absolute;
-  bottom:155px; left:0; right:0;
-  padding:0 64px; text-align:center;
+  top:230px; left:60px; right:60px;
+  background:rgba(0,0,0,0.65);
+  backdrop-filter:blur(12px);
+  border:3px solid rgba(255,255,255,0.20);
+  border-radius:30px; padding:44px 52px;
+  text-align:center;
+}
+.q-label { font-size:38px; font-weight:700; color:rgba(255,255,255,0.60); margin-bottom:12px; }
+.q-text  { font-size:72px; font-weight:900; color:#FFE066; line-height:1.3;
+  word-break:keep-all;
+  text-shadow:0 0 40px rgba(255,200,0,0.40), 0 4px 18px rgba(0,0,0,0.95); }
+
+/* 하단 제목 */
+.title-area {
+  position:absolute; bottom:170px; left:0; right:0;
+  padding:0 72px; text-align:center;
 }
 .title-text {
-  font-size:90px; font-weight:900; color:#fff;
-  line-height:1.2; word-break:keep-all;
-  text-shadow:0 5px 24px rgba(0,0,0,0.95);
+  font-size:78px; font-weight:900; color:#fff; line-height:1.25;
+  word-break:keep-all; text-shadow:0 4px 20px rgba(0,0,0,0.95);
 }
-.sub-text {
-  margin-top:28px;
-  font-size:44px; font-weight:700;
-  color:rgba(255,255,255,0.70);
-}
-.dots {
-  position:absolute; bottom:60px; left:50%; transform:translateX(-50%);
-  display:flex; gap:16px; align-items:center;
-}
-.dot { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.35); }
-.dot.first { background:#E8631A; width:40px; border-radius:8px; }
+
+/* 브랜드 */
+.brand { position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:12px;
+  background:rgba(0,0,0,0.40); border-radius:50px; padding:12px 32px; }
+.brand-icon { font-size:32px; }
+.brand-name  { font-size:30px; font-weight:800; color:#fff; }
 </style>
-</head>
-<body>
+</head><body>
 <div class="gradient"></div>
 <div class="top-fade"></div>
-<div class="brand"><span class="brand-icon">💪</span><span class="brand-name">다이어트·운동 백과</span></div>
-<div class="hook-badge">✅ ${esc(hookText || '꿀팁 공개')}</div>
+<div class="badge">👑 이거 알면 천재!</div>
+<div class="question-box">
+  <div class="q-label">Q. 퀴즈</div>
+  <div class="q-text">${esc(question || cleanTitle)}</div>
+</div>
 <div class="title-area">
   <div class="title-text">${esc(cleanTitle)}</div>
-  <div class="sub-text">smartinfohealth.co.kr</div>
 </div>
-<div class="dots">
-  <div class="dot first"></div>
-  <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+<div class="brand">
+  <span class="brand-icon">💪</span>
+  <span class="brand-name">다이어트·운동 백과</span>
 </div>
-</body>
-</html>`;
+</body></html>`;
 }
 
 // ─── 6. 슬라이드 클립 합성 (오디오 없음 — BGM은 나중에 삽입) ─────────────────
@@ -731,75 +808,115 @@ async function main() {
     if (!post) { console.log('쇼츠를 만들 글이 없습니다.'); return; }
     console.log(`대상 글: "${post.title}"\n`);
 
-    // ── 1단계: GPT 스크립트 생성 ─────────────────────────────────────────────
-    console.log('[1/4] 쇼츠 스크립트 생성...');
+    // ── 1단계: GPT 퀴즈 스크립트 생성 ──────────────────────────────────────
+    console.log('[1/4] 퀴즈 스크립트 생성...');
     const script = await generateShortsScript(post);
-    const slides = (script.slides || []).slice(0, 5);
-    console.log(`  제목: ${script.youtubeTitle}`);
-    console.log(`  슬라이드: ${slides.length}개`);
-    slides.forEach((s, i) => {
-      const dur = SLIDE_DURATIONS[s.type] || 9;
-      console.log(`    ${i + 1}. [${s.type}/${dur}초] ${s.narration.replace(/\n/g,' / ').slice(0,35)}...`);
-    });
+    const quiz   = script.quiz || {};
+    console.log(`  제목:   ${script.youtubeTitle}`);
+    console.log(`  퀴즈:   ${quiz.question}`);
+    console.log(`  정답:   ${quiz.answerText}`);
 
     // ── 2단계: BGM 다운로드 ──────────────────────────────────────────────────
     console.log('\n[2/4] BGM 다운로드...');
     const bgmPath = path.join(tmpDir, 'bgm.mp3');
     const bgmReady = await downloadBGM(bgmPath);
 
-    // ── 3단계: 슬라이드 클립 생성 ────────────────────────────────────────────
+    // ── 3단계: 클립 생성 (quiz → countdown×5 → answer → outro) ─────────────
     console.log('\n[3/4] 클립 생성...\n');
     const clipPaths = [];
 
-    for (let i = 0; i < slides.length; i++) {
-      const slide    = slides[i];
-      const duration = SLIDE_DURATIONS[slide.type] || 9;
-      console.log(`  ── 슬라이드 ${i + 1}/${slides.length} [${slide.type}] ${duration}초 ──`);
+    // 배경 이미지 다운로드 (quiz + answer 공용)
+    const imgPath = path.join(tmpDir, 'img_0.jpg');
+    const imgFallbacks = [
+      quiz.imageQuery || 'fit woman thinking quiz workout gym',
+      'fit woman fitness workout beautiful',
+      'athletic woman healthy lifestyle sport',
+    ];
+    let imgOk = false;
+    for (const q of imgFallbacks) {
+      try { await downloadImage(q, imgPath); imgOk = true; break; }
+      catch { console.log(`  ⚠️  이미지 재시도...`); }
+    }
+    if (!imgOk) { console.log('  ❌ 이미지 실패'); return; }
 
-      // 이미지 다운로드
-      const imgPath = path.join(tmpDir, `img_${i}.jpg`);
-      const fallbacks = [
-        slide.imageQuery,
-        'fit woman fitness workout beautiful',
-        'athletic woman healthy lifestyle sport',
-      ];
-      let imgOk = false;
-      for (const q of fallbacks) {
-        try {
-          console.log(`     🖼️  "${q}"`);
-          await downloadImage(q, imgPath);
-          imgOk = true;
-          break;
-        } catch { console.log(`     ⚠️  재시도...`); }
+    // 헬퍼: Puppeteer로 오버레이 PNG 렌더링
+    async function renderOverlay(html, outPath) {
+      const pg = await browser.newPage();
+      await pg.setViewport({ width: W, height: H });
+      await pg.setContent(html, { waitUntil: 'domcontentloaded' });
+      await new Promise((r) => setTimeout(r, 350));
+      await pg.screenshot({ path: outPath, omitBackground: true });
+      await pg.close();
+    }
+
+    // [A] QUIZ 클립 (8초)
+    console.log('  ── [1] QUIZ 8초 ──');
+    {
+      const ovPath = path.join(tmpDir, 'ov_quiz.png');
+      await renderOverlay(makeQuizHtml(quiz), ovPath);
+      const clipPath = path.join(tmpDir, 'clip_00.mp4');
+      process.stdout.write('     🎬 quiz 합성...');
+      await createSlideClip(imgPath, ovPath, SLIDE_DURATIONS.quiz, clipPath);
+      console.log(' ✅'); clipPaths.push(clipPath);
+    }
+
+    // [B] COUNTDOWN 클립 (5→1, 각 1초)
+    console.log('  ── [2] COUNTDOWN 5→1초 ──');
+    for (let n = 5; n >= 1; n--) {
+      const ovPath   = path.join(tmpDir, `ov_cd${n}.png`);
+      const clipPath = path.join(tmpDir, `clip_cd${n}.mp4`);
+      await renderOverlay(makeCountdownHtml(n), ovPath);
+      process.stdout.write(`     🎬 ${n}초...`);
+      await createSlideClip(imgPath, ovPath, SLIDE_DURATIONS.countdown, clipPath);
+      console.log(' ✅'); clipPaths.push(clipPath);
+    }
+
+    // [C] ANSWER 클립 (12초) — 다른 이미지 시도
+    console.log('  ── [3] ANSWER 12초 ──');
+    {
+      const ansImgPath = path.join(tmpDir, 'img_ans.jpg');
+      let ansImgOk = false;
+      const ansQueries = ['fit woman smiling confident healthy happy', 'fit woman fitness gym workout beautiful'];
+      for (const q of ansQueries) {
+        try { await downloadImage(q, ansImgPath); ansImgOk = true; break; }
+        catch { /* try next */ }
       }
-      if (!imgOk) { console.log('     ❌ 이미지 실패, 스킵'); continue; }
+      const finalAnsImg = ansImgOk ? ansImgPath : imgPath;
 
-      // 오버레이 렌더링 (Puppeteer)
-      const overlayPath = path.join(tmpDir, `overlay_${i}.png`);
-      const overPage = await browser.newPage();
-      await overPage.setViewport({ width: W, height: H });
-      await overPage.setContent(makeOverlayHtml(slide, i, slides.length), { waitUntil: 'domcontentloaded' });
-      await new Promise((r) => setTimeout(r, 450));
-      await overPage.screenshot({ path: overlayPath, omitBackground: true });
-      await overPage.close();
+      const ovPath   = path.join(tmpDir, 'ov_answer.png');
+      const clipPath = path.join(tmpDir, 'clip_02.mp4');
+      await renderOverlay(makeAnswerHtml(quiz), ovPath);
+      process.stdout.write('     🎬 answer 합성...');
+      await createSlideClip(finalAnsImg, ovPath, SLIDE_DURATIONS.answer, clipPath);
+      console.log(' ✅'); clipPaths.push(clipPath);
+    }
 
-      // 클립 합성
-      const clipPath = path.join(tmpDir, `clip_${String(i).padStart(2,'0')}.mp4`);
-      process.stdout.write(`     🎬 클립 합성...`);
-      await createSlideClip(imgPath, overlayPath, duration, clipPath);
-      console.log(' ✅');
-      clipPaths.push(clipPath);
+    // [D] OUTRO 클립 (6초)
+    console.log('  ── [4] OUTRO 6초 ──');
+    {
+      const outroImgPath = path.join(tmpDir, 'img_outro.jpg');
+      let outroOk = false;
+      try { await downloadImage('fit woman celebrating workout success happy', outroImgPath); outroOk = true; }
+      catch { /* use main img */ }
+
+      const ovPath   = path.join(tmpDir, 'ov_outro.png');
+      const clipPath = path.join(tmpDir, 'clip_03.mp4');
+      await renderOverlay(makeOutroHtml(), ovPath);
+      process.stdout.write('     🎬 outro 합성...');
+      await createSlideClip(outroOk ? outroImgPath : imgPath, ovPath, SLIDE_DURATIONS.outro, clipPath);
+      console.log(' ✅'); clipPaths.push(clipPath);
     }
 
     if (clipPaths.length === 0) { console.log('클립 생성 실패'); return; }
 
     // ── 4단계: 최종 영상 합성 + BGM ─────────────────────────────────────────
     console.log('\n[4/4] 최종 영상 합성...');
-    const rawPath   = path.join(tmpDir, 'raw.mp4');
+    const rawPath = path.join(tmpDir, 'raw.mp4');
     await concatClips(clipPaths, rawPath);
 
-    // 총 재생시간 계산
-    const totalDuration = slides.reduce((sum, s) => sum + (SLIDE_DURATIONS[s.type] || 9), 0);
+    // 총 재생시간: quiz(8) + countdown(5×1) + answer(12) + outro(6) = 31초
+    const totalDuration = SLIDE_DURATIONS.quiz + (5 * SLIDE_DURATIONS.countdown)
+                        + SLIDE_DURATIONS.answer + SLIDE_DURATIONS.outro;
 
     let finalPath = rawPath;
     if (bgmReady && fs.existsSync(bgmPath)) {
@@ -817,7 +934,7 @@ async function main() {
     try {
       const thumbPage = await browser.newPage();
       await thumbPage.setViewport({ width: W, height: H });
-      await thumbPage.setContent(makeThumbnailHtml(script.youtubeTitle, script.hookText), { waitUntil: 'domcontentloaded' });
+      await thumbPage.setContent(makeThumbnailHtml(script.youtubeTitle, quiz.question), { waitUntil: 'domcontentloaded' });
       await new Promise((r) => setTimeout(r, 500));
       await thumbPage.screenshot({ path: thumbOverlayPath, omitBackground: true });
       await thumbPage.close();
