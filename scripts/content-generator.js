@@ -210,13 +210,15 @@ function injectBodyImages(content, images) {
 
 // ─── 운동·다이어트 7대 주제 (순차 로테이션) ─────────────────────────────────
 const FITNESS_TOPICS = [
-  { id: 'weightloss',   label: '체중감량',        category: 'fitness',   words: ['체중감량', '살빼기', '지방연소', '다이어트', '감량', '지방', '체지방', '비만'] },
-  { id: 'strength',     label: '근력운동',        category: 'fitness',   words: ['근력운동', '헬스', '웨이트', '근육', '벤치프레스', '스쿼트', '데드리프트', '근비대'] },
-  { id: 'cardio',       label: '유산소·러닝',     category: 'fitness',   words: ['유산소', '러닝', '달리기', '조깅', '자전거', '수영', '걷기', '마라톤', '심폐'] },
-  { id: 'nutrition',    label: '식단·영양',       category: 'fitness',   words: ['식단', '영양', '단백질', '칼로리', '탄수화물', '지방', '식이', '끼니', '영양소'] },
-  { id: 'hometraining', label: '홈트레이닝',      category: 'fitness',   words: ['홈트', '홈트레이닝', '맨몸운동', '집에서', '플랭크', '버피', '푸시업'] },
-  { id: 'supplement',   label: '다이어트 식품',   category: 'fitness',   words: ['단백질보충제', '다이어트식품', '영양제', '프로틴', '보충제', '헬스식품', '크레아틴'] },
-  { id: 'motivation',   label: '바디프로필·동기', category: 'fitness',   words: ['바디프로필', '운동동기', '습관', '루틴', '운동일지', '몸만들기', '눈바디'] },
+  // ⚠️ words 배열 순서 중요 — getSubTopic()은 첫 번째 매칭 주제를 반환함
+  // '다이어트' 같은 범용 단어를 weightloss에서 제거하고 각 주제 고유 단어만 사용
+  { id: 'weightloss',   label: '체중감량',        category: 'fitness',   words: ['체중감량', '살빼기', '지방연소', '체중조절', '감량', '체지방감소', '비만', '뱃살', '복부지방', '체지방률', '살이찌는', '살을빼', '체중줄', '지방분해', '요요'] },
+  { id: 'strength',     label: '근력운동',        category: 'fitness',   words: ['근력운동', '웨이트트레이닝', '웨이트', '벤치프레스', '스쿼트', '데드리프트', '근비대', '근력', '근육량', '중량', '레그프레스', '렛풀다운', '오버헤드프레스', '바벨', '덤벨'] },
+  { id: 'cardio',       label: '유산소·러닝',     category: 'fitness',   words: ['유산소운동', '러닝', '달리기', '조깅', '자전거타기', '수영', '마라톤', '심폐지구력', '유산소', '트레드밀', '심박수', '에어로빅', '줄넘기', '인터벌', 'HIIT'] },
+  { id: 'nutrition',    label: '식단·영양',       category: 'fitness',   words: ['식단관리', '영양관리', '칼로리계산', '탄수화물', '식이요법', '끼니', '영양소', '간헐적단식', '식사횟수', '저탄고지', '케토', '저칼로리', '식단조절', '먹는양', '포만감'] },
+  { id: 'hometraining', label: '홈트레이닝',      category: 'fitness',   words: ['홈트레이닝', '홈트', '맨몸운동', '집에서운동', '플랭크', '버피', '푸시업', '스트레칭', '요가', '필라테스', '집운동', '맨몸', '실내운동', '홈짐', '바디웨이트'] },
+  { id: 'supplement',   label: '다이어트 식품',   category: 'fitness',   words: ['단백질보충제', '다이어트식품', '프로틴', '보충제', '헬스식품', '크레아틴', 'BCAA', '단백질쉐이크', '체중감량제', '다이어트보조제', '가르시니아', '녹차추출물', '식욕억제', '지방분해제', '영양제'] },
+  { id: 'motivation',   label: '바디프로필·동기', category: 'fitness',   words: ['바디프로필', '운동동기', '운동습관', '운동루틴', '운동일지', '몸만들기', '눈바디', '운동지속', '운동계획', '다이어트동기', '운동의지', '체형관리', '운동목표', '바디체크', '운동기록'] },
 ];
 
 // 하위 호환성을 위한 별칭
@@ -663,21 +665,21 @@ async function main() {
       if (pool.length > 0) {
         kw = pool[0];
       } else {
-        // 해당 주제 키워드가 없으면 미분류 키워드 중 아무거나
-        const fallback = keywords.find(
-          (k) => !usedKeywordSet.has(k.keyword) && !targetTopics.slice(0, success).includes(getSubTopic(k.keyword))
-        );
+        // 해당 주제 키워드 pool 고갈 시 — 미사용 키워드 아무거나 가져오되 topic은 targetTopic 강제
+        const fallback = keywords.find((k) => !usedKeywordSet.has(k.keyword));
         if (!fallback) {
           console.log(`  ⚠️  [${HEALTH_TOPICS.find((h) => h.id === targetTopic)?.label}] 사용 가능한 키워드 없음. 건너뜀.`);
           continue;
         }
         kw = fallback;
+        console.log(`  ℹ️  [${HEALTH_TOPICS.find((h) => h.id === targetTopic)?.label}] 키워드 pool 부족 → fallback 키워드 사용 (주제 각도는 유지)`);
       }
 
       // 이번 실행 중 중복 선택 방지 — 즉시 사용 처리
       usedKeywordSet.add(kw.keyword);
 
-      const topic = getSubTopic(kw.keyword) || targetTopic;
+      // topic은 항상 targetTopic으로 강제 — 로테이션 순서 절대 보장
+      const topic = targetTopic;
       const topicLabel = HEALTH_TOPICS.find((h) => h.id === topic)?.label || topic;
       console.log(`[${success + 1}/${generateCount}] [${topicLabel}] "${kw.keyword}" 생성 중...`);
 
