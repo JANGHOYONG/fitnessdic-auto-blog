@@ -275,8 +275,9 @@ async function downloadBGM(outPath) {
   return false;
 }
 
-// ─── 4-A. 퀴즈 슬라이드 오버레이 ────────────────────────────────────────────
-function makeQuizHtml(quiz) {
+// ─── 4-A. 퀴즈 슬라이드 오버레이 (countdownNum=null: 첫 등장, 1~5: 카운트다운 모드)
+// 카운트다운일 때는 선택지를 그대로 보여주면서 상단에 숫자만 추가
+function makeQuizHtml(quiz, countdownNum = null) {
   const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const choiceColors = [
     { bg:'rgba(59,130,246,0.88)',  border:'#60A5FA' },  // A — 파랑
@@ -285,90 +286,121 @@ function makeQuizHtml(quiz) {
     { bg:'rgba(168,85,247,0.88)',  border:'#C084FC' },  // D — 보라
   ];
 
+  const isCountdown = countdownNum !== null;
+  const cdColors = { 5:'#FFE066', 4:'#FFC040', 3:'#FF8C30', 2:'#FF5050', 1:'#FF1A1A' };
+  const cdColor  = cdColors[countdownNum] || '#FFE066';
+  const cdGlow   = countdownNum <= 2
+    ? '0 0 50px rgba(255,60,0,0.80)'
+    : '0 0 40px rgba(255,180,0,0.65)';
+
+  // 카운트다운 모드: 상단 배지 대신 원형 숫자 + 타이머 바
+  const topArea = isCountdown ? `
+<div class="cd-wrap">
+  <div class="cd-circle" style="border-color:${cdColor};box-shadow:${cdGlow}">
+    <div class="cd-num" style="color:${cdColor};text-shadow:${cdGlow},0 4px 20px rgba(0,0,0,0.95)">${countdownNum}</div>
+  </div>
+  <div class="cd-label" style="color:${cdColor}">초 후 정답 공개!</div>
+</div>` : `
+<div class="badge">👑 이거 알면 천재!</div>
+<div class="brand"><span class="brand-icon">💪</span><span class="brand-name">다이어트·운동 백과</span></div>`;
+
   return `<!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
 
-.top-fade    { position:absolute; top:0; left:0; right:0; height:320px;
-               background:linear-gradient(to bottom, rgba(0,0,0,0.75), transparent); }
+.top-fade    { position:absolute; top:0; left:0; right:0; height:${isCountdown ? '480px' : '320px'};
+               background:linear-gradient(to bottom, rgba(0,0,0,0.85), transparent); }
 .bottom-fade { position:absolute; bottom:0; left:0; right:0; height:700px;
                background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.75) 40%, transparent 100%); }
 
-/* 상단 배지 */
+/* ── 첫 등장 모드: 배지 + 브랜드 ── */
 .badge {
   position:absolute; top:50px; left:50%; transform:translateX(-50%);
   background:linear-gradient(135deg,#E8631A,#FF8C42);
   border-radius:60px; padding:20px 70px;
   font-size:46px; font-weight:900; color:#fff;
-  white-space:nowrap;
+  white-space:nowrap; letter-spacing:2px;
   box-shadow:0 8px 30px rgba(232,99,26,0.6);
-  letter-spacing:2px;
 }
-
-/* 브랜드 */
 .brand {
-  position:absolute; top:170px; left:50%; transform:translateX(-50%);
-  display:flex; align-items:center; gap:10px;
-  opacity:0.75;
+  position:absolute; top:168px; left:50%; transform:translateX(-50%);
+  display:flex; align-items:center; gap:10px; opacity:0.75;
 }
 .brand-icon { font-size:28px; }
 .brand-name  { font-size:26px; font-weight:700; color:#fff; }
 
-/* 퀴즈 질문 영역 */
+/* ── 카운트다운 모드: 원형 숫자 ── */
+.cd-wrap {
+  position:absolute; top:28px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:0;
+}
+.cd-circle {
+  width:220px; height:220px; border-radius:50%;
+  border:10px solid; background:rgba(0,0,0,0.60);
+  display:flex; align-items:center; justify-content:center;
+}
+.cd-num {
+  font-size:140px; font-weight:900; line-height:1;
+}
+.cd-label {
+  margin-top:14px;
+  font-size:40px; font-weight:800;
+  text-shadow:0 3px 12px rgba(0,0,0,0.95);
+  white-space:nowrap;
+}
+
+/* ── 공통: 퀴즈 질문 ── */
 .question-area {
   position:absolute;
-  top:280px; left:0; right:0;
+  top:${isCountdown ? '310px' : '270px'}; left:0; right:0;
   padding:0 70px; text-align:center;
 }
 .question-text {
-  font-size:72px; font-weight:900; color:#fff; line-height:1.35;
+  font-size:${isCountdown ? '66px' : '72px'}; font-weight:900; color:#fff; line-height:1.30;
   word-break:keep-all;
-  text-shadow:0 4px 20px rgba(0,0,0,0.95), -3px -3px 0 rgba(0,0,0,0.5), 3px 3px 0 rgba(0,0,0,0.5);
+  text-shadow:0 4px 20px rgba(0,0,0,0.95),-3px -3px 0 rgba(0,0,0,0.5),3px 3px 0 rgba(0,0,0,0.5);
 }
 .sub-question {
-  margin-top:24px;
-  font-size:44px; font-weight:600; color:rgba(255,255,255,0.65);
+  margin-top:20px;
+  font-size:42px; font-weight:600; color:rgba(255,255,255,0.65);
 }
 
-/* 선택지 */
+/* ── 공통: 선택지 ── */
 .choices {
   position:absolute;
-  bottom:280px; left:0; right:0;
+  bottom:${isCountdown ? '255px' : '270px'}; left:0; right:0;
   padding:0 60px;
-  display:flex; flex-direction:column; gap:22px;
+  display:flex; flex-direction:column; gap:${isCountdown ? '18px' : '22px'};
 }
 .choice {
   display:flex; align-items:center; gap:24px;
-  border-radius:24px; padding:26px 36px;
-  border:3px solid;
-  backdrop-filter:blur(12px);
+  border-radius:24px; padding:${isCountdown ? '22px 36px' : '26px 36px'};
+  border:3px solid; backdrop-filter:blur(12px);
 }
-.choice-label {
-  font-size:48px; font-weight:900; color:#fff; min-width:52px;
-}
-.choice-text {
-  font-size:46px; font-weight:700; color:#fff; line-height:1.3;
+.choice-label { font-size:46px; font-weight:900; color:#fff; min-width:52px; }
+.choice-text  {
+  font-size:${isCountdown ? '42px' : '44px'}; font-weight:700; color:#fff; line-height:1.25;
   word-break:keep-all;
 }
 
-/* 진행 점 */
-.dots { position:absolute; bottom:210px; left:50%; transform:translateX(-50%);
+/* ── 공통: 진행 점 ── */
+.dots { position:absolute; bottom:${isCountdown ? '185px' : '200px'};
+        left:50%; transform:translateX(-50%);
         display:flex; gap:14px; align-items:center; }
 .dot  { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.30); }
-.dot.active { width:44px; border-radius:8px; background:#E8631A; }
+.dot.active { width:44px; border-radius:8px; background:${isCountdown ? cdColor : '#E8631A'}; }
 </style>
 </head><body>
 <div class="top-fade"></div>
 <div class="bottom-fade"></div>
 
-<div class="badge">👑 이거 알면 천재!</div>
-<div class="brand"><span class="brand-icon">💪</span><span class="brand-name">다이어트·운동 백과</span></div>
+${topArea}
 
 <div class="question-area">
   <div class="question-text">${esc(quiz.question)}</div>
-  <div class="sub-question">${esc(quiz.subQuestion || '보기를 골라보세요! 🤔')}</div>
+  <div class="sub-question">${isCountdown ? '⏳ 몇 번인지 선택해보셨나요?' : esc(quiz.subQuestion || '보기를 골라보세요! 🤔')}</div>
 </div>
 
 <div class="choices">
@@ -382,65 +414,6 @@ html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidde
 <div class="dots">
   <div class="dot active"></div>
   <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-</div>
-</body></html>`;
-}
-
-// ─── 4-B. 카운트다운 슬라이드 오버레이 ──────────────────────────────────────
-function makeCountdownHtml(num) {
-  const colors = { 5:'#FFE066', 4:'#FFA940', 3:'#FF7A30', 2:'#FF4D4D', 1:'#FF1A1A' };
-  const color  = colors[num] || '#FFE066';
-  const glow   = num <= 2 ? '0 0 80px rgba(255,80,0,0.9)' : '0 0 60px rgba(255,200,0,0.7)';
-  return `<!DOCTYPE html>
-<html lang="ko"><head><meta charset="UTF-8">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
-.overlay { position:absolute; inset:0; background:rgba(0,0,0,0.72); }
-
-/* 상단 안내 */
-.hint {
-  position:absolute; top:200px; left:50%; transform:translateX(-50%);
-  font-size:56px; font-weight:800; color:rgba(255,255,255,0.80);
-  white-space:nowrap; letter-spacing:2px;
-  text-shadow:0 3px 12px rgba(0,0,0,0.8);
-}
-
-/* 원형 테두리 + 숫자 */
-.circle {
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-58%);
-  width:540px; height:540px; border-radius:50%;
-  border:14px solid ${color};
-  display:flex; align-items:center; justify-content:center;
-  box-shadow:0 0 0 6px rgba(255,255,255,0.08), ${glow};
-}
-.number {
-  font-size:360px; font-weight:900; color:${color}; line-height:1;
-  text-shadow:${glow}, 0 6px 30px rgba(0,0,0,0.95);
-}
-
-/* 하단 안내 */
-.sub {
-  position:absolute; bottom:330px; left:50%; transform:translateX(-50%);
-  font-size:48px; font-weight:700; color:rgba(255,255,255,0.65);
-  white-space:nowrap;
-}
-
-/* 진행 점 */
-.dots { position:absolute; bottom:260px; left:50%; transform:translateX(-50%);
-        display:flex; gap:14px; align-items:center; }
-.dot  { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.28); }
-.dot.active { width:44px; border-radius:8px; background:#E8631A; }
-</style>
-</head><body>
-<div class="overlay"></div>
-<div class="hint">⏳ 생각해보세요!</div>
-<div class="circle"><div class="number">${num}</div></div>
-<div class="sub">정답은 ${num}초 후 공개!</div>
-<div class="dots">
-  <div class="dot"></div>
-  <div class="dot active"></div>
-  <div class="dot"></div><div class="dot"></div>
 </div>
 </body></html>`;
 }
@@ -849,23 +822,23 @@ async function main() {
       await pg.close();
     }
 
-    // [A] QUIZ 클립 (8초)
-    console.log('  ── [1] QUIZ 8초 ──');
+    // [A] QUIZ 첫 등장 클립 (3초) — 선택지만 보여주기
+    console.log('  ── [1] QUIZ 첫 등장 3초 ──');
     {
-      const ovPath = path.join(tmpDir, 'ov_quiz.png');
-      await renderOverlay(makeQuizHtml(quiz), ovPath);
+      const ovPath   = path.join(tmpDir, 'ov_quiz.png');
       const clipPath = path.join(tmpDir, 'clip_00.mp4');
+      await renderOverlay(makeQuizHtml(quiz, null), ovPath);
       process.stdout.write('     🎬 quiz 합성...');
-      await createSlideClip(imgPath, ovPath, SLIDE_DURATIONS.quiz, clipPath);
+      await createSlideClip(imgPath, ovPath, 3, clipPath);
       console.log(' ✅'); clipPaths.push(clipPath);
     }
 
-    // [B] COUNTDOWN 클립 (5→1, 각 1초)
-    console.log('  ── [2] COUNTDOWN 5→1초 ──');
+    // [B] COUNTDOWN 클립 (5→1, 각 1초) — 퀴즈 선택지 위에 숫자 표시
+    console.log('  ── [2] COUNTDOWN 5→1 (퀴즈 위에 표시) ──');
     for (let n = 5; n >= 1; n--) {
       const ovPath   = path.join(tmpDir, `ov_cd${n}.png`);
       const clipPath = path.join(tmpDir, `clip_cd${n}.mp4`);
-      await renderOverlay(makeCountdownHtml(n), ovPath);
+      await renderOverlay(makeQuizHtml(quiz, n), ovPath);   // 퀴즈 layout + 카운트다운 숫자
       process.stdout.write(`     🎬 ${n}초...`);
       await createSlideClip(imgPath, ovPath, SLIDE_DURATIONS.countdown, clipPath);
       console.log(' ✅'); clipPaths.push(clipPath);
@@ -914,8 +887,8 @@ async function main() {
     const rawPath = path.join(tmpDir, 'raw.mp4');
     await concatClips(clipPaths, rawPath);
 
-    // 총 재생시간: quiz(8) + countdown(5×1) + answer(12) + outro(6) = 31초
-    const totalDuration = SLIDE_DURATIONS.quiz + (5 * SLIDE_DURATIONS.countdown)
+    // 총 재생시간: quiz첫등장(3) + countdown(5×1) + answer(12) + outro(6) = 26초
+    const totalDuration = 3 + (5 * SLIDE_DURATIONS.countdown)
                         + SLIDE_DURATIONS.answer + SLIDE_DURATIONS.outro;
 
     let finalPath = rawPath;
