@@ -587,81 +587,6 @@ html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidde
 </body></html>`;
 }
 
-// ─── 5. 썸네일 HTML (퀴즈 스타일) ───────────────────────────────────────────
-function makeThumbnailHtml(youtubeTitle, question) {
-  const esc = (s) => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const cleanTitle = youtubeTitle.replace(/#Shorts/gi, '').trim();
-
-  return `<!DOCTYPE html>
-<html lang="ko"><head><meta charset="UTF-8">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
-.gradient  { position:absolute; inset:0;
-  background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.70) 45%, rgba(0,0,0,0.20) 80%, transparent 100%); }
-.top-fade  { position:absolute; top:0; left:0; right:0; height:360px;
-  background:linear-gradient(to bottom, rgba(0,0,0,0.70), transparent); }
-
-/* 상단 배지 */
-.badge {
-  position:absolute; top:60px; left:50%; transform:translateX(-50%);
-  background:linear-gradient(135deg,#E8631A,#FF8C42);
-  border-radius:60px; padding:22px 72px;
-  font-size:50px; font-weight:900; color:#fff;
-  white-space:nowrap; letter-spacing:2px;
-  box-shadow:0 10px 40px rgba(232,99,26,0.60);
-}
-
-/* 퀴즈 질문 */
-.question-box {
-  position:absolute;
-  top:230px; left:60px; right:60px;
-  background:rgba(0,0,0,0.65);
-  backdrop-filter:blur(12px);
-  border:3px solid rgba(255,255,255,0.20);
-  border-radius:30px; padding:44px 52px;
-  text-align:center;
-}
-.q-label { font-size:38px; font-weight:700; color:rgba(255,255,255,0.60); margin-bottom:12px; }
-.q-text  { font-size:72px; font-weight:900; color:#FFE066; line-height:1.3;
-  word-break:keep-all;
-  text-shadow:0 0 40px rgba(255,200,0,0.40), 0 4px 18px rgba(0,0,0,0.95); }
-
-/* 하단 제목 */
-.title-area {
-  position:absolute; bottom:170px; left:0; right:0;
-  padding:0 72px; text-align:center;
-}
-.title-text {
-  font-size:78px; font-weight:900; color:#fff; line-height:1.25;
-  word-break:keep-all; text-shadow:0 4px 20px rgba(0,0,0,0.95);
-}
-
-/* 브랜드 */
-.brand { position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
-  display:flex; align-items:center; gap:12px;
-  background:rgba(0,0,0,0.40); border-radius:50px; padding:12px 32px; }
-.brand-icon { font-size:32px; }
-.brand-name  { font-size:30px; font-weight:800; color:#fff; }
-</style>
-</head><body>
-<div class="gradient"></div>
-<div class="top-fade"></div>
-<div class="badge">👑 이거 알면 천재!</div>
-<div class="question-box">
-  <div class="q-label">Q. 퀴즈</div>
-  <div class="q-text">${esc(question || cleanTitle)}</div>
-</div>
-<div class="title-area">
-  <div class="title-text">${esc(cleanTitle)}</div>
-</div>
-<div class="brand">
-  <span class="brand-icon">💪</span>
-  <span class="brand-name">다이어트·운동 백과</span>
-</div>
-</body></html>`;
-}
-
 // ─── 6. 슬라이드 클립 합성 (오디오 없음 — BGM은 나중에 삽입) ─────────────────
 function createSlideClip(imagePath, overlayPath, duration, outPath) {
   return new Promise((resolve, reject) => {
@@ -901,21 +826,14 @@ async function main() {
     const sizeMB = (fs.statSync(finalPath).size / 1024 / 1024).toFixed(1);
     console.log(`  완성: ${sizeMB}MB\n`);
 
-    // ── 썸네일 생성 ──────────────────────────────────────────────────────────
-    const thumbOverlayPath = path.join(tmpDir, 'thumb_overlay.png');
-    const thumbJpgPath     = path.join(tmpDir, 'thumb.jpg');
+    // ── 썸네일 생성 (퀴즈 선택지 화면 그대로 사용 → 클릭 유발) ─────────────
+    // 이미 렌더링된 quiz 오버레이(ov_quiz.png)를 배경 이미지에 합성
+    const thumbJpgPath  = path.join(tmpDir, 'thumb.jpg');
+    const quizOvPath    = path.join(tmpDir, 'ov_quiz.png');   // 앞서 렌더링 완료
     try {
-      const thumbPage = await browser.newPage();
-      await thumbPage.setViewport({ width: W, height: H });
-      await thumbPage.setContent(makeThumbnailHtml(script.youtubeTitle, quiz.question), { waitUntil: 'domcontentloaded' });
-      await new Promise((r) => setTimeout(r, 500));
-      await thumbPage.screenshot({ path: thumbOverlayPath, omitBackground: true });
-      await thumbPage.close();
-
-      const firstImg = path.join(tmpDir, 'img_0.jpg');
-      if (fs.existsSync(firstImg)) {
-        await compositeThumbnail(firstImg, thumbOverlayPath, thumbJpgPath);
-        console.log('  📸 썸네일 생성 완료\n');
+      if (fs.existsSync(quizOvPath) && fs.existsSync(imgPath)) {
+        await compositeThumbnail(imgPath, quizOvPath, thumbJpgPath);
+        console.log('  📸 썸네일 생성 완료 (퀴즈 선택지 화면)\n');
       }
     } catch (e) {
       console.log(`  ⚠️  썸네일 실패: ${e.message}\n`);
