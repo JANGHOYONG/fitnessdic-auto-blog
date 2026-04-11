@@ -55,55 +55,55 @@ const SLIDE_DURATIONS = {
 const TOPIC_CONFIG = {
   weightloss: {
     imageQueries: [
-      'fit woman workout gym smiling athletic',
-      'woman fitness body motivation healthy lifestyle',
-      'athletic woman running outdoor sporty',
-      'fit woman yoga exercise beautiful',
+      'fit woman workout gym smiling bright sunny',
+      'woman fitness healthy lifestyle bright studio',
+      'athletic woman running outdoor bright daylight',
+      'fit woman yoga exercise bright natural light',
     ],
     dataType: 'nutrition',
   },
   strength: {
     imageQueries: [
-      'fit woman lifting weights gym confident',
-      'athletic woman strength training barbell',
-      'woman fitness gym workout beautiful',
-      'fit woman squat deadlift exercise',
+      'fit woman lifting weights gym bright cheerful',
+      'athletic woman strength training well lit studio',
+      'woman fitness gym workout bright background',
+      'fit woman exercise bright colorful background',
     ],
     dataType: 'workout',
   },
   cardio: {
     imageQueries: [
-      'fit woman running park outdoors happy',
-      'athletic woman cardio jogging sunrise',
-      'woman fitness running shoes outdoor',
-      'fit woman cycling spinning class',
+      'fit woman running park outdoors sunny bright',
+      'athletic woman jogging sunrise bright morning',
+      'woman fitness running outdoor bright sunshine',
+      'fit woman cycling outdoor bright daylight',
     ],
     dataType: 'workout',
   },
   nutrition: {
     imageQueries: [
-      'healthy food meal prep colorful diet',
-      'fresh salad protein bowl healthy eating',
-      'woman healthy meal prep kitchen',
-      'colorful healthy food vegetables fruit',
+      'healthy food colorful bright meal prep',
+      'fresh salad protein bowl bright colorful',
+      'woman healthy meal prep bright kitchen',
+      'colorful healthy food bright natural light',
     ],
     dataType: 'nutrition',
   },
   hometraining: {
     imageQueries: [
-      'fit woman home workout yoga mat',
-      'athletic woman bodyweight exercise indoors',
-      'woman fitness training living room',
-      'fit woman stretching exercise beautiful',
+      'fit woman home workout yoga mat bright room',
+      'athletic woman exercise indoors bright natural light',
+      'woman fitness training living room sunny',
+      'fit woman stretching bright studio light',
     ],
     dataType: 'workout',
   },
   motivation: {
     imageQueries: [
-      'fit woman confident body positive gym',
-      'athletic woman fitness motivation beautiful',
-      'woman sports fashion gym trendy',
-      'fit woman happiness workout outdoor',
+      'fit woman smiling confident gym bright',
+      'athletic woman fitness motivation bright studio',
+      'woman sports fashion bright cheerful',
+      'fit woman happiness workout bright outdoor',
     ],
     dataType: 'motivation',
   },
@@ -290,19 +290,8 @@ function makeQuizHtml(quiz, countdownNum = null) {
   const cdColors = { 5:'#FFE066', 4:'#FFC040', 3:'#FF8C30', 2:'#FF5050', 1:'#FF1A1A' };
   const cdColor  = cdColors[countdownNum] || '#FFE066';
   const cdGlow   = countdownNum <= 2
-    ? '0 0 50px rgba(255,60,0,0.80)'
-    : '0 0 40px rgba(255,180,0,0.65)';
-
-  // 카운트다운 모드: 상단 배지 대신 원형 숫자 + 타이머 바
-  const topArea = isCountdown ? `
-<div class="cd-wrap">
-  <div class="cd-circle" style="border-color:${cdColor};box-shadow:${cdGlow}">
-    <div class="cd-num" style="color:${cdColor};text-shadow:${cdGlow},0 4px 20px rgba(0,0,0,0.95)">${countdownNum}</div>
-  </div>
-  <div class="cd-label" style="color:${cdColor}">초 후 정답 공개!</div>
-</div>` : `
-<div class="badge">👑 이거 알면 천재!</div>
-<div class="brand"><span class="brand-icon">💪</span><span class="brand-name">다이어트·운동 백과</span></div>`;
+    ? '0 0 60px rgba(255,60,0,0.85)'
+    : '0 0 50px rgba(255,180,0,0.70)';
 
   return `<!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8">
@@ -310,14 +299,15 @@ function makeQuizHtml(quiz, countdownNum = null) {
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
 
-.top-fade    { position:absolute; top:0; left:0; right:0; height:${isCountdown ? '480px' : '320px'};
-               background:linear-gradient(to bottom, rgba(0,0,0,0.85), transparent); }
-.bottom-fade { position:absolute; bottom:0; left:0; right:0; height:700px;
-               background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.75) 40%, transparent 100%); }
+/* 오버레이 밝게 (기존보다 어둡기 완화) */
+.top-fade    { position:absolute; top:0; left:0; right:0; height:300px;
+               background:linear-gradient(to bottom, rgba(0,0,0,0.65), transparent); }
+.bottom-fade { position:absolute; bottom:0; left:0; right:0; height:680px;
+               background:linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.60) 40%, transparent 100%); }
 
-/* ── 첫 등장 모드: 배지 + 브랜드 ── */
+/* ── 배지 (첫 등장 모드) ── */
 .badge {
-  position:absolute; top:50px; left:50%; transform:translateX(-50%);
+  position:absolute; top:52px; left:50%; transform:translateX(-50%);
   background:linear-gradient(135deg,#E8631A,#FF8C42);
   border-radius:60px; padding:20px 70px;
   font-size:46px; font-weight:900; color:#fff;
@@ -325,68 +315,73 @@ html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidde
   box-shadow:0 8px 30px rgba(232,99,26,0.6);
 }
 .brand {
-  position:absolute; top:168px; left:50%; transform:translateX(-50%);
+  position:absolute; top:170px; left:50%; transform:translateX(-50%);
   display:flex; align-items:center; gap:10px; opacity:0.75;
 }
 .brand-icon { font-size:28px; }
 .brand-name  { font-size:26px; font-weight:700; color:#fff; }
 
-/* ── 카운트다운 모드: 원형 숫자 ── */
-.cd-wrap {
-  position:absolute; top:28px; left:50%; transform:translateX(-50%);
-  display:flex; flex-direction:column; align-items:center; gap:0;
+/* ── 카운트다운 숫자 (질문 아래 ↔ 선택지 위 중간 공간) ── */
+.cd-block {
+  position:absolute;
+  top:700px;                          /* 질문 하단 아래 */
+  left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:12px;
 }
 .cd-circle {
-  width:220px; height:220px; border-radius:50%;
-  border:10px solid; background:rgba(0,0,0,0.60);
+  width:260px; height:260px; border-radius:50%;
+  border:12px solid ${cdColor};
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(10px);
   display:flex; align-items:center; justify-content:center;
+  box-shadow:${cdGlow}, 0 0 0 4px rgba(255,255,255,0.08);
 }
 .cd-num {
-  font-size:140px; font-weight:900; line-height:1;
+  font-size:168px; font-weight:900; line-height:1; color:${cdColor};
+  text-shadow:${cdGlow}, 0 4px 20px rgba(0,0,0,0.95);
 }
 .cd-label {
-  margin-top:14px;
-  font-size:40px; font-weight:800;
-  text-shadow:0 3px 12px rgba(0,0,0,0.95);
-  white-space:nowrap;
+  font-size:44px; font-weight:800; color:${cdColor};
+  text-shadow:0 3px 14px rgba(0,0,0,0.95);
+  white-space:nowrap; letter-spacing:1px;
 }
 
-/* ── 공통: 퀴즈 질문 ── */
+/* ── 퀴즈 질문 ── */
 .question-area {
   position:absolute;
-  top:${isCountdown ? '310px' : '270px'}; left:0; right:0;
+  top:${isCountdown ? '200px' : '270px'}; left:0; right:0;
   padding:0 70px; text-align:center;
 }
 .question-text {
-  font-size:${isCountdown ? '66px' : '72px'}; font-weight:900; color:#fff; line-height:1.30;
+  font-size:${isCountdown ? '64px' : '72px'}; font-weight:900; color:#fff; line-height:1.28;
   word-break:keep-all;
   text-shadow:0 4px 20px rgba(0,0,0,0.95),-3px -3px 0 rgba(0,0,0,0.5),3px 3px 0 rgba(0,0,0,0.5);
 }
 .sub-question {
-  margin-top:20px;
-  font-size:42px; font-weight:600; color:rgba(255,255,255,0.65);
+  margin-top:18px;
+  font-size:40px; font-weight:600; color:rgba(255,255,255,0.70);
 }
 
-/* ── 공통: 선택지 ── */
+/* ── 선택지 ── */
 .choices {
   position:absolute;
-  bottom:${isCountdown ? '255px' : '270px'}; left:0; right:0;
+  bottom:${isCountdown ? '240px' : '260px'}; left:0; right:0;
   padding:0 60px;
-  display:flex; flex-direction:column; gap:${isCountdown ? '18px' : '22px'};
+  display:flex; flex-direction:column; gap:${isCountdown ? '16px' : '22px'};
 }
 .choice {
-  display:flex; align-items:center; gap:24px;
-  border-radius:24px; padding:${isCountdown ? '22px 36px' : '26px 36px'};
+  display:flex; align-items:center; gap:22px;
+  border-radius:22px; padding:${isCountdown ? '20px 34px' : '26px 36px'};
   border:3px solid; backdrop-filter:blur(12px);
 }
-.choice-label { font-size:46px; font-weight:900; color:#fff; min-width:52px; }
+.choice-label { font-size:${isCountdown ? '44px' : '46px'}; font-weight:900; color:#fff; min-width:50px; }
 .choice-text  {
-  font-size:${isCountdown ? '42px' : '44px'}; font-weight:700; color:#fff; line-height:1.25;
+  font-size:${isCountdown ? '40px' : '44px'}; font-weight:700; color:#fff; line-height:1.22;
   word-break:keep-all;
 }
 
-/* ── 공통: 진행 점 ── */
-.dots { position:absolute; bottom:${isCountdown ? '185px' : '200px'};
+/* ── 진행 점 ── */
+.dots { position:absolute; bottom:${isCountdown ? '172px' : '190px'};
         left:50%; transform:translateX(-50%);
         display:flex; gap:14px; align-items:center; }
 .dot  { width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.30); }
@@ -396,12 +391,20 @@ html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidde
 <div class="top-fade"></div>
 <div class="bottom-fade"></div>
 
-${topArea}
+${isCountdown ? '' : `
+<div class="badge">👑 이거 알면 천재!</div>
+<div class="brand"><span class="brand-icon">💪</span><span class="brand-name">다이어트·운동 백과</span></div>`}
 
 <div class="question-area">
   <div class="question-text">${esc(quiz.question)}</div>
   <div class="sub-question">${isCountdown ? '⏳ 몇 번인지 선택해보셨나요?' : esc(quiz.subQuestion || '보기를 골라보세요! 🤔')}</div>
 </div>
+
+${isCountdown ? `
+<div class="cd-block">
+  <div class="cd-circle"><div class="cd-num">${countdownNum}</div></div>
+  <div class="cd-label">${countdownNum}초 후 정답 공개!</div>
+</div>` : ''}
 
 <div class="choices">
   ${(quiz.choices || []).map((c, i) => `
@@ -427,10 +430,10 @@ function makeAnswerHtml(quiz) {
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidden; font-family:${FONT}; }
 
-.top-fade    { position:absolute; top:0; left:0; right:0; height:350px;
-               background:linear-gradient(to bottom, rgba(0,0,0,0.80), transparent); }
-.bottom-fade { position:absolute; bottom:0; left:0; right:0; height:900px;
-               background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.80) 35%, transparent 100%); }
+.top-fade    { position:absolute; top:0; left:0; right:0; height:320px;
+               background:linear-gradient(to bottom, rgba(0,0,0,0.65), transparent); }
+.bottom-fade { position:absolute; bottom:0; left:0; right:0; height:850px;
+               background:linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.68) 35%, transparent 100%); }
 
 /* 상단 배지 */
 .badge {
@@ -588,18 +591,23 @@ html, body { width:${W}px; height:${H}px; background:transparent; overflow:hidde
 }
 
 // ─── 6. 슬라이드 클립 합성 (오디오 없음 — BGM은 나중에 삽입) ─────────────────
-function createSlideClip(imagePath, overlayPath, duration, outPath) {
+// opts.noFade = true → fade 없음 (카운트다운처럼 연속 클립 깜빡임 방지)
+function createSlideClip(imagePath, overlayPath, duration, outPath, opts = {}) {
   return new Promise((resolve, reject) => {
     const d = duration.toFixed(2);
+    const noFade = opts.noFade || false;
+    const videoFilter = noFade
+      ? `[bg][1:v]overlay=0:0:eof_action=repeat[out]`
+      : (`[bg][1:v]overlay=0:0:eof_action=repeat,` +
+         `fade=t=in:st=0:d=0.35,` +
+         `fade=t=out:st=${(parseFloat(d) - 0.45).toFixed(2)}:d=0.45[out]`);
     ffmpeg()
       .input(imagePath).inputOptions(['-loop', '1', '-framerate', '25'])
       .input(overlayPath)
       .input('anullsrc=r=44100:cl=stereo').inputOptions(['-f', 'lavfi'])
       .complexFilter([
         `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},setsar=1[bg]`,
-        `[bg][1:v]overlay=0:0:eof_action=repeat,` +
-        `fade=t=in:st=0:d=0.35,` +
-        `fade=t=out:st=${(parseFloat(d) - 0.45).toFixed(2)}:d=0.45[out]`,
+        videoFilter,
       ])
       .outputOptions([
         '-map', '[out]',
@@ -758,14 +766,14 @@ async function main() {
       console.log(' ✅'); clipPaths.push(clipPath);
     }
 
-    // [B] COUNTDOWN 클립 (5→1, 각 1초) — 퀴즈 선택지 위에 숫자 표시
-    console.log('  ── [2] COUNTDOWN 5→1 (퀴즈 위에 표시) ──');
+    // [B] COUNTDOWN 클립 (5→1, 각 1초) — 퀴즈 선택지 위에 숫자 표시, fade 없음(깜빡임 방지)
+    console.log('  ── [2] COUNTDOWN 5→1 (퀴즈 위에 표시, noFade) ──');
     for (let n = 5; n >= 1; n--) {
       const ovPath   = path.join(tmpDir, `ov_cd${n}.png`);
       const clipPath = path.join(tmpDir, `clip_cd${n}.mp4`);
-      await renderOverlay(makeQuizHtml(quiz, n), ovPath);   // 퀴즈 layout + 카운트다운 숫자
+      await renderOverlay(makeQuizHtml(quiz, n), ovPath);
       process.stdout.write(`     🎬 ${n}초...`);
-      await createSlideClip(imgPath, ovPath, SLIDE_DURATIONS.countdown, clipPath);
+      await createSlideClip(imgPath, ovPath, SLIDE_DURATIONS.countdown, clipPath, { noFade: true });
       console.log(' ✅'); clipPaths.push(clipPath);
     }
 
