@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
   twitter: { card: 'summary_large_image' },
   verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
-  other: { 'naver-site-verification': 'dee771838eccbe0167e4dcc16ab4e9d84d88a9bb' },
+  other: { 'naver-site-verification': 'b4e9c245046743374d6c1b54851dcc1f71ef0a77' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
