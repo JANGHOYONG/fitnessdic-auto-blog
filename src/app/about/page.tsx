@@ -12,7 +12,6 @@ const TOPICS = [
   { icon: '🏃', name: '유산소·러닝', slug: 'fitness', query: '유산소', desc: '지방 연소 최적 유산소, 달리기 입문·마라톤 준비법' },
   { icon: '🥗', name: '식단·영양', slug: 'fitness', query: '식단', desc: '다이어트 식단 설계, 단백질·칼로리 계산, 운동 전후 영양 타이밍' },
   { icon: '🏠', name: '홈트레이닝', slug: 'fitness', query: '홈트', desc: '기구 없이 집에서 하는 맨몸운동·홈트 루틴 완전 가이드' },
-  { icon: '🧴', name: '다이어트 식품', slug: 'fitness', query: '보충제', desc: '단백질 보충제·프로틴·크레아틴, 다이어트 식품 효과 검증' },
   { icon: '📸', name: '바디프로필·동기', slug: 'fitness', query: '바디프로필', desc: '바디프로필 준비, 운동 습관 만들기, 다이어트 동기 유지법' },
 ];
 
@@ -37,7 +36,7 @@ export default function AboutPage() {
           과학적으로 몸을 만들고 건강하게 살 뺄 수 있도록 돕는 운동·다이어트 전문 블로그입니다.
         </p>
         <p className="text-base leading-relaxed mb-4" style={{ color: 'var(--text-muted)' }}>
-          체중감량·근력운동·유산소·식단·홈트레이닝·다이어트 식품·바디프로필까지, 7대 운동 주제를
+          체중감량·근력운동·유산소·식단·홈트레이닝·바디프로필까지, 6대 운동 주제를
           매일 국가공인 스포츠지도사·영양사 수준의 근거 기반 콘텐츠로 제공합니다.
         </p>
         <p className="text-base leading-relaxed" style={{ color: 'var(--text-muted)' }}>

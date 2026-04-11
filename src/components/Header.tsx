@@ -172,7 +172,6 @@ const TOPICS = [
   { name: '유산소·러닝', query: '유산소' },
   { name: '식단·영양', query: '식단' },
   { name: '홈트레이닝', query: '홈트' },
-  { name: '다이어트 식품', query: '보충제' },
   { name: '바디프로필', query: '바디프로필' },
 ];
 
