@@ -582,14 +582,27 @@ async function main() {
   try {
     // ── 대상 글 조회 ─────────────────────────────────────────────────────────
     const postId = getArg('post-id');
-    const post   = postId
-      ? await prisma.post.findUnique({ where: { id: parseInt(postId) }, include: { category: true } })
-      : await prisma.post.findFirst({
-          where: { status: 'PUBLISHED', shortsGenerated: false },
+    let post;
+    if (postId) {
+      post = await prisma.post.findUnique({ where: { id: parseInt(postId) }, include: { category: true } });
+    } else {
+      // 1순위: shortsGenerated=false인 최신 발행 글
+      post = await prisma.post.findFirst({
+        where: { status: 'PUBLISHED', shortsGenerated: false },
+        orderBy: { publishedAt: 'desc' },
+        include: { category: true },
+      });
+      // 2순위(폴백): 모든 발행 글 중 가장 최신 글 (매일 새 영상 보장)
+      if (!post) {
+        console.log('  ℹ️  미생성 글 없음 → 최신 발행 글로 쇼츠 생성');
+        post = await prisma.post.findFirst({
+          where: { status: 'PUBLISHED' },
           orderBy: { publishedAt: 'desc' },
           include: { category: true },
         });
-    if (!post) { console.log('쇼츠를 만들 글이 없습니다.'); return; }
+      }
+    }
+    if (!post) { console.log('발행된 글이 없습니다.'); return; }
     console.log(`대상 글: "${post.title}"\n`);
 
     // ── 1단계: GPT 스크립트 ─────────────────────────────────────────────────
