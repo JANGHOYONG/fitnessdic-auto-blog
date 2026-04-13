@@ -32,14 +32,9 @@ const W    = 1080;
 const H    = 1920;
 const FONT = `'Noto Sans CJK KR','Apple SD Gothic Neo','맑은 고딕','Malgun Gothic',sans-serif`;
 
-// ─── BGM 트랙 목록 ────────────────────────────────────────────────────────────
-const BGM_TRACKS = [
-  'https://assets.mixkit.co/music/preview/mixkit-gym-hard-workout-600.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-hip-hop-02-738.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-driving-ambition-32.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-life-is-a-dream-837.mp3',
-  'https://assets.mixkit.co/music/preview/mixkit-summer-fun-13.mp3',
-];
+// ─── TTS 설정 ────────────────────────────────────────────────────────────────
+const TTS_VOICE = 'ko-KR-Wavenet-D';   // 남성 WaveNet
+const TTS_RATE  = 1.2;                  // 템포 1.2배
 
 // ─── 슬라이드 시간 ────────────────────────────────────────────────────────────
 const SLIDE_DURATIONS = {
@@ -156,34 +151,57 @@ async function downloadImage(query, outPath) {
   throw new Error(`이미지 없음: "${query}"`);
 }
 
-// ─── 3. BGM 다운로드 (실패 시 ffmpeg 합성 폴백) ──────────────────────────────
-async function downloadBGM(outPath) {
-  const shuffled = [...BGM_TRACKS].sort(() => Math.random() - 0.5);
-  for (const url of shuffled) {
-    try {
-      console.log(`  🎵 BGM 시도: ${url.split('/').pop()}`);
-      const res = await axios({ url, method: 'GET', responseType: 'stream', timeout: 20000,
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; shorts-bot/1.0)', 'Accept': 'audio/mpeg,audio/*' } });
-      if (res.status !== 200) continue;
-      const writer = fs.createWriteStream(outPath);
-      res.data.pipe(writer);
-      await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
-      const sz = fs.statSync(outPath).size;
-      if (sz > 30000) { console.log(`  ✅ BGM 완료 (${(sz/1024).toFixed(0)}KB)`); return true; }
-    } catch (e) { console.log(`  ⚠️  BGM 실패: ${e.message}`); }
-  }
-  // 폴백: ffmpeg 합성
-  console.log('  🔊 BGM 합성 폴백...');
-  try {
-    await new Promise((resolve, reject) => {
-      const expr = '0.18*sin(2*PI*110*t)+0.10*sin(2*PI*220*t)*sin(2*PI*1.5*t)+0.06*sin(2*PI*440*t)*sin(2*PI*3*t)';
-      ffmpeg().input(`aevalsrc=${expr}:s=44100:c=stereo`).inputOptions(['-f', 'lavfi'])
-        .outputOptions(['-t', '120', '-c:a', 'aac', '-b:a', '128k', '-af', 'volume=0.55'])
-        .output(outPath).on('end', resolve).on('error', reject).run();
+// ─── 3. TTS 내레이션 생성 (Google TTS Wavenet-D, 1.2x) ──────────────────────
+async function generateTTS(text, outPath) {
+  const apiKey = process.env.GOOGLE_TTS_API_KEY;
+  if (!apiKey) throw new Error('GOOGLE_TTS_API_KEY 없음');
+  const res = await axios.post(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+    {
+      input: { text },
+      voice: { languageCode: 'ko-KR', name: TTS_VOICE },
+      audioConfig: { audioEncoding: 'MP3', speakingRate: TTS_RATE },
+    }
+  );
+  fs.writeFileSync(outPath, Buffer.from(res.data.audioContent, 'base64'));
+}
+
+// 오디오 길이 측정 (초)
+function getAudioDuration(filePath) {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err, meta) => {
+      if (err) reject(err);
+      else resolve(parseFloat(meta.format.duration) || 0);
     });
-    if (fs.existsSync(outPath) && fs.statSync(outPath).size > 1000) { console.log('  ✅ BGM 합성 완료'); return true; }
-  } catch (e) { console.log(`  ⚠️  BGM 합성 실패: ${e.message}`); }
-  console.log('  ⚠️  BGM 완전 실패 — 무음 진행'); return false;
+  });
+}
+
+// TTS 오디오를 targetDuration 길이로 패딩 (뒤에 무음 추가)
+function padAudioToLength(inputPath, targetDuration, outPath) {
+  return new Promise((resolve, reject) => {
+    ffmpeg(inputPath)
+      .outputOptions([
+        '-af', `apad=pad_dur=${targetDuration}`,
+        '-t', targetDuration.toFixed(3),
+        '-c:a', 'aac', '-b:a', '128k',
+      ])
+      .output(outPath)
+      .on('end', resolve).on('error', reject).run();
+  });
+}
+
+// 여러 오디오 파일 이어붙이기
+function concatAudios(audioPaths, outPath) {
+  return new Promise((resolve, reject) => {
+    const listFile = outPath.replace('.aac', '_alist.txt');
+    fs.writeFileSync(listFile, audioPaths.map((p) => `file '${p}'`).join('\n'));
+    ffmpeg()
+      .input(listFile).inputOptions(['-f', 'concat', '-safe', '0'])
+      .outputOptions(['-c:a', 'aac', '-b:a', '128k'])
+      .output(outPath)
+      .on('end', () => { try { fs.unlinkSync(listFile); } catch {} resolve(); })
+      .on('error', reject).run();
+  });
 }
 
 // ─── 4-A. 인트로 슬라이드 ────────────────────────────────────────────────────
@@ -533,17 +551,15 @@ function concatClips(clipPaths, outPath) {
   });
 }
 
-// ─── 7. BGM 삽입 ─────────────────────────────────────────────────────────────
-function addBGMToVideo(videoPath, bgmPath, outPath, totalDuration) {
-  const fadeOutSt = Math.max(1, (totalDuration || 26) - 2.5).toFixed(2);
+// ─── 7. 비디오 + 내레이션 합성 ──────────────────────────────────────────────
+function mergeVideoNarration(videoPath, audioPath, outPath) {
   return new Promise((resolve, reject) => {
     ffmpeg()
       .input(videoPath)
-      .input(bgmPath).inputOptions(['-stream_loop', '-1'])
+      .input(audioPath)
       .outputOptions([
         '-map', '0:v', '-map', '1:a',
         '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k',
-        '-af', `volume=0.28,afade=t=in:st=0:d=1.0,afade=t=out:st=${fadeOutSt}:d=2.0`,
         '-shortest', '-movflags', '+faststart',
       ])
       .output(outPath)
@@ -613,10 +629,37 @@ async function main() {
     console.log(`  인트로: ${script.introTitle}`);
     items.forEach((it) => console.log(`    ${it.number}. [${it.keyword}] ${it.caption}`));
 
-    // ── 2단계: BGM ───────────────────────────────────────────────────────────
-    console.log('\n[2/4] BGM 다운로드...');
-    const bgmPath  = path.join(tmpDir, 'bgm.mp3');
-    const bgmReady = await downloadBGM(bgmPath);
+    // ── 2단계: TTS 내레이션 생성 + 슬라이드 시간 계산 ───────────────────────
+    console.log(`\n[2/4] TTS 내레이션 생성 (${TTS_VOICE}, ${TTS_RATE}x)...`);
+
+    // 슬라이드별 내레이션 텍스트
+    const ttsTexts = [
+      `${script.introTitle}. ${script.introSub || '끝까지 보세요'}`,
+      ...items.map((it) => `${it.number}번. ${it.keyword}. ${it.caption}`),
+      '도움이 됐다면 저장하고 나중에 또 보세요. 매일 새 정보를 받으려면 구독하고 알림 설정해 주세요.',
+    ];
+
+    // TTS 생성 + 길이 측정
+    const ttsRawPaths = [];
+    const ttsDurations = [];
+    const MIN_DURS = [SLIDE_DURATIONS.intro, ...items.map(() => SLIDE_DURATIONS.item), SLIDE_DURATIONS.outro];
+
+    for (let i = 0; i < ttsTexts.length; i++) {
+      const p = path.join(tmpDir, `tts_raw_${i}.mp3`);
+      process.stdout.write(`  [${i + 1}/${ttsTexts.length}] "${ttsTexts[i].slice(0, 20)}..." `);
+      await generateTTS(ttsTexts[i], p);
+      const dur = await getAudioDuration(p);
+      ttsRawPaths.push(p);
+      ttsDurations.push(dur);
+      console.log(`✅ ${dur.toFixed(1)}s`);
+      await new Promise((r) => setTimeout(r, 150));
+    }
+
+    // 실제 슬라이드 길이 = max(최소값, TTS길이 + 여유 0.5초)
+    const slideDurations = ttsTexts.map((_, i) =>
+      Math.max(MIN_DURS[i], ttsDurations[i] + 0.5)
+    );
+    console.log('  슬라이드 길이:', slideDurations.map((d) => d.toFixed(1) + 's').join(' / '));
 
     // ── 3단계: 클립 생성 ─────────────────────────────────────────────────────
     console.log('\n[3/4] 클립 생성...\n');
@@ -649,18 +692,18 @@ async function main() {
     ], introImgPath);
     if (!introImgOk) { console.log('❌ 인트로 이미지 실패'); return; }
 
-    // [1] 인트로 (3초)
-    console.log('  ── [1] INTRO 3초 ──');
+    // [1] 인트로
+    console.log(`  ── [1] INTRO ${slideDurations[0].toFixed(1)}초 ──`);
     {
       const ovPath   = path.join(tmpDir, 'ov_intro.png');
       const clipPath = path.join(tmpDir, 'clip_intro.mp4');
       await renderOverlay(makeIntroHtml(script), ovPath);
       process.stdout.write('     🎬 intro...');
-      await createSlideClip(introImgPath, ovPath, SLIDE_DURATIONS.intro, clipPath);
+      await createSlideClip(introImgPath, ovPath, slideDurations[0], clipPath);
       console.log(' ✅'); clipPaths.push(clipPath);
     }
 
-    // [2] 리스트 항목 (항목당 4초, 이미지 개별 다운로드)
+    // [2] 리스트 항목 (TTS 길이에 맞춰 자동 조절)
     for (let i = 0; i < items.length; i++) {
       const item     = items[i];
       const imgPath  = path.join(tmpDir, `img_item${i}.jpg`);
@@ -668,7 +711,7 @@ async function main() {
       const cfg      = TOPIC_CONFIG[topicId] || TOPIC_CONFIG.weightloss;
       const q        = cfg.queries[i % cfg.queries.length];
 
-      console.log(`  ── [${i + 2}] ITEM ${item.number} — "${item.keyword}" ──`);
+      console.log(`  ── [${i + 2}] ITEM ${item.number} — "${item.keyword}" (${slideDurations[i + 1].toFixed(1)}초) ──`);
       const ok = await getImage([q, 'fit woman fitness workout bright', 'athletic woman exercise bright'], imgPath);
       if (!ok) { console.log('     ⚠️  이미지 실패, 인트로 이미지 재사용'); fs.copyFileSync(introImgPath, imgPath); }
 
@@ -676,12 +719,13 @@ async function main() {
       const clipPath = path.join(tmpDir, `clip_item${i}.mp4`);
       await renderOverlay(makeListItemHtml(item, i, items.length, script.bgKeyword), ovPath);
       process.stdout.write(`     🎬 item ${item.number}...`);
-      await createSlideClip(imgPath, ovPath, SLIDE_DURATIONS.item, clipPath);
+      await createSlideClip(imgPath, ovPath, slideDurations[i + 1], clipPath);
       console.log(' ✅'); clipPaths.push(clipPath);
     }
 
-    // [3] 아웃트로 (3초)
-    console.log('  ── [마지막] OUTRO 3초 ──');
+    // [3] 아웃트로
+    const outroDur = slideDurations[slideDurations.length - 1];
+    console.log(`  ── [마지막] OUTRO ${outroDur.toFixed(1)}초 ──`);
     {
       const outroImgPath = path.join(tmpDir, 'img_outro.jpg');
       const outroOk = await getImage([
@@ -693,27 +737,31 @@ async function main() {
       const clipPath = path.join(tmpDir, 'clip_outro.mp4');
       await renderOverlay(makeOutroHtml(), ovPath);
       process.stdout.write('     🎬 outro...');
-      await createSlideClip(outroOk ? outroImgPath : introImgPath, ovPath, SLIDE_DURATIONS.outro, clipPath);
+      await createSlideClip(outroOk ? outroImgPath : introImgPath, ovPath, outroDur, clipPath);
       console.log(' ✅'); clipPaths.push(clipPath);
     }
 
     if (clipPaths.length === 0) { console.log('클립 생성 실패'); return; }
 
-    // ── 4단계: 최종 합성 + BGM ──────────────────────────────────────────────
+    // ── 4단계: 최종 합성 + TTS 내레이션 삽입 ─────────────────────────────────
     console.log('\n[4/4] 최종 합성...');
-    const rawPath      = path.join(tmpDir, 'raw.mp4');
+    const rawPath = path.join(tmpDir, 'raw.mp4');
     await concatClips(clipPaths, rawPath);
 
-    // 총 재생시간: intro(3) + items(4×5) + outro(3) = 26초
-    const totalDuration = SLIDE_DURATIONS.intro + (items.length * SLIDE_DURATIONS.item) + SLIDE_DURATIONS.outro;
-
-    let finalPath = rawPath;
-    if (bgmReady && fs.existsSync(bgmPath)) {
-      finalPath = path.join(tmpDir, 'final.mp4');
-      process.stdout.write('  🎵 BGM 삽입...');
-      await addBGMToVideo(rawPath, bgmPath, finalPath, totalDuration);
-      console.log(' ✅');
+    // TTS 오디오를 슬라이드 길이에 맞춰 패딩 후 이어붙이기
+    const ttsPaddedPaths = [];
+    for (let i = 0; i < ttsRawPaths.length; i++) {
+      const p = path.join(tmpDir, `tts_pad_${i}.aac`);
+      await padAudioToLength(ttsRawPaths[i], slideDurations[i], p);
+      ttsPaddedPaths.push(p);
     }
+    const narrationPath = path.join(tmpDir, 'narration.aac');
+    await concatAudios(ttsPaddedPaths, narrationPath);
+
+    process.stdout.write('  🎙️  내레이션 삽입...');
+    const finalPath = path.join(tmpDir, 'final.mp4');
+    await mergeVideoNarration(rawPath, narrationPath, finalPath);
+    console.log(' ✅');
     const sizeMB = (fs.statSync(finalPath).size / 1024 / 1024).toFixed(1);
     console.log(`  완성: ${sizeMB}MB\n`);
 
