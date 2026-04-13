@@ -36,6 +36,19 @@ const FONT = `'Noto Sans CJK KR','Apple SD Gothic Neo','맑은 고딕','Malgun G
 const TTS_VOICE = 'ko-KR-Wavenet-D';   // 남성 WaveNet
 const TTS_RATE  = 1.2;                  // 템포 1.2배
 
+// 한국어 서수 (TTS용)
+const KO_ORDINAL = ['첫번째', '두번째', '세번째', '네번째', '다섯번째', '여섯번째', '일곱번째'];
+
+// 이모티콘 제거 (TTS 전달 전에 사용)
+function stripEmoji(str) {
+  return String(str || '')
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')   // 이모지 보충 문자
+    .replace(/[\u2600-\u27FF]/gu, '')           // 기타 기호·화살표
+    .replace(/[\uFE00-\uFE0F]/gu, '')           // 변형 선택자
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 // ─── 슬라이드 시간 ────────────────────────────────────────────────────────────
 const SLIDE_DURATIONS = {
   intro:  3,   // 인트로 제목 카드
@@ -109,14 +122,14 @@ async function generateShortsScript(post) {
   "tags": ["다이어트", "운동", "피트니스", "관련태그1", "관련태그2"],
   "badgeText": "지금 바로 확인! (10자 이내)",
   "introTitle": "인트로 제목 (20자 이내, 강렬하게)",
-  "introSub": "끝까지 보면 살 빠집니다 👀 (20자 이내)",
+  "introSub": "끝까지 보면 살 빠집니다 (20자 이내, 이모티콘 제외)",
   "bgKeyword": "배경 대형 텍스트 키워드 (5자 이내, 주제 핵심어)",
   "items": [
-    { "number": 1, "keyword": "키워드 (5자 이내)", "caption": "설명 한 문장 (25자 이내, 수치 포함)" },
-    { "number": 2, "keyword": "키워드", "caption": "설명" },
-    { "number": 3, "keyword": "키워드", "caption": "설명" },
-    { "number": 4, "keyword": "키워드", "caption": "설명" },
-    { "number": 5, "keyword": "키워드", "caption": "설명" }
+    { "number": 1, "keyword": "키워드 (5자 이내)", "caption": "완전한 한 문장 (~입니다/~세요/~합니다 로 끝내기, 30자 이내, 수치 포함, 이모티콘 제외)" },
+    { "number": 2, "keyword": "키워드", "caption": "완전한 한 문장" },
+    { "number": 3, "keyword": "키워드", "caption": "완전한 한 문장" },
+    { "number": 4, "keyword": "키워드", "caption": "완전한 한 문장" },
+    { "number": 5, "keyword": "키워드", "caption": "완전한 한 문장" }
   ],
   "imageQuery": "${imgQ}"
 }`,
@@ -632,10 +645,13 @@ async function main() {
     // ── 2단계: TTS 내레이션 생성 + 슬라이드 시간 계산 ───────────────────────
     console.log(`\n[2/4] TTS 내레이션 생성 (${TTS_VOICE}, ${TTS_RATE}x)...`);
 
-    // 슬라이드별 내레이션 텍스트
+    // 슬라이드별 내레이션 텍스트 (이모티콘 제거 + 서수 적용)
     const ttsTexts = [
-      `${script.introTitle}. ${script.introSub || '끝까지 보세요'}`,
-      ...items.map((it) => `${it.number}번. ${it.keyword}. ${it.caption}`),
+      stripEmoji(`${script.introTitle}. ${script.introSub || '끝까지 보세요'}`),
+      ...items.map((it, i) => {
+        const ordinal = KO_ORDINAL[i] || `${i + 1}번째`;
+        return stripEmoji(`${ordinal}. ${it.keyword}. ${it.caption}`);
+      }),
       '도움이 됐다면 저장하고 나중에 또 보세요. 매일 새 정보를 받으려면 구독하고 알림 설정해 주세요.',
     ];
 
