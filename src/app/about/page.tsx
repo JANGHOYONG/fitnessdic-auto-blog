@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: '블로그 소개 | 다이어트·운동 백과',
-  description: '다이어트·운동 백과는 국민체육진흥공단·대한스포츠의학회 데이터를 기반으로 30·40·50대에게 신뢰할 수 있는 과학적 다이어트·운동 정보를 제공하는 전문 블로그입니다.',
+  description: '다이어트·운동 백과는 국민체육진흥공단·대한스포츠의학회 공식 데이터를 기반으로 30·40·50대에게 과학적 다이어트·운동 정보를 제공하는 전문 블로그입니다.',
 };
 
 const TOPICS = [
@@ -13,30 +13,6 @@ const TOPICS = [
   { icon: '🥗', name: '식단·영양', slug: 'fitness', query: '식단', desc: '다이어트 식단 설계, 단백질·칼로리 계산, 운동 전후 영양 타이밍' },
   { icon: '🏠', name: '홈트레이닝', slug: 'fitness', query: '홈트', desc: '기구 없이 집에서 하는 맨몸운동·홈트 루틴 완전 가이드' },
   { icon: '📸', name: '바디프로필·동기', slug: 'fitness', query: '바디프로필', desc: '바디프로필 준비, 운동 습관 만들기, 다이어트 동기 유지법' },
-];
-
-const EDITORS = [
-  {
-    emoji: '🏋️',
-    name: '김태준 에디터',
-    career: '국가공인 생활스포츠지도사 1급 · 퍼스널트레이너 10년 · 운동 칼럼니스트',
-    specialty: '체중감량 / 근력운동 / 홈트레이닝',
-    desc: '국민체육진흥공단·대한체육회 데이터를 기반으로 연령대별 안전하고 효과적인 운동법을 기획합니다.',
-  },
-  {
-    emoji: '👩‍🔬',
-    name: '정유나 에디터',
-    career: '임상영양사 · 스포츠영양학 석사 · 영양 칼럼 연재 7년',
-    specialty: '식단·영양 / 다이어트 식품 / 보충제',
-    desc: '국민건강영양조사·한국영양학회 기준을 참고해 30~50대 맞춤 식단·영양 정보를 작성합니다.',
-  },
-  {
-    emoji: '🏃‍♀️',
-    name: '오승현 에디터',
-    career: '운동생리학 박사과정 · 마라톤 완주 8회 · 피트니스 코치 6년',
-    specialty: '유산소·러닝 / 바디프로필 / 운동 동기',
-    desc: '대한스포츠의학회 가이드라인을 근거로 유산소·러닝의 과학적 원리와 실전 훈련법을 전달합니다.',
-  },
 ];
 
 const SOURCES = [
@@ -81,7 +57,7 @@ export default function AboutPage() {
         </p>
         <p className="text-base leading-relaxed mb-4" style={{ color: 'var(--text-muted)' }}>
           <strong style={{ color: 'var(--text)' }}>다이어트·운동 백과</strong>는 국민체육진흥공단·한국영양학회 등
-          국내 공인 기관의 데이터를 근거로, 전문 트레이너·영양사 출신 에디터가 검수한 콘텐츠만 발행합니다.
+          국내 공인 기관의 데이터를 근거로 작성된 콘텐츠만 발행합니다.
           "단기간에 OO kg 감량"과 같은 과장 표현은 사용하지 않으며,
           개인의 체력 수준과 건강 상태에 따른 차이를 항상 명시합니다.
         </p>
@@ -90,33 +66,7 @@ export default function AboutPage() {
         </p>
       </section>
 
-      {/* 에디터팀 소개 */}
-      <section className="mb-8">
-        <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--text)' }}>에디터·콘텐츠 감수팀</h2>
-        <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-          모든 글은 아래 전문가 에디터가 기획·검수합니다.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {EDITORS.map((e) => (
-            <div key={e.name} className="card p-6 flex flex-col gap-3">
-              <div className="text-4xl text-center">{e.emoji}</div>
-              <div className="text-center">
-                <p className="font-bold text-base" style={{ color: 'var(--text)' }}>{e.name}</p>
-                <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--primary)' }}>{e.career}</p>
-              </div>
-              <div
-                className="text-xs px-3 py-1 rounded-full text-center"
-                style={{ background: 'var(--bg-bar)', color: 'var(--text)' }}
-              >
-                {e.specialty}
-              </div>
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{e.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 콘텐츠 제작 프로세스 */}
+      {/* 콘텐츠 제작 원칙 */}
       <section className="card p-8 mb-8">
         <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>콘텐츠 제작 원칙</h2>
         <ol className="space-y-5">
@@ -133,8 +83,8 @@ export default function AboutPage() {
             },
             {
               step: '03',
-              title: '전문가 에디터 검수',
-              desc: '트레이너·영양사·운동생리학 전문가 에디터가 과장·오류 여부를 최종 확인한 후 발행합니다.',
+              title: '과장·오류 제거',
+              desc: '근거 없는 효과 주장, 과장 표현, 부상 위험 동작은 사전에 걸러냅니다.',
             },
             {
               step: '04',
@@ -214,7 +164,7 @@ export default function AboutPage() {
         <ul className="space-y-4">
           {[
             { icon: '📅', text: '매일 5편 · 365일 꾸준히 발행되는 다이어트·운동 정보' },
-            { icon: '🏅', text: '전문 트레이너·영양사 출신 에디터가 기획·검수한 과학적 근거 기반 콘텐츠' },
+            { icon: '🏅', text: '국공립 기관 공식 데이터 기반으로 작성된 과학적 근거 콘텐츠' },
             { icon: '📱', text: '30~50대에 최적화된 직관적·모바일 친화 디자인' },
             { icon: '📋', text: '목차 제공으로 긴 글도 원하는 부분만 빠르게 탐색' },
             { icon: '🎬', text: '유튜브 쇼츠·롱폼 영상으로 이동 중에도 운동 정보 확인' },
@@ -239,26 +189,13 @@ export default function AboutPage() {
           <div className="flex items-center gap-3">
             <span className="text-xl">📧</span>
             <span style={{ color: 'var(--text)' }}>
-              콘텐츠 오류 / 주제 요청:{' '}
+              콘텐츠 오류 / 주제 요청 / 광고·제휴:{' '}
               <a
-                href="mailto:contact@fitnessdic.co.kr"
+                href="mailto:ghdyd6913@gmail.com"
                 className="underline"
                 style={{ color: 'var(--primary)' }}
               >
-                contact@fitnessdic.co.kr
-              </a>
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xl">💼</span>
-            <span style={{ color: 'var(--text)' }}>
-              광고·제휴 문의:{' '}
-              <a
-                href="mailto:biz@fitnessdic.co.kr"
-                className="underline"
-                style={{ color: 'var(--primary)' }}
-              >
-                biz@fitnessdic.co.kr
+                ghdyd6913@gmail.com
               </a>
             </span>
           </div>
@@ -269,7 +206,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* 면책 조항 (강화) */}
+      {/* 주의 사항 */}
       <section
         className="card p-6 mb-8"
         style={{ borderLeft: '4px solid var(--primary)' }}
@@ -281,7 +218,8 @@ export default function AboutPage() {
         </p>
         <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--text-muted)' }}>
           체력 수준, 기저질환, 부상 이력에 따라 동일한 운동·식단이 개인마다 다른 결과를 낳을 수 있습니다.
-          특히 고혈압·당뇨·관절 질환이 있는 경우 <strong style={{ color: 'var(--text)' }}>운동 시작 전 반드시 담당 의사와 상담</strong>하시기 바랍니다.
+          특히 고혈압·당뇨·관절 질환이 있는 경우{' '}
+          <strong style={{ color: 'var(--text)' }}>운동 시작 전 반드시 담당 의사와 상담</strong>하시기 바랍니다.
         </p>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
           본 블로그는 특정 제품·서비스의 효능을 보증하지 않으며, 콘텐츠 적용으로 인한 결과에 대해
