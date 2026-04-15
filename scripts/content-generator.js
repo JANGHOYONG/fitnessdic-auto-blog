@@ -212,12 +212,12 @@ function injectBodyImages(content, images) {
 const FITNESS_TOPICS = [
   // ⚠️ words 배열 순서 중요 — getSubTopic()은 첫 번째 매칭 주제를 반환함
   // '다이어트' 같은 범용 단어를 weightloss에서 제거하고 각 주제 고유 단어만 사용
-  { id: 'weightloss',   label: '체중감량',        category: 'fitness',   words: ['체중감량', '살빼기', '지방연소', '체중조절', '감량', '체지방감소', '비만', '뱃살', '복부지방', '체지방률', '살이찌는', '살을빼', '체중줄', '지방분해', '요요'] },
-  { id: 'strength',     label: '근력운동',        category: 'fitness',   words: ['근력운동', '웨이트트레이닝', '웨이트', '벤치프레스', '스쿼트', '데드리프트', '근비대', '근력', '근육량', '중량', '레그프레스', '렛풀다운', '오버헤드프레스', '바벨', '덤벨'] },
-  { id: 'cardio',       label: '유산소·러닝',     category: 'fitness',   words: ['유산소운동', '러닝', '달리기', '조깅', '자전거타기', '수영', '마라톤', '심폐지구력', '유산소', '트레드밀', '심박수', '에어로빅', '줄넘기', '인터벌', 'HIIT'] },
-  { id: 'nutrition',    label: '식단·영양',       category: 'fitness',   words: ['식단관리', '영양관리', '칼로리계산', '탄수화물', '식이요법', '끼니', '영양소', '간헐적단식', '식사횟수', '저탄고지', '케토', '저칼로리', '식단조절', '먹는양', '포만감'] },
-  { id: 'hometraining', label: '홈트레이닝',      category: 'fitness',   words: ['홈트레이닝', '홈트', '맨몸운동', '집에서운동', '플랭크', '버피', '푸시업', '스트레칭', '요가', '필라테스', '집운동', '맨몸', '실내운동', '홈짐', '바디웨이트'] },
-  { id: 'motivation',   label: '바디프로필·동기', category: 'fitness',   words: ['바디프로필', '운동동기', '운동습관', '운동루틴', '운동일지', '몸만들기', '눈바디', '운동지속', '운동계획', '다이어트동기', '운동의지', '체형관리', '운동목표', '바디체크', '운동기록'] },
+  { id: 'weightloss',   label: '체중감량',        category: 'weightloss',   words: ['체중감량', '살빼기', '지방연소', '체중조절', '감량', '체지방감소', '비만', '뱃살', '복부지방', '체지방률', '살이찌는', '살을빼', '체중줄', '지방분해', '요요'] },
+  { id: 'strength',     label: '근력운동',        category: 'strength',     words: ['근력운동', '웨이트트레이닝', '웨이트', '벤치프레스', '스쿼트', '데드리프트', '근비대', '근력', '근육량', '중량', '레그프레스', '렛풀다운', '오버헤드프레스', '바벨', '덤벨'] },
+  { id: 'cardio',       label: '유산소·러닝',     category: 'cardio',       words: ['유산소운동', '러닝', '달리기', '조깅', '자전거타기', '수영', '마라톤', '심폐지구력', '유산소', '트레드밀', '심박수', '에어로빅', '줄넘기', '인터벌', 'HIIT'] },
+  { id: 'nutrition',    label: '식단·영양',       category: 'nutrition',    words: ['식단관리', '영양관리', '칼로리계산', '탄수화물', '식이요법', '끼니', '영양소', '간헐적단식', '식사횟수', '저탄고지', '케토', '저칼로리', '식단조절', '먹는양', '포만감'] },
+  { id: 'hometraining', label: '홈트레이닝',      category: 'hometraining', words: ['홈트레이닝', '홈트', '맨몸운동', '집에서운동', '플랭크', '버피', '푸시업', '스트레칭', '요가', '필라테스', '집운동', '맨몸', '실내운동', '홈짐', '바디웨이트'] },
+  { id: 'motivation',   label: '바디프로필·동기', category: 'motivation',   words: ['바디프로필', '운동동기', '운동습관', '운동루틴', '운동일지', '몸만들기', '눈바디', '운동지속', '운동계획', '다이어트동기', '운동의지', '체형관리', '운동목표', '바디체크', '운동기록'] },
 ];
 
 // 하위 호환성을 위한 별칭
@@ -554,10 +554,14 @@ async function main() {
   let success = 0, fail = 0;
 
   try {
+    const FITNESS_SLUGS = ['weightloss', 'strength', 'cardio', 'nutrition', 'hometraining', 'motivation'];
     const keywords = await prisma.keyword.findMany({
       where: {
         used: false,
-        ...(targetCategory && { category: { slug: targetCategory } }),
+        ...(targetCategory
+          ? { category: { slug: targetCategory } }
+          : { category: { slug: { in: [...FITNESS_SLUGS, 'fitness', 'health'] } } }
+        ),
       },
       include: { category: true },
       orderBy: [{ priority: 'asc' }, { searchVolume: 'desc' }],
@@ -577,16 +581,29 @@ async function main() {
       update: {},
       create: { name: '운동지식', slug: 'knowledge', description: '다이어트·운동 관련 다양한 건강 정보' },
     });
-    const knownSlugs = ['fitness', 'health', 'tech', 'economy', 'lifestyle', 'travel', 'knowledge'];
+    // 6개 fitness 서브 카테고리 자동 생성
+    const FITNESS_CATEGORY_DEFS = [
+      { slug: 'weightloss',   name: '체중감량',        description: '과학적 체중감량·지방연소 전략' },
+      { slug: 'strength',     name: '근력운동',        description: '웨이트 트레이닝·근육량 증가 방법' },
+      { slug: 'cardio',       name: '유산소·러닝',     description: '유산소 운동·러닝 가이드' },
+      { slug: 'nutrition',    name: '식단·영양',       description: '다이어트 식단·영양 관리' },
+      { slug: 'hometraining', name: '홈트레이닝',      description: '집에서 하는 맨몸운동·홈트 루틴' },
+      { slug: 'motivation',   name: '바디프로필·동기', description: '운동 동기부여·바디프로필 준비' },
+    ];
+    for (const def of FITNESS_CATEGORY_DEFS) {
+      await prisma.category.upsert({ where: { slug: def.slug }, update: {}, create: def });
+    }
+    const knownSlugs = ['fitness', 'weightloss', 'strength', 'cardio', 'nutrition', 'hometraining', 'motivation', 'knowledge', 'health', 'tech', 'economy', 'lifestyle', 'travel'];
 
-    // 알 수 없는 카테고리 키워드 → fitness로 재배정
+    // 알 수 없는 카테고리 키워드 → travel로 재배정 (travelCat이 있을 때만)
     for (const kw of keywords) {
-      if (!knownSlugs.includes(kw.category?.slug)) {
-        kw.category = { slug: 'fitness' };
+      if (!knownSlugs.includes(kw.category?.slug) && travelCat) {
+        kw.categoryId = travelCat.id;
+        kw.category = travelCat;
       }
     }
 
-    // 최근 발행 글로 중복 방지 + 마지막 주제 파악
+    // 최근 발행 글로 중복 방지
     const recentPublished = await prisma.post.findMany({
       where: { status: 'PUBLISHED' },
       select: { title: true, keywords: true },
@@ -597,22 +614,16 @@ async function main() {
       recentPublished.flatMap((p) => JSON.parse(p.keywords || '[]'))
     );
 
-    // 마지막 발행 글의 주제 파악 → 다음 주제 결정
-    let lastTopicId = null;
-    for (const p of recentPublished) {
-      const kws = JSON.parse(p.keywords || '[]');
-      const found = kws.map(getSubTopic).find((t) => t !== null);
-      if (found) { lastTopicId = found; break; }
-    }
+    // 로테이션 위치 결정: 발행 글 총 수 기준 (키워드 텍스트 추론 제거)
+    const publishedCount = await prisma.post.count({ where: { status: 'PUBLISHED' } });
+    const startIdx = publishedCount % TOPIC_ROTATION.length;
 
     // 이번 실행에서 순서대로 발행할 주제 목록 결정
     const targetTopics = [];
-    let nextTopic = getNextTopic(lastTopicId);
     for (let i = 0; i < generateCount; i++) {
-      targetTopics.push(nextTopic);
-      nextTopic = getNextTopic(nextTopic);
+      targetTopics.push(TOPIC_ROTATION[(startIdx + i) % TOPIC_ROTATION.length]);
     }
-    console.log(`\n마지막 발행 주제: ${lastTopicId || '없음'}`);
+    console.log(`\n총 발행 글 수: ${publishedCount}개 → 로테이션 시작 인덱스: ${startIdx}`);
     console.log(`이번 발행 순서: ${targetTopics.map((t) => HEALTH_TOPICS.find((h) => h.id === t)?.label).join(' → ')}\n`);
 
     // 주제별로 키워드 미리 분류
@@ -694,7 +705,15 @@ async function main() {
           }
         }
 
-        const postCategoryId = kw.categoryId || knowledgeCat.id;
+        // 토픽별 카테고리 결정 — fitness 서브토픽은 각 독립 카테고리
+        const fitnessSubtopicSlugs = ['weightloss', 'strength', 'cardio', 'nutrition', 'hometraining', 'motivation'];
+        let postCategoryId;
+        if (fitnessSubtopicSlugs.includes(topic)) {
+          const topicCat = await prisma.category.findUnique({ where: { slug: topic } });
+          postCategoryId = topicCat ? topicCat.id : (kw.categoryId || knowledgeCat.id);
+        } else {
+          postCategoryId = kw.categoryId || knowledgeCat.id;
+        }
 
         const slug = generateSlug(gen.selectedTitle);
         const post = await prisma.post.create({

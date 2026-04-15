@@ -167,12 +167,12 @@ function AppDownloadHeaderBtn() {
 }
 
 const TOPICS = [
-  { name: '체중감량', query: '체중감량' },
-  { name: '근력운동', query: '근력운동' },
-  { name: '유산소·러닝', query: '유산소' },
-  { name: '식단·영양', query: '식단' },
-  { name: '홈트레이닝', query: '홈트' },
-  { name: '바디프로필', query: '바디프로필' },
+  { name: '체중감량',    href: '/weightloss' },
+  { name: '근력운동',    href: '/strength' },
+  { name: '유산소·러닝', href: '/cardio' },
+  { name: '식단·영양',   href: '/nutrition' },
+  { name: '홈트레이닝',  href: '/hometraining' },
+  { name: '바디프로필',  href: '/motivation' },
 ];
 
 export default function Header() {
@@ -214,7 +214,7 @@ export default function Header() {
             {TOPICS.map((t) => (
               <Link
                 key={t.name}
-                href={`/search?q=${encodeURIComponent(t.query)}`}
+                href={t.href}
                 className="px-3 py-1.5 text-sm font-medium rounded-lg transition-colors"
                 style={{ color: 'var(--text-muted)' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--primary)')}
@@ -286,7 +286,7 @@ export default function Header() {
             {TOPICS.map((t) => (
               <Link
                 key={t.name}
-                href={`/search?q=${encodeURIComponent(t.query)}`}
+                href={t.href}
                 className="block px-3 py-3.5 text-base font-medium rounded-lg"
                 style={{ color: 'var(--text)', minHeight: '44px', display: 'flex', alignItems: 'center' }}
                 onClick={() => setMenuOpen(false)}
