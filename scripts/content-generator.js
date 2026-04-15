@@ -481,7 +481,6 @@ ${angleInfo ? `핵심 방향: ${angleInfo.angle} / 금지: ${angleInfo.forbidden
    ① 다른 블로그에 없는 차별화 정보 3가지
    ② 오늘 바로 실행 가능한 실전 팁 3가지
    ③ 독자가 흔히 잘못 알고 있는 부분 3가지
-`,
 
 [HTML 작성 지침]
 - <article>로 시작해 </article>로 닫기
