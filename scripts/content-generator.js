@@ -102,26 +102,26 @@ function insertCoupangBox(content, product, topicId) {
   return content + box;
 }
 
-// ─── Unsplash 이미지 ──────────────────────────────────────────────────────────
+// ─── Pexels 이미지 ───────────────────────────────────────────────────────────
 async function fetchPexelsImage(query) {
-  const key = process.env.UNSPLASH_ACCESS_KEY;
+  const key = process.env.PEXELS_API_KEY;
   if (!key) return null;
   try {
     const res = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&orientation=landscape&per_page=10`,
-      { headers: { Authorization: `Client-ID ${key}` } }
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&orientation=landscape&per_page=10`,
+      { headers: { Authorization: key } }
     );
     if (!res.ok) return null;
     const data = await res.json();
-    if (!data.results || !data.results.length) return null;
+    if (!data.photos || !data.photos.length) return null;
     // 상위 5개 중 랜덤 선택
-    const pool = data.results.slice(0, 5);
+    const pool = data.photos.slice(0, 5);
     const photo = pool[Math.floor(Math.random() * pool.length)];
     return {
-      url: photo.urls.regular,
-      alt: photo.alt_description || query,
-      credit: `Photo by ${photo.user.name} on Unsplash`,
-      creditUrl: `${photo.user.links.html}?utm_source=smartinfohealth&utm_medium=referral`,
+      url: photo.src.large,
+      alt: photo.alt || query,
+      credit: `Photo by ${photo.photographer} on Pexels`,
+      creditUrl: photo.photographer_url,
     };
   } catch {
     return null;
@@ -132,7 +132,7 @@ async function fetchBodyImages(keywords, count = 3) {
   const results = [];
   // 키워드가 부족하면 'senior health' 기본 쿼리로 채움
   const queries = [...keywords.slice(0, count)];
-  while (queries.length < count) queries.push('fitness diet women workout');
+  while (queries.length < count) queries.push('fitness workout diet healthy');
   for (const q of queries) {
     const img = await fetchPexelsImage(q);
     if (img) results.push(img);
@@ -143,10 +143,10 @@ async function fetchBodyImages(keywords, count = 3) {
 
 function makeImgHtml(img) {
   return `
-<figure style="margin:2rem 0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(139,115,85,0.10)">
+<figure style="margin:2rem 0;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(232,99,26,0.10)">
   <img src="${img.url}" alt="${img.alt}" style="width:100%;max-height:420px;object-fit:cover;display:block" loading="lazy" />
-  <figcaption style="font-size:0.75rem;text-align:center;padding:0.5rem 1rem;background:#F5EDE4;color:#63523F">
-    <a href="${img.creditUrl}" target="_blank" rel="noopener noreferrer" style="color:#8B7050">${img.credit}</a>
+  <figcaption style="font-size:0.75rem;text-align:center;padding:0.5rem 1rem;background:#FFF0E8;color:#6B3A1F">
+    <a href="${img.creditUrl}" target="_blank" rel="noopener noreferrer" style="color:#E8631A">${img.credit}</a>
   </figcaption>
 </figure>`;
 }
@@ -546,8 +546,8 @@ async function linkRelated(postId, categoryId, keywords) {
 
 // ─── 메인 ────────────────────────────────────────────────────────────────────
 async function main() {
-  const hasPexels = !!process.env.UNSPLASH_ACCESS_KEY;
-  console.log(`=== 콘텐츠 생성 시작 (GPT-4o-mini${hasPexels ? ' + Unsplash' : ''}) ===`);
+  const hasPexels = !!process.env.PEXELS_API_KEY;
+  console.log(`=== 콘텐츠 생성 시작 (GPT-4o-mini${hasPexels ? ' + Pexels' : ''}) ===`);
   console.log(`생성 목표: ${generateCount}개\n`);
 
   let success = 0, fail = 0;
