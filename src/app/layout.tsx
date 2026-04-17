@@ -7,7 +7,7 @@ import ScrollToTop from '@/components/ScrollToTop';
 import './globals.css';
 
 const SITE_NAME  = process.env.NEXT_PUBLIC_SITE_NAME || '다이어트·운동 백과';
-const SITE_DESC  = process.env.NEXT_PUBLIC_SITE_DESCRIPTION || '30·40·50대를 위한 과학적 다이어트·운동 가이드. 체중감량·근력운동·식단·홈트레이닝 정보 백과사전';
+const SITE_DESC  = process.env.NEXT_PUBLIC_SITE_DESCRIPTION || '과학적 다이어트·운동 가이드. 체중감량·근력운동·식단·홈트레이닝 정보 백과사전';
 const SITE_URL   = process.env.NEXT_PUBLIC_SITE_URL || 'https://smartinfohealth.co.kr';
 const GA_ID      = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const ADSENSE    = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
         url: `${SITE_URL}/og-default.png`,
         width: 1200,
         height: 630,
-        alt: '다이어트·운동 백과 — 10~50대 여성을 위한 과학적 다이어트·운동 가이드',
+        alt: '다이어트·운동 백과 — 과학적 다이어트·운동 가이드',
       },
     ],
   },
