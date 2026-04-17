@@ -13,7 +13,7 @@ import DailyHealthTip from '@/components/DailyHealthTip';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: '다이어트·운동 백과 — 30·40·50대를 위한 과학적 다이어트·운동 가이드',
+  title: '다이어트·운동 백과 — 과학적 다이어트·운동 가이드',
   description: '체중감량·근력운동·유산소·식단·홈트레이닝·바디프로필 정보. 국가공인 스포츠지도사가 알려주는 과학적 다이어트·운동 백과사전.',
   keywords: ['다이어트', '운동', '체중감량', '근력운동', '홈트레이닝', '식단', '단백질', '지방연소'],
   openGraph: {
