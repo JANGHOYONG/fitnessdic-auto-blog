@@ -35,16 +35,9 @@ const nextConfig = {
     ];
   },
 
-  // 리다이렉트 (www → non-www)
+  // 리다이렉트
   async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.smartinfohealth.co.kr' }],
-        destination: 'https://smartinfohealth.co.kr/:path*',
-        permanent: true,
-      },
-    ];
+    return [];
   },
 };
 
