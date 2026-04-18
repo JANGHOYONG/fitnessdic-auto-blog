@@ -905,6 +905,13 @@ async function main() {
       const audioPath = path.join(tmpDir, `audio_${i}.mp3`);
       await generateAudio(slide.narration, audioPath);
       const duration = await getAudioDuration(audioPath);
+
+      // 총 58초 초과 시 슬라이드 건너뜀 (YouTube Shorts 60초 제한)
+      if (totalDuration + duration + 0.3 > 58) {
+        console.log(`     ⚠️ 58초 초과 예상 → 슬라이드 ${i + 1} 건너뜀`);
+        break;
+      }
+
       totalDuration += duration + 0.3;
       console.log(`     🔊 ${slide.narration.length}자 → ${duration.toFixed(1)}초`);
 
