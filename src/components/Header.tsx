@@ -89,15 +89,15 @@ function AppDownloadHeaderBtn() {
         className="md:hidden"
         style={{
           padding: '5px 10px',
-          background: 'linear-gradient(90deg, #177A5E, #B09070)',
-          color: '#fff',
+          background: 'var(--bg-bar)',
+          color: 'var(--primary)',
           borderRadius: '8px',
-          border: 'none',
+          border: '1.5px solid var(--border)',
           fontSize: '11px',
           fontWeight: 700,
           cursor: 'pointer',
           whiteSpace: 'nowrap',
-          boxShadow: '0 1px 4px rgba(23,122,94,0.3)',
+          boxShadow: 'none',
           flexShrink: 0,
         }}
       >
