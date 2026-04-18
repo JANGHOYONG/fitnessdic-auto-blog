@@ -18,6 +18,23 @@ const os = require('os');
 const prisma = new PrismaClient();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+/** Neon DB 콜드스타트 대비 재시도 래퍼 */
+async function withRetry(fn, retries = 4, delayMs = 5000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      const isDbErr = e.message && (e.message.includes("Can't reach database") || e.message.includes('connect') || e.message.includes('ECONNREFUSED'));
+      if (isDbErr && i < retries - 1) {
+        console.log(`  ⚠️ DB 연결 실패 (${i + 1}/${retries}). ${delayMs / 1000}초 후 재시도...`);
+        await new Promise(r => setTimeout(r, delayMs));
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+
 const args = process.argv.slice(2);
 const getArg = (name) => {
   const found = args.find((a) => a.startsWith(`--${name}=`));
@@ -570,13 +587,15 @@ async function main() {
 
   try {
     const postId = getArg('post-id');
-    const post = postId
-      ? await prisma.post.findUnique({ where: { id: parseInt(postId) }, include: { category: true } })
-      : await prisma.post.findFirst({
-          where: { status: 'PUBLISHED', category: { slug: { in: ['fitness', 'weightloss', 'strength', 'cardio', 'nutrition', 'hometraining', 'motivation'] } }, longformGenerated: false },
-          orderBy: { publishedAt: 'desc' },
-          include: { category: true },
-        });
+    const post = await withRetry(() =>
+      postId
+        ? prisma.post.findUnique({ where: { id: parseInt(postId) }, include: { category: true } })
+        : prisma.post.findFirst({
+            where: { status: 'PUBLISHED', category: { slug: { in: ['fitness', 'weightloss', 'strength', 'cardio', 'nutrition', 'hometraining', 'motivation'] } }, longformGenerated: false },
+            orderBy: { publishedAt: 'desc' },
+            include: { category: true },
+          })
+    );
 
     if (!post) { console.log('장편을 만들 글이 없습니다.'); return; }
     console.log(`대상 글: "${post.title}"\n`);
