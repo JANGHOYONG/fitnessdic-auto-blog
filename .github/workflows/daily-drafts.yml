@@ -1,0 +1,71 @@
+name: Daily Drafts (초안 4건)
+
+on:
+  schedule:
+    - cron: "0 21 * * *"   # UTC 21:00 = KST 06:00
+  workflow_dispatch: {}
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Check APPROVED queue size
+        id: queue_check
+        run: |
+          node -e "
+          const { PrismaClient } = require('@prisma/client');
+          const prisma = new PrismaClient();
+          prisma.post.count({ where: { status: 'APPROVED' } }).then(n => {
+            console.log('APPROVED 큐:', n + '건');
+            if (n >= 20) {
+              console.log('큐 오버플로 — 초안 생성 중단');
+              process.exit(2);
+            }
+            process.exit(0);
+          }).finally(() => prisma.$disconnect());
+          " || ([ $? -eq 2 ] && echo "SKIP=true" >> $GITHUB_OUTPUT && exit 0)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Auto-replenish keywords if low
+        if: steps.queue_check.outputs.SKIP != 'true'
+        run: |
+          node -e "
+          const { PrismaClient } = require('@prisma/client');
+          const prisma = new PrismaClient();
+          prisma.keyword.count({ where: { used: false } }).then(n => {
+            console.log('미사용 키워드:', n);
+            process.exit(n < 20 ? 1 : 0);
+          }).finally(() => prisma.$disconnect());
+          " && echo "키워드 충분" || node scripts/keyword-collector.js --count=30
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Generate 4 drafts
+        if: steps.queue_check.outputs.SKIP != 'true'
+        run: node scripts/content-generator.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          DAILY_POST_LIMIT: "4"
+          DAILY_DRAFT_COUNT: "4"

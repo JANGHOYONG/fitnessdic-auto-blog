@@ -1,12 +1,16 @@
 /**
- * 콘텐츠 자동 생성 스크립트 (GPT-4o-mini + Unsplash 이미지)
+ * 콘텐츠 자동 생성 스크립트 (GPT-4o-mini + Pexels 이미지 + 품질 게이트)
  * 실행: node scripts/content-generator.js
  * 옵션: --count=3 --category=tech
+ *
+ * 품질 게이트 통과 → REVIEW_REQUIRED (사람 감수 대기)
+ * 품질 게이트 실패 → QUALITY_REJECTED (자동 거절)
  */
 
 require('dotenv').config();
 const OpenAI = require('openai');
 const { PrismaClient } = require('@prisma/client');
+const { runQualityGate } = require('./quality-gate');
 
 const prisma = new PrismaClient();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -715,6 +719,17 @@ async function main() {
         }
 
         const slug = generateSlug(gen.selectedTitle);
+
+        // ── 품질 게이트 ────────────────────────────────────────────────
+        const draftForGate = { content, thumbnail, coupangProduct: coupangProductJson };
+        const gate = runQualityGate(draftForGate);
+        const postStatus = gate.pass ? 'REVIEW_REQUIRED' : 'QUALITY_REJECTED';
+        console.log(`    품질 점수: ${gate.score}점 → ${postStatus}`);
+        if (!gate.pass) {
+          gate.reasons.forEach((r) => console.log(`      ✗ ${r}`));
+        }
+        // ────────────────────────────────────────────────────────────────
+
         const post = await prisma.post.create({
           data: {
             title: gen.selectedTitle,
@@ -727,7 +742,9 @@ async function main() {
             readTime: gen.readTime,
             thumbnail,
             coupangProduct: coupangProductJson,
-            status: 'DRAFT',
+            status: postStatus,
+            qualityScore: gate.score,
+            rejectReasons: gate.pass ? [] : gate.reasons,
             categoryId: postCategoryId,
             keywordId: kw.id,
           },
@@ -738,7 +755,7 @@ async function main() {
 
         success++;
         console.log(`  ✓ "${gen.selectedTitle}"`);
-        console.log(`    읽기 ${gen.readTime}분 | 이미지: ${thumbnail ? '✅ Pexels' : '없음'}\n`);
+        console.log(`    읽기 ${gen.readTime}분 | 이미지: ${thumbnail ? '✅ Pexels' : '없음'} | 상태: ${postStatus}\n`);
 
         if (success < generateCount) await new Promise((r) => setTimeout(r, 2000));
       } catch (e) {

@@ -1,15 +1,14 @@
-name: Auto Publish (감수 승인 1건)
+name: Weekly Quality Audit
 
 on:
   schedule:
-    - cron: "30 0 * * *"   # UTC 00:30 = KST 09:30
-    - cron: "0 12 * * *"   # UTC 12:00 = KST 21:00
+    - cron: "0 18 * * 6"   # UTC 토요일 18:00 = KST 일요일 03:00
   workflow_dispatch: {}
 
 jobs:
-  publish:
+  audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -28,10 +27,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Publish 1 APPROVED post
-        run: node scripts/publisher.js --mode=immediate --limit=1
+      - name: Run quality audit
+        run: node scripts/quality-audit.js
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-          PUBLISH_FROM_APPROVED: "true"

@@ -161,13 +161,22 @@ async function main() {
       return;
     }
 
-    // DRAFT 글 가져오기 (생성 순)
+    // APPROVED 글 먼저, 없으면 DRAFT 폴백 (PUBLISH_FROM_APPROVED=true 시 APPROVED만)
+    const approvedOnly = process.env.PUBLISH_FROM_APPROVED === 'true';
+    const statusFilter = approvedOnly
+      ? 'APPROVED'
+      : { in: ['APPROVED', 'DRAFT'] };
+
     const drafts = await prisma.post.findMany({
-      where: { status: 'DRAFT' },
-      orderBy: { createdAt: 'asc' },
+      where: { status: approvedOnly ? 'APPROVED' : { in: ['APPROVED', 'DRAFT'] } },
+      orderBy: [{ qualityScore: 'desc' }, { createdAt: 'asc' }],
       take: remaining,
       include: { category: true },
     });
+
+    if (!approvedOnly && drafts.length === 0) {
+      // APPROVED/DRAFT 모두 없음
+    }
 
     if (drafts.length === 0) {
       console.log('발행할 DRAFT 글이 없습니다.');
