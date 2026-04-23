@@ -1,88 +1,266 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '개인정보처리방침 | 다이어트·운동 백과',
-  description: '다이어트·운동 백과의 개인정보처리방침입니다.',
+  title: '개인정보처리방침 | 다이어트·건강·피부미용 백과',
+  description:
+    '다이어트·건강·피부미용 백과의 개인정보처리방침입니다. 한국 개인정보보호법 기반으로 작성되었습니다.',
+};
+
+const sectionStyle: React.CSSProperties = {
+  marginBottom: '2rem',
+};
+
+const h2Style: React.CSSProperties = {
+  fontSize: '1.1rem',
+  fontWeight: 700,
+  color: 'var(--text)',
+  marginBottom: '0.6rem',
+  paddingBottom: '0.4rem',
+  borderBottom: '2px solid var(--border)',
+};
+
+const pStyle: React.CSSProperties = {
+  fontSize: '0.93rem',
+  lineHeight: 1.85,
+  color: 'var(--text-muted)',
+  marginBottom: '0.6rem',
 };
 
 export default function PrivacyPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text)' }}>개인정보처리방침</h1>
-      <p className="text-sm mb-10" style={{ color: 'var(--text-muted)' }}>최종 수정일: 2026년 4월 4일</p>
-
-      <div className="prose-custom space-y-10">
-
-        <section>
-          <h2>1. 개인정보 수집 항목 및 목적</h2>
-          <p>
-            다이어트·운동 백과(이하 "본 사이트")는 별도의 회원가입 없이 운영되며, 이용자의 개인정보를 직접 수집하지 않습니다.
-            다만, 아래의 제3자 서비스를 통해 일부 정보가 자동으로 수집될 수 있습니다.
-          </p>
-        </section>
-
-        <section>
-          <h2>2. 제3자 서비스 이용</h2>
-          <h3>Google Analytics (구글 애널리틱스)</h3>
-          <p>
-            본 사이트는 방문자 통계 분석을 위해 Google Analytics를 사용합니다.
-            Google Analytics는 쿠키를 사용하여 이용자의 사이트 방문 정보(접속 페이지, 체류 시간, 유입 경로 등)를 수집합니다.
-            수집된 정보는 익명으로 처리되며 개인을 식별하는 데 사용되지 않습니다.
-            자세한 내용은 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google 개인정보처리방침</a>을 참고하시기 바랍니다.
-          </p>
-          <h3>Google AdSense (구글 애드센스)</h3>
-          <p>
-            본 사이트는 Google AdSense를 통해 광고를 게재합니다. Google AdSense는 이용자의 관심사에 맞는 광고를 제공하기 위해
-            쿠키를 사용할 수 있습니다. 이용자는 <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">Google 광고 설정</a>에서
-            맞춤 광고를 비활성화할 수 있습니다.
-          </p>
-        </section>
-
-        <section>
-          <h2>3. 쿠키(Cookie) 사용</h2>
-          <p>
-            본 사이트는 방문자 통계 및 광고 서비스를 위해 쿠키를 사용합니다.
-            쿠키는 이용자의 브라우저에 저장되는 소규모 데이터 파일로, 이용자는 브라우저 설정을 통해 쿠키 저장을 거부하거나 삭제할 수 있습니다.
-            단, 쿠키를 비활성화할 경우 일부 서비스 이용에 제한이 있을 수 있습니다.
-          </p>
-        </section>
-
-        <section>
-          <h2>4. 개인정보의 보유 및 이용 기간</h2>
-          <p>
-            본 사이트는 이용자의 개인정보를 직접 수집·보관하지 않습니다.
-            제3자 서비스(Google Analytics, Google AdSense)를 통해 수집된 정보는 해당 서비스의 정책에 따라 관리됩니다.
-          </p>
-        </section>
-
-        <section>
-          <h2>5. 면책 조항</h2>
-          <p>
-            본 사이트에서 제공하는 정보는 일반적인 참고 목적으로만 제공되며, 의학적·법적·재정적 전문 조언을 대체하지 않습니다.
-            중요한 결정을 내리기 전에 반드시 해당 분야의 전문가와 상담하시기 바랍니다.
-            본 사이트는 정보의 정확성, 완전성에 대해 보증하지 않으며, 정보 이용으로 인한 손해에 대해 책임을 지지 않습니다.
-          </p>
-        </section>
-
-        <section>
-          <h2>6. 개인정보처리방침 변경</h2>
-          <p>
-            본 개인정보처리방침은 법령·정책 변경이나 서비스 개선을 위해 수정될 수 있습니다.
-            변경 시 본 페이지에 최종 수정일을 업데이트하여 공지합니다.
-          </p>
-        </section>
-
-        <section>
-          <h2>7. 문의</h2>
-          <p>
-            개인정보처리방침에 관한 문의사항은 아래 이메일로 연락해 주시기 바랍니다.
-          </p>
-          <p>
-            이메일: <a href="mailto:smartinfohealth@gmail.com">smartinfohealth@gmail.com</a>
-          </p>
-        </section>
-
+    <>
+      {/* 상단 헤더 */}
+      <div
+        style={{
+          background: 'var(--primary)',
+          padding: '2.5rem 1rem',
+          textAlign: 'center',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: '1.6rem',
+            fontWeight: 800,
+            color: '#fff',
+            marginBottom: '0.4rem',
+          }}
+        >
+          개인정보처리방침
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: '0.9rem' }}>
+          다이어트·건강·피부미용 백과
+        </p>
       </div>
-    </div>
+
+      {/* 본문 */}
+      <div
+        style={{
+          maxWidth: '720px',
+          margin: '0 auto',
+          padding: '2.5rem 1rem',
+        }}
+      >
+        <p
+          style={{
+            fontSize: '0.85rem',
+            color: 'var(--text-muted)',
+            marginBottom: '2rem',
+            padding: '0.75rem 1rem',
+            background: '#FFF8F3',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+          }}
+        >
+          시행일: 2026년 4월 23일 &nbsp;|&nbsp; 운영자: 다이어트·건강·피부미용 백과 &nbsp;|&nbsp;
+          이메일: ghdyd6913@gmail.com
+        </p>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>1. 수집하는 개인정보 항목</h2>
+          <p style={pStyle}>
+            본 사이트(smartinfohealth.co.kr, 이하 "본 사이트")는 별도의 회원가입 없이 운영되며,
+            이용자의 개인정보를 직접 수집하지 않습니다. 다만 아래의 경우 일부 정보가 자동으로
+            수집될 수 있습니다.
+          </p>
+          <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
+            {[
+              '방문 쿠키(Cookie): 접속 페이지, 체류 시간, 유입 경로 등 익명 통계 정보',
+              'Google AdSense: 맞춤 광고 제공을 위한 쿠키 및 광고 식별자',
+              '뉴스레터 구독(선택): 이메일 주소 (구독 시 별도 동의)',
+            ].map((item) => (
+              <li
+                key={item}
+                style={{
+                  fontSize: '0.93rem',
+                  lineHeight: 1.85,
+                  color: 'var(--text-muted)',
+                  marginBottom: '0.3rem',
+                }}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>2. 개인정보 이용 목적</h2>
+          <p style={pStyle}>수집된 정보는 아래 목적에 한해 이용됩니다.</p>
+          <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
+            {[
+              '사이트 방문 통계 분석 및 서비스 품질 개선',
+              '맞춤형 광고 제공 (Google AdSense)',
+              '뉴스레터 발송 (구독자에 한함)',
+              '오류·민원 처리 및 고지 사항 전달',
+            ].map((item) => (
+              <li
+                key={item}
+                style={{
+                  fontSize: '0.93rem',
+                  lineHeight: 1.85,
+                  color: 'var(--text-muted)',
+                  marginBottom: '0.3rem',
+                }}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>3. 개인정보 보관 기간</h2>
+          <p style={pStyle}>
+            본 사이트가 직접 보관하는 개인정보는 없습니다. 뉴스레터 이메일은 구독 해지 즉시
+            삭제되며, 제3자 서비스(Google Analytics, Google AdSense)를 통해 수집된 정보는
+            각 서비스의 보관 정책에 따릅니다.
+          </p>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>4. 개인정보의 제3자 제공</h2>
+          <p style={pStyle}>
+            본 사이트는 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다.
+            단, 아래 서비스는 자체 개인정보처리방침에 따라 정보를 수집·이용합니다.
+          </p>
+          <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
+            <li
+              style={{
+                fontSize: '0.93rem',
+                lineHeight: 1.85,
+                color: 'var(--text-muted)',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <strong style={{ color: 'var(--text)' }}>Google AdSense</strong> — 맞춤 광고 쿠키 사용.{' '}
+              <a
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--primary)' }}
+              >
+                Google 개인정보처리방침
+              </a>
+            </li>
+            <li
+              style={{
+                fontSize: '0.93rem',
+                lineHeight: 1.85,
+                color: 'var(--text-muted)',
+                marginBottom: '0.5rem',
+              }}
+            >
+              <strong style={{ color: 'var(--text)' }}>쿠팡파트너스</strong> — 제휴 링크 클릭 시
+              쿠팡의 쿠키 정책이 적용됩니다.{' '}
+              <a
+                href="https://www.coupang.com/np/support/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--primary)' }}
+              >
+                쿠팡 개인정보처리방침
+              </a>
+            </li>
+          </ul>
+          <p style={{ ...pStyle, marginTop: '0.5rem' }}>
+            이용자는{' '}
+            <a
+              href="https://adssettings.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--primary)' }}
+            >
+              Google 광고 설정
+            </a>
+            에서 맞춤 광고를 비활성화할 수 있습니다.
+          </p>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>5. 이용자의 권리</h2>
+          <p style={pStyle}>
+            이용자는 언제든지 아래 권리를 행사할 수 있습니다.
+          </p>
+          <ul style={{ paddingLeft: '1.2rem', margin: 0 }}>
+            {[
+              '개인정보 열람 요청',
+              '개인정보 정정·삭제 요청',
+              '개인정보 처리 정지 요청',
+              '뉴스레터 구독 해지 (수신된 메일의 수신거부 링크 또는 이메일 문의)',
+            ].map((item) => (
+              <li
+                key={item}
+                style={{
+                  fontSize: '0.93rem',
+                  lineHeight: 1.85,
+                  color: 'var(--text-muted)',
+                  marginBottom: '0.3rem',
+                }}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>6. 개인정보 보호책임자 연락처</h2>
+          <p style={pStyle}>
+            개인정보 처리에 관한 문의, 불만 처리, 권리 행사는 아래 이메일로 연락해 주세요.
+          </p>
+          <a
+            href="mailto:ghdyd6913@gmail.com"
+            style={{
+              display: 'inline-block',
+              color: 'var(--primary)',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              fontSize: '0.95rem',
+            }}
+          >
+            ghdyd6913@gmail.com
+          </a>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2 style={h2Style}>7. 개인정보처리방침 변경</h2>
+          <p style={pStyle}>
+            법령·정책 변경이나 서비스 개선을 위해 방침이 수정될 수 있습니다. 변경 시 본
+            페이지에 시행일을 업데이트하여 공지합니다.
+          </p>
+        </section>
+
+        <p
+          style={{
+            textAlign: 'center',
+            fontSize: '0.8rem',
+            color: 'var(--text-muted)',
+            marginTop: '2rem',
+          }}
+        >
+          시행일: 2026년 4월 23일
+        </p>
+      </div>
+    </>
   );
 }

@@ -35,9 +35,18 @@ const nextConfig = {
     ];
   },
 
-  // 리다이렉트
+  // 리다이렉트 — 기존 카테고리 URL 보존 (링크주스 유지)
   async redirects() {
-    return [];
+    return [
+      // 기존 카테고리 → 새 카테고리 301 리다이렉트
+      { source: '/weightloss/:path*', destination: '/diet/:path*',         permanent: true },
+      { source: '/strength/:path*',   destination: '/exercise/:path*',     permanent: true },
+      { source: '/cardio/:path*',     destination: '/running/:path*',      permanent: true },
+      // 단일 슬러그 리다이렉트
+      { source: '/weightloss',        destination: '/diet',                permanent: true },
+      { source: '/strength',          destination: '/exercise',            permanent: true },
+      { source: '/cardio',            destination: '/running',             permanent: true },
+    ];
   },
 };
 
