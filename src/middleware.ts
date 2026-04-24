@@ -4,18 +4,19 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // /admin/* 경로에 Basic Auth 적용
-  if (pathname.startsWith('/admin')) {
-    const authHeader = request.headers.get('authorization');
-    const adminUser = process.env.ADMIN_USER || 'admin';
-    const adminPass = process.env.ADMIN_PASS || 'changeme';
-    const expected = 'Basic ' + btoa(`${adminUser}:${adminPass}`);
+  // /admin/login 은 인증 없이 접근 허용
+  if (pathname === '/admin/login') {
+    return NextResponse.next();
+  }
 
-    if (!authHeader || authHeader !== expected) {
-      return new NextResponse('인증이 필요합니다', {
-        status: 401,
-        headers: { 'WWW-Authenticate': 'Basic realm="Admin"' },
-      });
+  // /admin/* 나머지 경로 → 쿠키 확인
+  if (pathname.startsWith('/admin')) {
+    const session = request.cookies.get('admin_session')?.value;
+    const adminPass = process.env.ADMIN_PASS || 'changeme';
+
+    if (!session || session !== adminPass) {
+      const loginUrl = new URL('/admin/login', request.url);
+      return NextResponse.redirect(loginUrl);
     }
   }
 
