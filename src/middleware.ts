@@ -9,7 +9,7 @@ export function middleware(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
     const adminUser = process.env.ADMIN_USER || 'admin';
     const adminPass = process.env.ADMIN_PASS || 'changeme';
-    const expected = 'Basic ' + Buffer.from(`${adminUser}:${adminPass}`).toString('base64');
+    const expected = 'Basic ' + btoa(`${adminUser}:${adminPass}`);
 
     if (!authHeader || authHeader !== expected) {
       return new NextResponse('인증이 필요합니다', {
