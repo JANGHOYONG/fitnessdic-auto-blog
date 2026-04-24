@@ -63,9 +63,14 @@ export default async function ReviewPostPage({ params }: { params: { id: string 
         )}
       </div>
 
-      {/* 승인/반려 버튼 (클라이언트 컴포넌트) */}
+      {/* 감수 체크리스트 + 승인/반려 (클라이언트 컴포넌트) */}
       {(post.status === 'REVIEW_REQUIRED' || post.status === 'APPROVED') && (
-        <ApproveRejectButtons postId={post.id} currentStatus={post.status} />
+        <ApproveRejectButtons
+          postId={post.id}
+          currentStatus={post.status}
+          qualityScore={post.qualityScore}
+          rejectReasons={post.rejectReasons}
+        />
       )}
 
       {/* 본문 미리보기 */}

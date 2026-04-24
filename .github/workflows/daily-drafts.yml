@@ -1,4 +1,4 @@
-name: Daily Drafts (초안 4건)
+name: Daily Drafts (초안 1건 · v3)
 
 on:
   schedule:
@@ -27,16 +27,16 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Check APPROVED queue size
+      - name: Check REVIEW_REQUIRED queue size
         id: queue_check
         run: |
           node -e "
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();
-          prisma.post.count({ where: { status: 'APPROVED' } }).then(n => {
-            console.log('APPROVED 큐:', n + '건');
-            if (n >= 20) {
-              console.log('큐 오버플로 — 초안 생성 중단');
+          prisma.post.count({ where: { status: { in: ['REVIEW_REQUIRED', 'APPROVED'] } } }).then(n => {
+            console.log('감수 대기 큐:', n + '건');
+            if (n >= 7) {
+              console.log('큐 적체 — 초안 생성 중단 (감수를 먼저 진행하세요)');
               process.exit(2);
             }
             process.exit(0);
@@ -53,19 +53,18 @@ jobs:
           const prisma = new PrismaClient();
           prisma.keyword.count({ where: { used: false } }).then(n => {
             console.log('미사용 키워드:', n);
-            process.exit(n < 20 ? 1 : 0);
+            process.exit(n < 10 ? 1 : 0);
           }).finally(() => prisma.$disconnect());
-          " && echo "키워드 충분" || node scripts/keyword-collector.js --count=30
+          " && echo "키워드 충분" || node scripts/keyword-collector.js --count=20
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Generate 4 drafts
+      - name: Generate 1 draft (v3 · gpt-4o)
         if: steps.queue_check.outputs.SKIP != 'true'
-        run: node scripts/content-generator.js
+        run: node scripts/content-generator-v3.js
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          DAILY_POST_LIMIT: "4"
-          DAILY_DRAFT_COUNT: "4"
+          DAILY_DRAFT_COUNT: "1"

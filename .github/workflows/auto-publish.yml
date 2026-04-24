@@ -2,8 +2,7 @@ name: Auto Publish (감수 승인 1건)
 
 on:
   schedule:
-    - cron: "30 0 * * *"   # UTC 00:30 = KST 09:30
-    - cron: "0 12 * * *"   # UTC 12:00 = KST 21:00
+    - cron: "0 9 * * *"    # UTC 09:00 = KST 18:00 (하루 1회)
   workflow_dispatch: {}
 
 jobs:
