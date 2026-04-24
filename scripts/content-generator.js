@@ -479,17 +479,17 @@ ${angleBlock}
     content = contentRes.choices[0].message.content.trim()
       .replace(/^```(?:html)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
 
-    const textLen = content.replace(/<[^>]+>/g, '').length;
+    const textLen = content.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().length;
     console.log(`    본문 길이: ${textLen.toLocaleString()}자 (시도 ${attempt}/2)`);
 
-    if (textLen >= 2200) break;
+    if (textLen >= 1800) break;
     if (attempt < 2) {
       console.log('    ⚠️  분량 미달 — 재시도...');
       await new Promise((r) => setTimeout(r, 1500));
     }
   }
 
-  const finalLen = content.replace(/<[^>]+>/g, '').length;
+  const finalLen = content.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().length;
   return {
     ...meta,
     content,

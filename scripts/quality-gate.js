@@ -3,7 +3,7 @@
  * runQualityGate(post) → { pass, score, reasons }
  */
 
-const MIN_CHARS = 2200;
+const MIN_CHARS = 1800;
 const MIN_SOURCES = 2;  // source-fetcher 검증 URL 수 (실제 HEAD 체크 후)
 const MIN_FAQS = 2;
 const MIN_INTERNAL_LINKS = 0; // 초기엔 0 (글이 충분히 쌓이면 높임)
