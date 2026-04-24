@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 
 export async function POST(req: Request) {
   try {
@@ -12,10 +13,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Cannot approve from status: ${post.status}` }, { status: 400 });
     }
 
+    // 승인 즉시 PUBLISHED로 전환 (예약 발행 없음)
+    const now = new Date();
     const updated = await prisma.post.update({
       where: { id: Number(postId) },
-      data: { status: 'APPROVED', reviewedAt: new Date() },
+      data: {
+        status: 'PUBLISHED',
+        reviewedAt: now,
+        publishedAt: now,
+      },
+      select: { id: true, status: true, slug: true },
     });
+
+    // Next.js 캐시 무효화
+    try {
+      revalidatePath('/');
+      revalidatePath('/posts');
+      revalidatePath(`/posts/${updated.slug}`);
+    } catch (_) {
+      // revalidate 실패해도 발행은 성공
+    }
 
     return NextResponse.json({ success: true, id: updated.id, status: updated.status });
   } catch (e: any) {
