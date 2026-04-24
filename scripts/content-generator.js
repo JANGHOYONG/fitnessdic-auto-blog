@@ -320,122 +320,93 @@ const TOPIC_CONTENT_ANGLES = {
   },
 };
 
-// ─── 카테고리별 전문가 역할 ───────────────────────────────────────────────────
-const SYSTEM_ROLES = {
-  fitness:   '10년 경력 국가공인 생활스포츠지도사이자 스포츠영양사. 체중감량·근력운동·유산소·식단·홈트레이닝 등 과학적 근거 기반의 다이어트·운동 정보를 30~50대 일반인이 이해하기 쉽게 전달. 섣부른 효과 보장은 하지 않으며 개인차가 있음을 항상 명시. ⚠️ 절대 금지: "열심히 하세요", "꾸준히 하세요", "균형 잡힌 식단" 같이 누구나 아는 뻔한 조언은 절대 쓰지 않습니다. 독자가 이미 알고 있는 상식을 반복하는 것은 글의 가치를 0으로 만듭니다. 반드시 독자가 "나한테 딱 필요한 정보다!", "오늘 바로 해봐야겠다!" 라고 반응할 만큼 구체적이고 실천 가능한 정보, 최신 스포츠과학 연구 기반의 새로운 사실, 단계별 실천 가이드를 중심으로 긍정적이고 신뢰감 있게 작성하세요.',
-  health:    '10년 경력 국가공인 생활스포츠지도사이자 스포츠영양사. 체중감량·근력운동·유산소·식단·홈트레이닝 등 과학적 근거 기반의 다이어트·운동 정보를 30~50대 일반인이 이해하기 쉽게 전달. 섣부른 효과 보장은 하지 않으며 개인차가 있음을 항상 명시.',
+// ─── 카테고리별 전문가 페르소나 ──────────────────────────────────────────────
+const CATEGORY_PERSONAS = {
+  diet:         '10년 경력의 생활스포츠지도사 1급이자 스포츠영양사. 체지방 감량 속도는 주당 0.5~1%를 기본으로 하며 급속 감량을 권하지 않는다. 단백질 권장량은 체중 1kg당 1.4~2.0g 범위로 제시. 탄수화물·지방을 악마화하지 않는다.',
+  exercise:     '10년 경력의 생활스포츠지도사 1급. 운동생리학 기반으로 근력 향상 원리를 설명. 초보자 안전을 최우선으로 하며 부상 예방 정보를 반드시 포함. 점진적 과부하 원칙을 구체적 수치로 안내.',
+  hometraining: '10년 경력의 퍼스널 트레이너. 도구 없이 체중만으로 효과를 극대화하는 맨몸운동 전문가. 공간 제약, 시간 제약을 가진 독자를 위한 현실적 루틴 제안.',
+  running:      '10년 경력의 달리기 코치이자 스포츠의학 전문 트레이너. 초보자 부상 예방을 최우선으로 하며 페이스·심박수·회복 관리를 구체적으로 안내.',
+  nutrition:    '10년 경력의 스포츠영양사. 탄단지 비율, 칼로리 계산, 혈당 관리를 과학적으로 설명. 식품의약품안전처 기준 내에서 식단을 설계하며 외식·간식 상황도 현실적으로 안내.',
+  supplement:   '10년 경력의 스포츠영양사이자 이너뷰티 전문가. 영양제 성분을 INCI 기준으로 설명. 과장 광고 없이 실제 임상 근거 기반으로 효능을 설명하며 복용 기준과 주의사항을 명확히 안내.',
+  health:       '10년 경력의 건강관리사이자 운동처방사. 수면·스트레스·혈압·장건강 등 생활습관 개선 전문. 질병 진단·치료 조언 없이 생활 개선 중심으로 안내하며 반드시 의료진 상담을 권고.',
+  skincare:     '10년 경력의 피부미용사이자 화장품 성분 전문가. 성분 이름은 INCI 기준 영문+한글 병기. 피부 타입별(건성/지성/복합성/민감성) 가이드 필수. 식약처 고시 기준 내에서 효능 설명.',
+  beauty:       '10년 경력의 뷰티 에디터이자 화장품 성분 분석가. 화장품 성분의 실제 효과를 과학적으로 분석. 트렌드와 실용성을 함께 안내하며 피부과 전문의 상담을 주기적으로 권고.',
+  motivation:   '10년 경력의 스포츠심리 상담사이자 퍼스널 트레이너. 운동 지속을 방해하는 심리적 요인을 분석하고 습관 형성 과학에 기반한 실천 전략을 제시.',
 };
 
-// ─── 글 생성 (2단계: 메타데이터 → 본문 분리) ──────────────────────────────────
+// 카테고리 → 프롬프트 파일 매핑
+const PROMPT_FILE_MAP = {
+  diet: 'diet', exercise: 'diet', hometraining: 'diet', running: 'diet', motivation: 'diet',
+  nutrition: 'diet', supplement: 'health',
+  health: 'health',
+  skincare: 'beauty', beauty: 'beauty',
+};
+
+// 하위 호환 — 기존 topic ID도 지원
+const TOPIC_TO_CATEGORY = {
+  weightloss: 'diet', strength: 'exercise', cardio: 'running',
+  nutrition: 'nutrition', hometraining: 'hometraining', motivation: 'motivation',
+};
+
+// ─── 글 생성 (2단계: 메타 → 본문) ────────────────────────────────────────────
 async function generatePost(keyword, categorySlug, topicId = null) {
-  // 모든 카테고리를 fitness 전문가 역할로 통일
-  const effectiveSlug = 'fitness';
-  const role = SYSTEM_ROLES[effectiveSlug] || '전문 블로그 작가.';
-  const isHealth = true; // 운동·다이어트 특화 지침 항상 적용
+  // 카테고리별 전문가 페르소나
+  const catKey = TOPIC_TO_CATEGORY[topicId] || categorySlug || 'diet';
+  const persona = CATEGORY_PERSONAS[catKey] || CATEGORY_PERSONAS.diet;
 
-  // 주제별 콘텐츠 각도 — topicId가 있을 때 적용
+  // 콘텐츠 각도
   const angleInfo = topicId ? TOPIC_CONTENT_ANGLES[topicId] : null;
-  const angleBlock = angleInfo ? `
-[이번 글의 콘텐츠 전략 — 반드시 준수]
-▪ 콘텐츠 각도: ${angleInfo.angle}
-▪ 절대 쓰지 말 것: ${angleInfo.forbidden}
-▪ 반드시 다룰 핵심 주제 (4가지 중 최소 2가지 이상 포함):
-  1. ${angleInfo.focus[0]}
-  2. ${angleInfo.focus[1]}
-  3. ${angleInfo.focus[2]}
-  4. ${angleInfo.focus[3]}
 
-독자가 "나한테 딱 필요한 정보다!", "오늘 바로 해봐야겠다!" 라고 반응해야 성공적인 글입니다.
-뻔한 조언을 쓰면 즉시 실격입니다. 반드시 구체적이고 실천 가능한 정보 중심으로 쓰세요.
-` : '';
-
-  // 글 구조 타입을 매번 다르게 (구글 스팸 탐지 회피)
+  // 글 구조 타입 (매번 다르게)
   const STRUCTURE_TYPES = ['story', 'checklist', 'compare', 'guide', 'qna'];
   const structureType = STRUCTURE_TYPES[Math.floor(Math.random() * STRUCTURE_TYPES.length)];
   const structureGuide = {
-    story:     '스토리형: 실제 30~40대 독자의 경험담으로 시작 → 문제 → 해결 과정 → 결론',
-    checklist: '체크리스트형: 자가진단 항목 → 각 항목별 해설 → 개선 방법 → 종합 조언',
-    compare:   '비교분석형: 일반적 통념 vs 실제 사실 대조표 → 올바른 방법 → 주의사항',
-    guide:     '단계별 가이드형: 왜 중요한가 → 준비단계 → 실행단계 → 유지관리 → 주의사항',
-    qna:       'Q&A형: 독자가 가장 많이 묻는 질문 5개 → 각각 심층 답변 → 종합 가이드',
+    story:     '스토리형: 30~40대 독자 실제 경험담으로 시작 → 문제 발견 → 해결 과정 → 결론',
+    checklist: '체크리스트형: 자가진단 5항목 → 각 항목 상세 해설 → 개선법 → 종합 조언',
+    compare:   '비교분석형: 일반 통념 vs 실제 사실 대조표 → 올바른 방법 → 주의사항',
+    guide:     '단계별 가이드형: 왜 중요한가 → 준비 → 실행 → 유지관리 → 주의사항',
+    qna:       'Q&A형: 독자가 가장 많이 묻는 질문 4개 → 각각 300자 이상 심층 답변',
   }[structureType];
 
-  const systemPrompt = `당신은 ${role}
-모든 텍스트는 순수 한국어로만 작성합니다. 외국어 문자(중국어·일본어·베트남어·러시아어 등) 사용 금지.
-영어는 운동·영양 용어, 브랜드명 등 꼭 필요한 경우에만 사용합니다.
-제목과 본문에 특정 연도(2023년, 2024년 등 과거 연도)를 절대 사용하지 않습니다. 시간이 지나도 유효한 Evergreen Content로 작성합니다.
+  const SYSTEM_BASE = `당신은 ${persona}
 
-[가장 중요한 원칙 — 구글 애드센스 승인 기준]
-① AI가 쓴 티가 절대 나면 안 됩니다. 실제 운동·영양 전문 에디터가 직접 조사하고 쓴 글처럼 작성하세요.
-② 동일한 HTML 구조 패턴 반복 금지. 이번 글의 구조 유형: ${structureGuide}
-③ 국내 공식 기관 데이터를 반드시 인용하세요:
-   - 국민체육진흥공단, 한국영양학회, 국민건강영양조사, 대한스포츠의학회, 질병관리청 자료
-   - 인용 방식: "국민건강영양조사에 따르면 30~40대 여성의 약 42%가..." 형식
-④ 독자 공감형 도입: 첫 문단은 "퇴근 후 홈트를 시작한 지 3개월째인 36세 직장인 박모씨는..." 같은 실생활 사례로 시작
-⑤ 개인차 명시: "개인 체력·건강 상태에 따라 차이가 있으며, 부상 위험 시 전문가 상담 필수"
+[절대 금지]
+- "치료한다", "낫게 한다", "기적의", "무조건", "확실히 효과" 같은 표현
+- "열심히 하세요", "꾸준히 하세요", "균형 잡힌 식단" 같은 뻔한 조언
+- 과거 특정 연도(예: 2023년, 2024년) 사용 — Evergreen 콘텐츠로 작성
+- 중국어·일본어 등 외국어 문자 사용
+- AI가 쓴 티 나는 기계적 문장 ("또한", "따라서", "즉" 반복)
 
-[30~50대 독자 특화 지침 — 핵심 타겟]
-- 주요 독자: 30~50대 (다이어트·운동에 관심 높고, 바쁜 일상 속에서 효율적으로 몸 만들고 싶은 사람)
-- 페르소나 예시:
-  • 30~40대 직장인: 출산 후 체중 관리, 야근으로 운동 시간 부족, 피로와 체중 증가 동시 고민
-  • 40~50대: 대사 속도 저하, 체형 변화, 관절 보호하며 운동하는 법
-- 공감 → 정보 → 실천의 흐름. "나도 이런 적 있어" 공감 코드 포함
-- 문장은 짧고 명확하게. 한 문장에 한 가지 정보만.
-- 어려운 운동·영양 용어는 반드시 괄호로 쉬운 설명 병기 (예: 인슐린 저항성(혈당을 낮추는 기능이 떨어진 상태))
-- "당장 오늘부터 할 수 있는 것" 포함
-- 부상 위험·주의사항도 명확히 안내
+[반드시 포함]
+- 개인차 명시: "개인 체력·건강 상태에 따라 다를 수 있습니다" 최소 1회
+- 공공기관 데이터 인용: 국민체육진흥공단·한국영양학회·국민건강영양조사·질병관리청 중 최소 2회
+- 실생활 독자 사례: "37세 직장인 김모씨는..." 같은 구체적 에피소드
+- 오늘 당장 실천 가능한 구체적 행동 지침`;
 
-[E-E-A-T 충족 필수 요소]
-- 경험(Experience): 실제 독자/사례 에피소드
-- 전문성(Expertise): 운동생리학적 메커니즘과 원리 설명
-- 권위(Authoritativeness): 국내 공식 기관 통계·연구 인용
-- 신뢰(Trustworthiness): 주의사항·한계·예외 케이스 솔직 언급
-
-[인간 필자처럼 쓰는 문체 원칙 — 절대 준수]
-① "경험처럼 써라": 단순 정보 나열·검색 결과 재정리 금지. 실제로 겪은 것처럼 서술.
-② "문제 해결 중심으로 써라": 독자가 이 글을 읽고 나서 무엇을 해결했는지, 무엇을 바로 실행할 수 있는지 명확히.
-③ "다른 블로그 10개보다 깊게 써라": 다른 글과 겹치는 내용 50% 이하. 반드시 포함:
-   - 다른 글에 없는 차별화 정보 3가지
-   - 바로 적용 가능한 실전 팁 3가지
-   - 흔히 틀리는 부분 3가지
-
-④ 글을 쓰기 전 이 키워드를 검색하는 사람의 진짜 목적을 먼저 파악하고 그 의도에 맞게 작성.
-⑤ 문장 스타일 규칙:
-   - "~입니다", "~합니다" 반복 금지 — 어미를 다양하게
-   - 짧은 문장과 긴 문장을 자연스럽게 혼합
-   - 글 중간에 필자의 감정·판단을 자연스럽게 삽입 ("솔직히 이 방법이 제일 효과가 빨랐다")
-   - 같은 표현 2번 이상 반복 금지
-   - "또한", "따라서", "즉" 같은 기계적 연결어 최소화
-   - 대량 생성된 글처럼 보이지 않도록 매 섹션 문장 구조를 다르게
-${angleBlock}`;
-
-  // ── 1단계: 메타데이터 생성 ──────────────────────────────────────────────────
+  // ── 1단계: 메타데이터 ────────────────────────────────────────────────────
   const metaRes = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.75,
-    max_tokens: 1200,
+    max_tokens: 1000,
     response_format: { type: 'json_object' },
     messages: [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: SYSTEM_BASE },
       {
         role: 'user',
         content: `키워드: "${keyword}"
-${angleInfo ? `콘텐츠 각도: ${angleInfo.angle}
-제목도 이 각도를 반영해 "방법", "가이드", "효과", "습관", "비결", "전략" 등 긍정적이고 실용적인 표현을 포함하세요.` : ''}
+${angleInfo ? `콘텐츠 각도: ${angleInfo.angle}` : ''}
 
-아래 JSON 메타데이터만 생성하세요 (본문 제외).
-⚠️ 제목에 특정 연도(2023, 2024 등 과거 연도) 절대 포함 금지. 시간이 지나도 유효한 제목으로 작성.
-⚠️ 제목에 "충격", "반전", "위험", "망가", "금지", "절대" 같은 부정·공포 표현 사용 금지.
+JSON만 반환 (설명 없이):
 {
-  "titles": ["방법형 제목 (예: '○○ 효과 높이는 5가지 실천법')", "결과형 제목 (예: '하루 20분으로 체지방 줄이는 운동 루틴')", "가이드형 제목 (예: '초보자도 쉽게 따라하는 ○○ 완벽 가이드')"],
-  "selectedTitle": "클릭률 높은 제목 1개 (30~45자, 핵심 키워드 포함, 연도 포함 금지, 긍정적·실용적·구체적)",
-  "metaTitle": "검색결과 타이틀 (55자 이내, 키워드 포함)",
-  "metaDescription": "검색결과 설명 (120~155자, 절대 160자 초과 금지, 키워드 + 10~50대 여성이 공감할 궁금증 유발 + 클릭 유도)",
-  "excerpt": "글 요약 (120~150자, 핵심 가치 전달)",
-  "keywords": ["핵심키워드", "관련키워드2", "관련키워드3", "롱테일1", "롱테일2"],
-  "sections": ["섹션1 소제목", "섹션2 소제목", "섹션3 소제목", "섹션4 소제목"],
-  "unsplashQuery": "2-3 English words for Unsplash thumbnail photo search, specific to topic (e.g. 'healthy blood sugar food', 'youtube creator monetization', 'real estate investment')",
-  "unsplashBodyQueries": ["English photo search term 1 related to topic", "English photo search term 2 related to topic"]
+  "selectedTitle": "제목 (30~45자, 키워드 포함, 연도 없음, 긍정·실용적)",
+  "metaTitle": "검색결과 타이틀 (55자 이내)",
+  "metaDescription": "검색결과 설명 (130~155자, 클릭 유도)",
+  "excerpt": "글 요약 (120~145자)",
+  "keywords": ["키워드1","키워드2","키워드3","키워드4","키워드5"],
+  "faqQuestions": ["독자가 가장 궁금해할 질문1?","질문2?","질문3?","질문4?"],
+  "sections": ["H2 섹션1 제목","H2 섹션2 제목","H2 섹션3 제목"],
+  "unsplashQuery": "English 2-3 words for thumbnail image",
+  "unsplashBodyQueries": ["English term1","English term2"]
 }`,
       },
     ],
@@ -443,82 +414,86 @@ ${angleInfo ? `콘텐츠 각도: ${angleInfo.angle}
 
   const meta = JSON.parse(metaRes.choices[0].message.content);
 
-  // ── 2단계: 본문 HTML 생성 ─────────────────────────────────────────────────
-  const contentRes = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    temperature: 0.75,
-    max_tokens: 9000,
-    messages: [
-      { role: 'system', content: `${systemPrompt}\nHTML 형식의 블로그 본문만 작성합니다. JSON 없이 순수 HTML만 출력합니다.` },
-      {
-        role: 'user',
-        content: `키워드: "${keyword}"
+  // ── 2단계: 본문 HTML 생성 ────────────────────────────────────────────────
+  const angleBlock = angleInfo
+    ? `\n핵심 방향: ${angleInfo.angle}\n절대 쓰지 말 것: ${angleInfo.forbidden}`
+    : '';
+
+  const contentPrompt = `키워드: "${keyword}"
 제목: "${meta.selectedTitle}"
-섹션 구성: ${meta.sections.join(' / ')}
-글 구조 유형: ${structureGuide}
-${angleInfo ? `핵심 방향: ${angleInfo.angle} / 금지: ${angleInfo.forbidden}` : ''}
+글 구조: ${structureGuide}
+${angleBlock}
 
-━━━ 이 글의 핵심 미션 ━━━
-키워드 = 이 글의 핵심 주장/발견입니다.
-이 주장이 왜 사실인지, 어떤 메커니즘으로 작동하는지를 증명하는 글을 쓰세요.
-독자는 "어, 이건 진짜 몰랐다" 또는 "내가 하던 방법이 틀렸네"를 느껴야 합니다.
+━━━ 필수 조건 (하나라도 빠지면 글 전체가 실패) ━━━
 
-[필수 조건 — 독자를 붙잡는 글]
-1. 도입부 (반드시): 35~45세 실제 독자의 구체적 사례로 시작
-   - "3개월째 헬스장에 다니고 있는 43세 이모씨는 매일 유산소만 했는데..."
-   - 이 사례가 글의 핵심 발견과 직접 연결되어야 함
+【분량】 HTML 태그 제거 기준 순수 텍스트 2,800자 이상 필수.
+  절대로 중간에 끊지 마세요. 분량이 부족하면 각 섹션을 더 깊이 서술하세요.
 
-2. 핵심 발견 설명 (반드시): 키워드가 담고 있는 반전/발견을 구체적으로 증명
-   - 몸에서 일어나는 생물학적 메커니즘 설명
-   - 사람들이 왜 반대로 알고 있었는지 설명
-   - 국민체육진흥공단, 한국영양학회, 국민건강영양조사 데이터 최소 2회 인용
+【구조】 반드시 아래 순서대로 작성:
+  1. 도입 (300자+): 30~45세 독자 실제 사례로 시작 ("39세 직장인 박씨는...")
+  2. H2 섹션 × 3개 (각 500자+): 핵심 정보 + 공공기관 데이터 인용
+  3. FAQ 섹션 (필수): 아래 4개 질문에 각각 150자 이상 답변
+     - ${(meta.faqQuestions || ['이 방법이 정말 효과가 있나요?','언제부터 시작하는 게 좋나요?','주의해야 할 점은 무엇인가요?','얼마나 자주 해야 하나요?']).join('\n     - ')}
+  4. 주의사항 (100자+): 개인차·전문가 상담 권고
+  5. 저자 블록 + CTA 블록
 
-3. 오해 바로잡기 섹션 (반드시): "많은 분들이 이렇게 알고 있지만 사실은..."
-   - 흔한 오해 3가지 + 각각의 진실
+【FAQ HTML 형식 — 반드시 이 구조로】
+<section class="faq-section" style="margin:2.5rem 0;">
+  <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:1.25rem;">자주 묻는 질문</h2>
+  <div class="faq-item" style="background:#fff;border:1px solid #EFE6DC;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem;">
+    <p class="faq-q" style="font-weight:700;color:#C4501A;margin-bottom:0.5rem;">Q. 질문 내용</p>
+    <p style="margin:0;line-height:1.8;">A. 150자 이상의 구체적이고 실용적인 답변...</p>
+  </div>
+  (4개 반복)
+</section>
 
-4. 오늘 당장 실천 (반드시): 글 읽고 나서 바로 할 수 있는 것
-   - 구체적 방법: "내일 운동 전에 OO을 OOg 먹고 OO분 후에 시작하세요" 수준
-
-5. 분량: 순수 텍스트 2,500자 이상
-6. 결론부: "개인 체력 수준과 건강 상태에 따라 차이가 있으며, 부상 위험이 있거나 기저질환이 있는 경우 운동 시작 전 반드시 전문가와 상담하시기 바랍니다." 포함
-7. 글 전체에서 반드시 달성:
-   ① 다른 블로그에 없는 차별화 정보 3가지
-   ② 오늘 바로 실행 가능한 실전 팁 3가지
-   ③ 독자가 흔히 잘못 알고 있는 부분 3가지
-
-[HTML 작성 지침]
-- <article>로 시작해 </article>로 닫기
-- 섹션 제목은 <h2> 사용
-- 중요 수치나 핵심어는 <strong> 강조
-- 목록은 주제에 맞게 <ul> 또는 <ol> 선택 (매번 같은 형식 금지)
-- 표(비교형일 경우): <table> 활용
-- 글 하단에 반드시 아래 저자 정보 블록 포함:
-<div class="author-note" style="margin-top:2rem;padding:1rem 1.25rem;background:#FFF0E8;border-left:4px solid #E8631A;border-radius:8px;font-size:0.875rem;color:#6B3A1F;">
-  <strong>다이어트·운동 백과 에디터팀</strong>이 작성했습니다. 국민체육진흥공단·한국영양학회·대한스포츠의학회 공개 자료를 바탕으로 검토된 정보입니다. 개인 체력·건강 상태에 따라 다를 수 있으므로 전문가 상담을 권장합니다.
+【저자 블록】
+<div class="author-note" style="margin-top:2rem;padding:1rem 1.25rem;background:#FFF5EE;border-left:4px solid #E8631A;border-radius:8px;font-size:0.875rem;color:#6B3A1F;">
+  <strong>다이어트·건강 백과 에디터팀</strong>이 작성했습니다. 국민체육진흥공단·한국영양학회·대한스포츠의학회 공개 자료를 바탕으로 검토된 정보입니다. 개인 체력·건강 상태에 따라 다를 수 있으므로 전문가 상담을 권장합니다.
 </div>
-- 글 맨 마지막에 공유 유도 블록:
+
+【CTA 블록】
 <div class="cta-box">
   <p class="cta-title">이 글이 도움이 되셨나요?</p>
   <div class="cta-buttons">
-    <a href="/" class="cta-btn cta-btn-primary">더 많은 운동 정보 보기 →</a>
-    <button class="cta-btn cta-btn-share" onclick="navigator.share ? navigator.share({title: document.title, url: location.href}) : window.open('https://story.kakao.com/share?url=' + encodeURIComponent(location.href))">카카오톡 공유</button>
+    <a href="/" class="cta-btn cta-btn-primary">더 많은 건강 정보 보기 →</a>
+    <button class="cta-btn cta-btn-share" onclick="navigator.share?navigator.share({title:document.title,url:location.href}):window.open('https://story.kakao.com/share?url='+encodeURIComponent(location.href))">카카오톡 공유</button>
   </div>
-</div>`,
-      },
-    ],
-  });
+</div>
 
-  // GPT가 ```html ... ``` 마크다운 코드블록으로 감싸서 반환하는 경우 제거
-  let content = contentRes.choices[0].message.content.trim();
-  content = content.replace(/^```(?:html)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+<article>로 시작 </article>로 닫기. JSON 없이 순수 HTML만 출력.`;
 
-  const textLen = content.replace(/<[^>]*>/g, '').length;
-  console.log(`    본문 길이: ${textLen.toLocaleString()}자`);
+  let content = '';
+  // 최대 2회 시도 — 분량 미달 시 재시도
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const contentRes = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      temperature: 0.72,
+      max_tokens: 9000,
+      messages: [
+        { role: 'system', content: `${SYSTEM_BASE}\nHTML 형식 블로그 본문만 작성. JSON 없이 순수 HTML만 출력.` },
+        { role: 'user', content: attempt === 1 ? contentPrompt : contentPrompt + '\n\n⚠️ 이전 응답이 분량 미달이었습니다. 각 섹션을 더 깊고 길게 작성하세요. 2,800자 이상 필수.' },
+      ],
+    });
 
+    content = contentRes.choices[0].message.content.trim()
+      .replace(/^```(?:html)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+
+    const textLen = content.replace(/<[^>]+>/g, '').length;
+    console.log(`    본문 길이: ${textLen.toLocaleString()}자 (시도 ${attempt}/2)`);
+
+    if (textLen >= 2200) break;
+    if (attempt < 2) {
+      console.log('    ⚠️  분량 미달 — 재시도...');
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+
+  const finalLen = content.replace(/<[^>]+>/g, '').length;
   return {
     ...meta,
     content,
-    readTime: Math.max(1, Math.ceil(textLen / 500)),
+    readTime: Math.max(1, Math.ceil(finalLen / 500)),
   };
 }
 
