@@ -164,29 +164,32 @@ async function assembleHtml(article, hasPexels) {
     parts.push(sectionHtml);
   }
 
-  // 이럴 땐 멈춰라 — 문장체 본문
+  // 위험 신호 — 주제별 맞춤 제목 + 문장체 본문
   if (article.stop_signals?.length) {
+    const title = article.stop_signals_title || '이런 증상이 나타나면 멈추고 확인하세요';
     const paras = article.stop_signals.map((s) => `<p style="line-height:1.9;margin:0.75rem 0">${s}</p>`).join('\n');
     parts.push(`<section style="margin:2.5rem 0">
-  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">이런 증상이 나타나면 운동을 멈추고 확인하세요</h2>
+  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">${title}</h2>
 ${paras}
 </section>`);
   }
 
-  // 현실적 기대치 — 문장체 본문
+  // 현실적 기대치 — 주제별 맞춤 제목 + 문장체 본문
   if (article.realistic_expectations) {
+    const title = article.realistic_expectations_title || '현실적으로 기대할 수 있는 변화';
     const re = article.realistic_expectations;
     parts.push(`<section style="margin:2.5rem 0">
-  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">현실적으로 기대할 수 있는 변화</h2>
+  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">${title}</h2>
   <p style="line-height:1.9;margin:0.75rem 0">${re.time} ${re.magnitude} 다만 ${re.what_not_to_expect}</p>
 </section>`);
   }
 
-  // 흔한 실수 — 문장체 본문
+  // 흔한 실수 — 주제별 맞춤 제목 + 문장체 본문
   if (article.common_mistakes?.length) {
+    const title = article.common_mistakes_title || '많은 분들이 놓치는 부분';
     const paras = article.common_mistakes.map((m) => `<p style="line-height:1.9;margin:0.75rem 0">${m}</p>`).join('\n');
     parts.push(`<section style="margin:2.5rem 0">
-  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">많은 분들이 놓치는 부분</h2>
+  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">${title}</h2>
 ${paras}
 </section>`);
   }
@@ -356,8 +359,11 @@ function buildUserPrompt(topic, categoryLabel) {
 - sections: 4개 작성, 각 body는 600자 이상의 실제 내용 (지시문·메타 설명 절대 포함 금지)
 - 각 body에 구체 수치(kg·분·%·회 등) 최소 3개 포함
 - 상황별 분기("~이라면", "~인 경우" 등 한국어 조건문)를 body에 자연스럽게 1개 이상 포함 (영어 레이블 IF-THEN 금지)
+- stop_signals_title: 이 글의 주제에 꼭 맞는 고유한 h2 제목 (매번 달라야 함. 예: "닭가슴살 식단 중 이 신호가 오면 즉시 체크하세요", "홈트 중 이런 느낌이 오면 당장 멈추세요")
 - stop_signals: 구체 증상 5개 이상. 각 항목을 완전한 서술 문장으로 작성 (예: "운동 중 갑자기 눈앞이 하얘지거나 어지러움이 심해진다면 즉시 멈추고 앉아야 합니다.")
+- common_mistakes_title: 이 글의 주제에 꼭 맞는 고유한 h2 제목 (매번 달라야 함. 예: "운동기구 없이 홈트할 때 가장 흔히 빠지는 함정", "단백질 식단을 시작하면서 많은 분들이 놓치는 것")
 - common_mistakes: 각 실수를 단순 명사구가 아닌 설명 문장으로 작성 (예: "포화지방을 줄이면서 정작 가공식품의 트랜스지방을 확인하지 않는 경우가 많습니다...")
+- realistic_expectations_title: 이 글의 주제에 꼭 맞는 고유한 h2 제목 (매번 달라야 함. 예: "이 방법을 3주 동안 실천하면 실제로 일어나는 일", "체성분 변화를 숫자로 보면")
 - realistic_expectations: time/magnitude/what_not_to_expect 각각 완전한 서술 문장으로 작성
 - faq: 본문에서 다루지 않은 새 각도 질문 3개, 각 답변은 150자 이상의 자연스러운 서술 문장
 - sources: 실제 기관·저널 2개 이상
@@ -377,12 +383,15 @@ function buildUserPrompt(topic, categoryLabel) {
       "image_query": "Pexels 검색용 영어 키워드 2~3단어"
     }
   ],
+  "stop_signals_title": "이 글 주제에 딱 맞는 고유 제목 — 매 글마다 달라야 함",
   "stop_signals": ["완전한 서술 문장 — 증상과 권고 행동을 포함한 한 문장", "완전한 서술 문장 2", "완전한 서술 문장 3", "완전한 서술 문장 4", "완전한 서술 문장 5"],
+  "realistic_expectations_title": "이 글 주제에 딱 맞는 고유 제목 — 매 글마다 달라야 함",
   "realistic_expectations": {
     "time": "언제부터 효과가 나타나는지 구체 기간을 포함한 서술 문장",
     "magnitude": "얼마나 변화하는지 수치를 포함한 서술 문장",
     "what_not_to_expect": "기대하면 안 되는 것을 설명하는 서술 문장"
   },
+  "common_mistakes_title": "이 글 주제에 딱 맞는 고유 제목 — 매 글마다 달라야 함",
   "common_mistakes": ["실수를 설명하는 서술 문장 1 — 왜 문제인지까지 포함", "서술 문장 2", "서술 문장 3"],
   "today_action": "오늘 당장 할 한 가지 (50자 이내)",
   "faq": [
