@@ -24,17 +24,102 @@ const ALL_PRODUCTS: Product[] = [
   { name: '혜인담 식사대용 단백질 쉐이크 5개', url: 'https://link.coupang.com/a/emopZi', image: 'https://thumbnail9.coupangcdn.com/thumbnails/remote/212x212ex/image/vendor_inventory/image_audit/prod/488b1da8-1db2-4ca2-a943-7012f6777c0a_fixing_v2.png', price: '₩12,900' },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function CoupangCategoryBanner({ categorySlug }: { categorySlug: string }) {
-  const products = useMemo(() => {
-    const shuffled = [...ALL_PRODUCTS].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3);
-  }, []);
+const GRADIENT = 'linear-gradient(90deg, #E8631A 0%, #C4501A 100%)';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function CoupangCategoryBanner({
+  categorySlug,
+  sidebar,
+}: {
+  categorySlug: string;
+  sidebar?: boolean;
+}) {
+  const shuffled = useMemo(() => [...ALL_PRODUCTS].sort(() => Math.random() - 0.5), []);
+  const sidebarProduct = shuffled[0];
+  const bodyProducts = shuffled.slice(1, 4);
+
+  /* ── 사이드바 모드: 상품 1개 세로 카드 (데스크톱 전용) ── */
+  if (sidebar) {
+    const p = sidebarProduct;
+    return (
+      <div style={{ margin: '1rem 0' }}>
+        <div style={{
+          background: GRADIENT,
+          borderRadius: '12px 12px 0 0',
+          padding: '8px 14px',
+        }}>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: '12px' }}>🛒 추천 상품</span>
+        </div>
+        <a
+          href={p.url}
+          target="_blank"
+          rel="noopener sponsored"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '16px 12px',
+            background: 'var(--bg)',
+            border: '1px solid var(--border)',
+            borderTop: 'none',
+            borderRadius: '0 0 12px 12px',
+            textDecoration: 'none',
+          }}
+        >
+          <img
+            src={p.image}
+            alt={p.name}
+            style={{
+              width: '100px',
+              height: '100px',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              background: '#fff',
+              border: '1px solid var(--border)',
+            }}
+          />
+          <p style={{
+            fontSize: '12px',
+            color: 'var(--text)',
+            textAlign: 'center',
+            lineHeight: 1.4,
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            margin: 0,
+            fontWeight: 500,
+          }}>
+            {p.name}
+          </p>
+          <p style={{ fontSize: '14px', fontWeight: 800, color: '#E53E3E', margin: 0 }}>
+            {p.price}
+          </p>
+          <span style={{
+            fontSize: '12px',
+            background: GRADIENT,
+            color: '#fff',
+            borderRadius: '20px',
+            padding: '4px 14px',
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+          }}>
+            바로가기 →
+          </span>
+        </a>
+        <p style={{ fontSize: '10px', color: '#AAAAAA', textAlign: 'center', marginTop: '6px', lineHeight: 1.5 }}>
+          이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
+        </p>
+      </div>
+    );
+  }
+
+  /* ── 본문 모드: 상품 3개 그리드 ── */
   return (
     <div style={{ margin: '2rem 0' }}>
       <div style={{
-        background: 'linear-gradient(90deg, #E8631A 0%, #C4501A 100%)',
+        background: GRADIENT,
         borderRadius: '12px 12px 0 0',
         padding: '10px 16px',
         display: 'flex',
@@ -55,7 +140,7 @@ export default function CoupangCategoryBanner({ categorySlug }: { categorySlug: 
         borderRadius: '0 0 12px 12px',
         overflow: 'hidden',
       }}>
-        {products.map((p, i) => (
+        {bodyProducts.map((p, i) => (
           <a
             key={i}
             href={p.url}
@@ -102,7 +187,7 @@ export default function CoupangCategoryBanner({ categorySlug }: { categorySlug: 
             </p>
             <span style={{
               fontSize: '11px',
-              background: 'linear-gradient(90deg, #E8631A, #C4501A)',
+              background: GRADIENT,
               color: '#fff',
               borderRadius: '20px',
               padding: '3px 10px',
