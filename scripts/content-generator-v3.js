@@ -1,6 +1,6 @@
 /**
  * 콘텐츠 생성기 v3
- * - 모델: gpt-4o (품질 우선)
+ * - 모델: gpt-4o-mini (비용 최적화)
  * - 응답: JSON (reader_questions, hook, lead_answer, sections[], stop_signals,
  *           realistic_expectations, common_mistakes, today_action, faq, sources)
  * - 품질 게이트: checkQualityV3 → score < 90 이면 최대 2회 재생성
@@ -409,7 +409,7 @@ function buildUserPrompt(topic, categoryLabel) {
 async function callGpt(systemPrompt, userPrompt, extra = '') {
   const userContent = extra ? `${userPrompt}\n\n${extra}` : userPrompt;
   const res = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: 'gpt-4o-mini',
     temperature: 0.75,
     max_tokens: 10000,
     response_format: { type: 'json_object' },
@@ -466,7 +466,7 @@ async function generateArticle(topic, categoryLabel) {
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────────
 async function main() {
-  console.log(`\n=== 콘텐츠 생성기 v3 (gpt-4o)${IS_DRY_RUN ? ' [DRY RUN]' : ''} ===\n`);
+  console.log(`\n=== 콘텐츠 생성기 v3 (gpt-4o-mini)${IS_DRY_RUN ? ' [DRY RUN]' : ''} ===\n`);
 
   const hasPexels = !!process.env.PEXELS_API_KEY;
 
