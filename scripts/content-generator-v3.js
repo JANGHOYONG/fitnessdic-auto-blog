@@ -239,14 +239,10 @@ ${items}
   return `<article>\n${parts.join('\n\n')}\n</article>`;
 }
 
-// ─── 슬러그 생성 ───────────────────────────────────────────────────────────────
-function generateSlug(title) {
-  return title
-    .replace(/\s+/g, '-')
-    .replace(/[?!?!.,'"'"]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 60) + '-' + Date.now();
+// ─── 슬러그 생성 (ASCII only — 한글 URL은 Vercel 라우팅 오류 유발)
+function generateSlug(categorySlug) {
+  const rand = Math.random().toString(36).slice(2, 7);
+  return `${categorySlug || 'fitness'}-${Date.now()}-${rand}`;
 }
 
 // ─── 주제 가져오기 ─────────────────────────────────────────────────────────────
@@ -528,7 +524,7 @@ async function main() {
     const excerpt = article.hook?.slice(0, 145) || topic.title;
 
     // slug
-    const slug = generateSlug(article.lead_answer || topic.title);
+    const slug = generateSlug(catRecord?.slug || topic.categorySlug);
 
     // DB 저장
     const post = await prisma.post.create({

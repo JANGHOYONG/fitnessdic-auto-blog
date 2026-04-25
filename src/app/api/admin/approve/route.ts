@@ -22,19 +22,22 @@ export async function POST(req: Request) {
         reviewedAt: now,
         publishedAt: now,
       },
-      select: { id: true, status: true, slug: true },
+      select: { id: true, status: true, slug: true, category: { select: { slug: true } } },
     });
+
+    const categorySlug = (updated as any).category?.slug || '';
+    const postPath = `/${categorySlug}/${updated.slug}`;
 
     // Next.js 캐시 무효화
     try {
       revalidatePath('/');
-      revalidatePath('/posts');
-      revalidatePath(`/posts/${updated.slug}`);
+      revalidatePath(`/${categorySlug}`);
+      revalidatePath(postPath);
     } catch (_) {
       // revalidate 실패해도 발행은 성공
     }
 
-    return NextResponse.json({ success: true, id: updated.id, status: updated.status });
+    return NextResponse.json({ success: true, id: updated.id, status: updated.status, postPath });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
