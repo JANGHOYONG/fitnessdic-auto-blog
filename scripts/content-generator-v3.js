@@ -164,45 +164,39 @@ async function assembleHtml(article, hasPexels) {
     parts.push(sectionHtml);
   }
 
-  // 이럴 땐 멈춰라
+  // 이럴 땐 멈춰라 — 문장체 본문
   if (article.stop_signals?.length) {
-    const items = article.stop_signals.map((s) => `<li style="padding:0.4rem 0">${s}</li>`).join('\n');
-    parts.push(`<section class="stop-signals" style="margin:2.5rem 0;padding:1.25rem 1.5rem;background:#FEF2F2;border-radius:12px;border:1px solid #FECACA">
-  <h2 style="font-size:1.2rem;font-weight:700;color:#991B1B;margin-bottom:1rem">🛑 이런 증상이 오면 멈추세요</h2>
-  <ul style="margin:0;padding-left:1.5rem;line-height:1.9;color:#7F1D1D">\n${items}\n  </ul>
+    const paras = article.stop_signals.map((s) => `<p style="line-height:1.9;margin:0.75rem 0">${s}</p>`).join('\n');
+    parts.push(`<section style="margin:2.5rem 0">
+  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">이런 증상이 나타나면 운동을 멈추고 확인하세요</h2>
+${paras}
 </section>`);
   }
 
-  // 현실적 기대치
+  // 현실적 기대치 — 문장체 본문
   if (article.realistic_expectations) {
     const re = article.realistic_expectations;
-    parts.push(`<section class="realistic-expectations" style="margin:2.5rem 0;padding:1.25rem 1.5rem;background:#F0FDF4;border-radius:12px;border:1px solid #BBF7D0">
-  <h2 style="font-size:1.2rem;font-weight:700;color:#14532D;margin-bottom:1rem">📊 현실적으로 기대할 수 있는 것</h2>
-  <ul style="margin:0;padding-left:1.5rem;line-height:1.9;color:#166534">
-    <li><strong>언제부터:</strong> ${re.time}</li>
-    <li><strong>얼마나:</strong> ${re.magnitude}</li>
-    <li><strong>기대하지 마세요:</strong> ${re.what_not_to_expect}</li>
-  </ul>
+    parts.push(`<section style="margin:2.5rem 0">
+  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">현실적으로 기대할 수 있는 변화</h2>
+  <p style="line-height:1.9;margin:0.75rem 0">${re.time} ${re.magnitude} 다만 ${re.what_not_to_expect}</p>
 </section>`);
   }
 
-  // 흔한 실수
+  // 흔한 실수 — 문장체 본문
   if (article.common_mistakes?.length) {
-    const items = article.common_mistakes.map((m, idx) => `<li style="padding:0.4rem 0"><strong>${idx + 1}.</strong> ${m}</li>`).join('\n');
-    parts.push(`<section class="common-mistakes" style="margin:2.5rem 0">
-  <h2 style="font-size:1.2rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem">⚠️ 초보자가 가장 많이 하는 실수</h2>
-  <ol style="margin:0;padding-left:1.5rem;line-height:1.9">\n${items}\n  </ol>
+    const paras = article.common_mistakes.map((m) => `<p style="line-height:1.9;margin:0.75rem 0">${m}</p>`).join('\n');
+    parts.push(`<section style="margin:2.5rem 0">
+  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">많은 분들이 놓치는 부분</h2>
+${paras}
 </section>`);
   }
 
-  // FAQ
+  // FAQ — 문장체 본문 (h3 + p)
   if (article.faq?.length) {
-    const items = article.faq.map((f) => `<div class="faq-item" style="background:#fff;border:1px solid #EFE6DC;border-radius:12px;padding:1rem 1.25rem;margin-bottom:0.75rem">
-    <p class="faq-q" style="font-weight:700;color:#C4501A;margin-bottom:0.5rem">Q. ${f.q}</p>
-    <p style="margin:0;line-height:1.8">A. ${f.a}</p>
-  </div>`).join('\n');
-    parts.push(`<section class="faq-section" style="margin:2.5rem 0">
-  <h2 style="font-size:1.2rem;font-weight:700;color:#2D1A0E;margin-bottom:1.25rem">자주 묻는 질문</h2>
+    const items = article.faq.map((f) => `<h3 style="font-size:1rem;font-weight:700;color:#2D1A0E;margin:1.5rem 0 0.4rem">${f.q}</h3>
+  <p style="line-height:1.9;margin:0">${f.a}</p>`).join('\n');
+    parts.push(`<section style="margin:2.5rem 0">
+  <h2 style="font-size:1.3rem;font-weight:700;color:#2D1A0E;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:2px solid #F5D5B8">자주 묻는 질문</h2>
 ${items}
 </section>`);
   }
@@ -366,8 +360,10 @@ function buildUserPrompt(topic, categoryLabel) {
 - sections: 4개 작성, 각 body는 600자 이상의 실제 내용 (지시문·메타 설명 절대 포함 금지)
 - 각 body에 구체 수치(kg·분·%·회 등) 최소 3개 포함
 - 상황별 분기("~이라면", "~인 경우" 등 한국어 조건문)를 body에 자연스럽게 1개 이상 포함 (영어 레이블 IF-THEN 금지)
-- stop_signals: 구체 증상 5개 이상 (예: "일어설 때 눈앞이 하얘짐", "수면 질 저하 1주 이상")
-- faq: 본문에서 다루지 않은 새 각도 질문 3개, 각 답변 150자 이상
+- stop_signals: 구체 증상 5개 이상. 각 항목을 완전한 서술 문장으로 작성 (예: "운동 중 갑자기 눈앞이 하얘지거나 어지러움이 심해진다면 즉시 멈추고 앉아야 합니다.")
+- common_mistakes: 각 실수를 단순 명사구가 아닌 설명 문장으로 작성 (예: "포화지방을 줄이면서 정작 가공식품의 트랜스지방을 확인하지 않는 경우가 많습니다...")
+- realistic_expectations: time/magnitude/what_not_to_expect 각각 완전한 서술 문장으로 작성
+- faq: 본문에서 다루지 않은 새 각도 질문 3개, 각 답변은 150자 이상의 자연스러운 서술 문장
 - sources: 실제 기관·저널 2개 이상
 
 다음 JSON 형식으로만 응답하세요 (코드블록 없이):
@@ -385,18 +381,18 @@ function buildUserPrompt(topic, categoryLabel) {
       "image_query": "Pexels 검색용 영어 키워드 2~3단어"
     }
   ],
-  "stop_signals": ["구체 증상 1", "구체 증상 2", "구체 증상 3", "구체 증상 4", "구체 증상 5"],
+  "stop_signals": ["완전한 서술 문장 — 증상과 권고 행동을 포함한 한 문장", "완전한 서술 문장 2", "완전한 서술 문장 3", "완전한 서술 문장 4", "완전한 서술 문장 5"],
   "realistic_expectations": {
-    "time": "언제부터 효과 (구체 기간 + 조건)",
-    "magnitude": "얼마나 변화 (수치 포함)",
-    "what_not_to_expect": "기대하면 안 되는 것"
+    "time": "언제부터 효과가 나타나는지 구체 기간을 포함한 서술 문장",
+    "magnitude": "얼마나 변화하는지 수치를 포함한 서술 문장",
+    "what_not_to_expect": "기대하면 안 되는 것을 설명하는 서술 문장"
   },
-  "common_mistakes": ["실수 1 (구체 행동)", "실수 2", "실수 3"],
+  "common_mistakes": ["실수를 설명하는 서술 문장 1 — 왜 문제인지까지 포함", "서술 문장 2", "서술 문장 3"],
   "today_action": "오늘 당장 할 한 가지 (50자 이내)",
   "faq": [
-    {"q": "본문에 없는 새 각도 질문 1", "a": "150자 이상 구체 답변"},
-    {"q": "본문에 없는 새 각도 질문 2", "a": "150자 이상 구체 답변"},
-    {"q": "본문에 없는 새 각도 질문 3", "a": "150자 이상 구체 답변"}
+    {"q": "본문에 없는 새 각도 질문 1", "a": "150자 이상 자연스러운 서술 문장 답변"},
+    {"q": "본문에 없는 새 각도 질문 2", "a": "150자 이상 자연스러운 서술 문장 답변"},
+    {"q": "본문에 없는 새 각도 질문 3", "a": "150자 이상 자연스러운 서술 문장 답변"}
   ],
   "sources": [
     {"year": 2024, "publisher": "기관명 또는 저널명", "key_finding": "핵심 숫자 포함 한 줄 요약", "url": ""},
