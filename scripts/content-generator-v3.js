@@ -228,6 +228,17 @@ function generateSlug(categorySlug) {
   return `${categorySlug || 'fitness'}-${Date.now()}-${rand}`;
 }
 
+// ─── 다이어트·운동 7대 유효 카테고리 ────────────────────────────────────────────
+const VALID_FITNESS_SLUGS = [
+  'weightloss',   // 체중감량
+  'strength',     // 근력운동
+  'cardio',       // 유산소·러닝
+  'nutrition',    // 식단·영양
+  'hometraining', // 홈트레이닝
+  'supplement',   // 영양제·이너뷰티
+  'motivation',   // 바디프로필·동기
+];
+
 // ─── 주제 가져오기 ─────────────────────────────────────────────────────────────
 async function getNextTopic() {
   if (TOPIC_OVERRIDE) {
@@ -243,14 +254,40 @@ async function getNextTopic() {
     return { title: topic.title, keyword: topic.keyword, topicId: topic.id, categorySlug: topic.categoryId };
   }
 
-  // 2) Keyword 테이블 fallback
-  const kw = await prisma.keyword.findFirst({
-    where: { used: false },
-    include: { category: true },
-    orderBy: [{ priority: 'asc' }, { searchVolume: 'desc' }],
+  // 2) Keyword 테이블 — 유효 카테고리만, 마지막 발행이 오래된 카테고리부터 로테이션
+  const validCats = await prisma.category.findMany({
+    where: { slug: { in: VALID_FITNESS_SLUGS } },
   });
-  if (kw) {
-    return { title: kw.keyword, keyword: kw.keyword, keywordId: kw.id, categorySlug: kw.category?.slug };
+
+  const lastPublished = await prisma.post.groupBy({
+    by: ['categoryId'],
+    where: {
+      status: 'PUBLISHED',
+      categoryId: { in: validCats.map((c) => c.id) },
+    },
+    _max: { publishedAt: true },
+  });
+
+  const lastPubMap = Object.fromEntries(
+    lastPublished.map((r) => [r.categoryId, r._max.publishedAt])
+  );
+
+  // 오래된 순(발행 없으면 0) → 가장 오래된 카테고리 먼저
+  const orderedCats = [...validCats].sort((a, b) => {
+    const da = lastPubMap[a.id] ? new Date(lastPubMap[a.id]).getTime() : 0;
+    const db = lastPubMap[b.id] ? new Date(lastPubMap[b.id]).getTime() : 0;
+    return da - db;
+  });
+
+  for (const cat of orderedCats) {
+    const kw = await prisma.keyword.findFirst({
+      where: { used: false, categoryId: cat.id },
+      include: { category: true },
+      orderBy: [{ priority: 'asc' }, { searchVolume: 'desc' }],
+    });
+    if (kw) {
+      return { title: kw.keyword, keyword: kw.keyword, keywordId: kw.id, categorySlug: kw.category?.slug };
+    }
   }
 
   throw new Error('사용 가능한 주제가 없습니다. Topic 또는 Keyword 테이블을 확인하세요.');
@@ -258,7 +295,7 @@ async function getNextTopic() {
 
 // ─── 카테고리 조회/생성 ────────────────────────────────────────────────────────
 async function resolveCategoryId(slug) {
-  const SLUG_FALLBACK = 'diet';
+  const SLUG_FALLBACK = 'weightloss'; // 유효 카테고리로 폴백
   const effectiveSlug = slug || SLUG_FALLBACK;
   let cat = await prisma.category.findUnique({ where: { slug: effectiveSlug } });
   if (!cat) cat = await prisma.category.findUnique({ where: { slug: SLUG_FALLBACK } });
@@ -266,7 +303,7 @@ async function resolveCategoryId(slug) {
     cat = await prisma.category.upsert({
       where: { slug: SLUG_FALLBACK },
       update: {},
-      create: { name: '다이어트', slug: SLUG_FALLBACK, description: '과학적 다이어트 정보' },
+      create: { name: '체중감량', slug: SLUG_FALLBACK, description: '과학적 체중감량 정보' },
     });
   }
   return cat.id;
