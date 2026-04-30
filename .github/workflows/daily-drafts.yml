@@ -30,38 +30,47 @@ jobs:
       - name: Check REVIEW_REQUIRED queue size
         id: queue_check
         run: |
-          node -e "
+          QUEUE=$(node -e "
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();
-          prisma.post.count({ where: { status: { in: ['REVIEW_REQUIRED', 'APPROVED'] } } }).then(n => {
-            console.log('감수 대기 큐:', n + '건');
-            if (n >= 7) {
-              console.log('큐 적체 — 초안 생성 중단 (감수를 먼저 진행하세요)');
-              process.exit(2);
-            }
-            process.exit(0);
-          }).finally(() => prisma.$disconnect());
-          " || ([ $? -eq 2 ] && echo "SKIP=true" >> $GITHUB_OUTPUT && exit 0)
+          prisma.post.count({ where: { status: { in: ['REVIEW_REQUIRED', 'APPROVED'] } } })
+            .then(n => { process.stdout.write(String(n)); })
+            .finally(() => prisma.\$disconnect());
+          ")
+          echo "queue=$QUEUE" >> $GITHUB_OUTPUT
+          echo "감수 대기 큐: ${QUEUE}건"
+          if [ "$QUEUE" -ge 7 ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "큐 적체 — 초안 생성 중단 (감수를 먼저 진행하세요)"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Auto-replenish keywords if low
-        if: steps.queue_check.outputs.SKIP != 'true'
+        if: steps.queue_check.outputs.skip != 'true'
         run: |
-          node -e "
+          KWCOUNT=$(node -e "
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();
-          prisma.keyword.count({ where: { used: false } }).then(n => {
-            console.log('미사용 키워드:', n);
-            process.exit(n < 10 ? 1 : 0);
-          }).finally(() => prisma.$disconnect());
-          " && echo "키워드 충분" || node scripts/keyword-collector.js --count=20
+          prisma.keyword.count({ where: { used: false } })
+            .then(n => { process.stdout.write(String(n)); })
+            .finally(() => prisma.\$disconnect());
+          ")
+          echo "미사용 키워드: ${KWCOUNT}개"
+          if [ "$KWCOUNT" -lt 10 ]; then
+            echo "키워드 부족 — 자동 수집 시작"
+            node scripts/keyword-collector.js --count=20
+          else
+            echo "키워드 충분"
+          fi
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Generate 1 draft (v3 · gpt-4o)
-        if: steps.queue_check.outputs.SKIP != 'true'
+      - name: Generate 1 draft (v3 · gpt-4o-mini)
+        if: steps.queue_check.outputs.skip != 'true'
         run: node scripts/content-generator-v3.js
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

@@ -35,17 +35,20 @@ const nextConfig = {
     ];
   },
 
-  // 리다이렉트 — 기존 카테고리 URL 보존 (링크주스 유지)
+  // 리다이렉트 — 잘못된 구 카테고리 슬러그 → 올바른 신 카테고리로 301
+  // (구: diet/exercise/running/fitness/health/knowledge → 신: weightloss/strength/cardio 등)
   async redirects() {
     return [
-      // 기존 카테고리 → 새 카테고리 301 리다이렉트
-      { source: '/weightloss/:path*', destination: '/diet/:path*',         permanent: true },
-      { source: '/strength/:path*',   destination: '/exercise/:path*',     permanent: true },
-      { source: '/cardio/:path*',     destination: '/running/:path*',      permanent: true },
-      // 단일 슬러그 리다이렉트
-      { source: '/weightloss',        destination: '/diet',                permanent: true },
-      { source: '/strength',          destination: '/exercise',            permanent: true },
-      { source: '/cardio',            destination: '/running',             permanent: true },
+      { source: '/diet/:path*',      destination: '/weightloss/:path*',   permanent: true },
+      { source: '/exercise/:path*',  destination: '/strength/:path*',     permanent: true },
+      { source: '/running/:path*',   destination: '/cardio/:path*',       permanent: true },
+      { source: '/fitness/:path*',   destination: '/strength/:path*',     permanent: true },
+      { source: '/diet',             destination: '/weightloss',          permanent: true },
+      { source: '/exercise',         destination: '/strength',            permanent: true },
+      { source: '/running',          destination: '/cardio',              permanent: true },
+      { source: '/fitness',          destination: '/strength',            permanent: true },
+      // 어드민 로그인 페이지 → 바로 감수 큐로
+      { source: '/admin/login',      destination: '/admin/review',        permanent: false },
     ];
   },
 };
