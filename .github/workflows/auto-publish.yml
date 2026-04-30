@@ -1,8 +1,8 @@
 name: Auto Publish (감수 승인 1건)
 
 on:
-  schedule:
-    - cron: "0 9 * * *"    # UTC 09:00 = KST 18:00 (하루 1회)
+  # 스케줄 제거 — 발행은 /admin/review 에서 수동 승인으로만 처리
+  # 기존 DRAFT 긴급 발행 필요 시 workflow_dispatch 수동 실행
   workflow_dispatch: {}
 
 jobs:

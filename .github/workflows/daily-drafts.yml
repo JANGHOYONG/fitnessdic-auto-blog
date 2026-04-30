@@ -30,18 +30,27 @@ jobs:
       - name: Check REVIEW_REQUIRED queue size
         id: queue_check
         run: |
+          # stderr 숨기고 마지막 줄만 가져와서 숫자만 추출
           QUEUE=$(node -e "
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();
-          prisma.post.count({ where: { status: { in: ['REVIEW_REQUIRED', 'APPROVED'] } } })
-            .then(n => { process.stdout.write(String(n)); })
+          prisma.post.count({ where: { status: { in: ['REVIEW_REQUIRED','APPROVED'] } } })
+            .then(n => { console.log(n); })
+            .catch(() => { console.log(0); })
             .finally(() => prisma.\$disconnect());
-          ")
+          " 2>/dev/null | tail -1 | tr -d '[:space:]')
+
+          # 숫자가 아니면 0으로 처리
+          if ! echo "$QUEUE" | grep -qE '^[0-9]+$'; then
+            QUEUE=0
+          fi
+
           echo "queue=$QUEUE" >> $GITHUB_OUTPUT
           echo "감수 대기 큐: ${QUEUE}건"
+
           if [ "$QUEUE" -ge 7 ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "큐 적체 — 초안 생성 중단 (감수를 먼저 진행하세요)"
+            echo "큐 적체 — 초안 생성 건너뜀"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
@@ -55,21 +64,23 @@ jobs:
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();
           prisma.keyword.count({ where: { used: false } })
-            .then(n => { process.stdout.write(String(n)); })
+            .then(n => { console.log(n); })
+            .catch(() => { console.log(99); })
             .finally(() => prisma.\$disconnect());
-          ")
+          " 2>/dev/null | tail -1 | tr -d '[:space:]')
+
+          if ! echo "$KWCOUNT" | grep -qE '^[0-9]+$'; then KWCOUNT=99; fi
+
           echo "미사용 키워드: ${KWCOUNT}개"
           if [ "$KWCOUNT" -lt 10 ]; then
-            echo "키워드 부족 — 자동 수집 시작"
+            echo "키워드 부족 — 자동 수집"
             node scripts/keyword-collector.js --count=20
-          else
-            echo "키워드 충분"
           fi
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Generate 1 draft (v3 · gpt-4o-mini)
+      - name: Generate 1 draft (REVIEW_REQUIRED)
         if: steps.queue_check.outputs.skip != 'true'
         run: node scripts/content-generator-v3.js
         env:
