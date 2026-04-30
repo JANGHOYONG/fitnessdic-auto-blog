@@ -64,8 +64,9 @@ export default async function PostPage({ params }: Props) {
         },
       },
     });
-  } catch {
-    notFound();
+  } catch (e) {
+    // DB 일시 오류 → error.tsx로 전달 (notFound 캐시 오염 방지)
+    throw e;
   }
 
   if (!post || post.status !== 'PUBLISHED' || post.category.slug !== decodedCategory) notFound();
