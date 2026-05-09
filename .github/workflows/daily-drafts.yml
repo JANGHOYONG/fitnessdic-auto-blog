@@ -34,7 +34,7 @@ jobs:
           QUEUE=$(node -e "
           const { PrismaClient } = require('@prisma/client');
           const prisma = new PrismaClient();
-          prisma.post.count({ where: { status: { in: ['REVIEW_REQUIRED','APPROVED'] } } })
+          prisma.post.count({ where: { status: 'DRAFT' } })
             .then(n => { console.log(n); })
             .catch(() => { console.log(0); })
             .finally(() => prisma.\$disconnect());

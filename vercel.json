@@ -9,7 +9,7 @@
       "maxDuration": 60
     }
   },
-  "headers": [
+"headers": [
     {
       "source": "/sitemap.xml",
       "headers": [

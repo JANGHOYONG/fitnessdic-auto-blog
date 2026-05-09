@@ -4,7 +4,7 @@
  * - 응답: JSON (reader_questions, hook, lead_answer, sections[], stop_signals,
  *           realistic_expectations, common_mistakes, today_action, faq, sources)
  * - 품질 게이트: checkQualityV3 → score < 90 이면 최대 2회 재생성
- * - 저장 상태: 항상 REVIEW_REQUIRED (사람 감수 필수)
+ * - 저장 상태: DRAFT (자동발행 파이프라인 — 감수 없이 바로 발행)
  * - 주제: Topic 테이블(PENDING, priority asc) → 없으면 Keyword 테이블 → --topic 인자
  *
  * 실행: node scripts/content-generator-v3.js
@@ -228,7 +228,7 @@ function generateSlug(categorySlug) {
   return `${categorySlug || 'fitness'}-${Date.now()}-${rand}`;
 }
 
-// ─── 다이어트·운동 7대 유효 카테고리 ────────────────────────────────────────────
+// ─── 다이어트·운동 10대 유효 카테고리 ───────────────────────────────────────────
 const VALID_FITNESS_SLUGS = [
   'weightloss',   // 체중감량
   'strength',     // 근력운동
@@ -237,6 +237,9 @@ const VALID_FITNESS_SLUGS = [
   'hometraining', // 홈트레이닝
   'supplement',   // 영양제·이너뷰티
   'motivation',   // 바디프로필·동기
+  'health',       // 생활건강
+  'skincare',     // 스킨케어
+  'beauty',       // 뷰티·메이크업
 ];
 
 // ─── 주제 가져오기 ─────────────────────────────────────────────────────────────
@@ -561,7 +564,7 @@ async function main() {
         tags: [topic.keyword, categoryLabel],
         metaTitle: `${topic.title} | 다이어트·운동 백과`,
         metaDescription: excerpt.slice(0, 155),
-        status: 'REVIEW_REQUIRED',
+        status: 'DRAFT',
         qualityScore: qualityReport.score,
         rejectReasons: qualityReport.failed,
         sources: article.sources || [],
@@ -573,7 +576,7 @@ async function main() {
       },
     });
 
-    console.log(`\n  ✅ 저장 완료 → Post #${post.id} | 품질: ${qualityReport.score}점 | ${bodyText.length}자 | REVIEW_REQUIRED`);
+    console.log(`\n  ✅ 저장 완료 → Post #${post.id} | 품질: ${qualityReport.score}점 | ${bodyText.length}자 | DRAFT`);
 
     // Topic / Keyword 상태 업데이트
     if (topic.topicId) {

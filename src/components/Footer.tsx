@@ -2,10 +2,10 @@ import Link from 'next/link';
 import AddToHomeScreen from './AddToHomeScreen';
 
 const CONTENT_LINKS = [
-  { name: '다이어트', href: '/diet' },
-  { name: '운동·헬스', href: '/exercise' },
+  { name: '다이어트', href: '/weightloss' },
+  { name: '운동·헬스', href: '/strength' },
   { name: '홈트레이닝', href: '/hometraining' },
-  { name: '러닝·유산소', href: '/running' },
+  { name: '러닝·유산소', href: '/cardio' },
   { name: '식단·영양', href: '/nutrition' },
   { name: '영양제·이너뷰티', href: '/supplement' },
   { name: '생활건강', href: '/health' },
@@ -61,7 +61,7 @@ export default function Footer() {
                 { href: '/terms',      label: '이용약관' },
                 { href: '/disclaimer', label: '의료 면책 고지' },
                 { href: '/sitemap.xml', label: '사이트맵' },
-                { href: '/feed.xml',   label: 'RSS 피드' },
+                { href: '/rss',        label: 'RSS 피드' },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link href={href} className="hover:underline" style={{ color: '#4A3F33' }}>{label}</Link>

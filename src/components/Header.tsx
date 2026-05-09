@@ -157,10 +157,10 @@ function AppDownloadHeaderBtn() {
 }
 
 const CATEGORIES = [
-  { name: '다이어트',      href: '/diet',         accent: 'coral' },
-  { name: '운동·헬스',     href: '/exercise',     accent: 'coral' },
+  { name: '다이어트',      href: '/weightloss',   accent: 'coral' },
+  { name: '운동·헬스',     href: '/strength',     accent: 'coral' },
   { name: '홈트레이닝',    href: '/hometraining', accent: 'coral' },
-  { name: '러닝·유산소',   href: '/running',      accent: 'coral' },
+  { name: '러닝·유산소',   href: '/cardio',       accent: 'coral' },
   { name: '식단·영양',     href: '/nutrition',    accent: 'sage'  },
   { name: '영양제',        href: '/supplement',   accent: 'sage'  },
   { name: '생활건강',      href: '/health',       accent: 'sage'  },
